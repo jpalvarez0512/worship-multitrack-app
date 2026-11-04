@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consola Central de Control | Worship Multitrack</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --accent: #3b82f6;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 { font-size: 1.4rem; color: #fff; }
+    .lan-badge {
+      background: #064e3b;
+      color: #6ee7b7;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .panel h2 {
+      font-size: 1.1rem;
+      margin-bottom: 14px;
+      color: #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Transporte */
+    .transport-controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .btn-transport {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      color: #fff;
+      transition: opacity 0.2s;
+    }
+    .btn-play { background: #10b981; }
+    .btn-pause { background: #f59e0b; }
+    .btn-stop { background: #ef4444; }
+    .btn-transport:active { opacity: 0.8; }
+
+    /* Barra de progreso */
+    .progress-bar-container {
+      margin: 16px 0;
+    }
+    .slider {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: #334155;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+    .time-labels {
+      display: flex;
+      justify-content: space-between;
+      font-family: monospace;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* Mezclador de Stems */
+    .stem-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #293548;
+    }
+    .stem-name {
+      width: 100px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .route-tag {
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 800;
+    }
+    .route-cue { background: #4338ca; color: #a5b4fc; }
+    .route-master { background: #047857; color: #a7f3d0; }
+
+    .vol-slider {
+      flex: 1;
+    }
+    .btn-toggle {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #1e293b;
+      color: #cbd5e1;
+      font-weight: bold;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .btn-toggle.active-mute { background: #dc2626; color: #fff; }
+    .btn-toggle.active-solo { background: #eab308; color: #000; }
+
+    /* Proyección rápida */
+    .btn-projection-action {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #334155;
+      color: #fff;
+      font-weight: bold;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .btn-projection-action.active {
+      background: #dc2626;
+    }
+
+    /* Links y QR */
+    .link-box {
+      background: #0f172a;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      word-break: break-all;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+    a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>🎛 Panel de Control y Operador</h1>
+      <p style="color:var(--text-muted); font-size:0.85rem;">Worship Multitrack Live Engine</p>
+    </div>
+    <div class="lan-badge" id="lan-ip">Conectando...</div>
+  </header>
+
+  <div class="grid-layout">
+    <!-- Columna Izquierda: Transporte y Mezclador -->
+    <div>
+      <div class="panel">
+        <h2>Transporte Multitrack</h2>
+        <div class="transport-controls">
+          <button class="btn-transport btn-play" onclick="controlTransport('play')">▶ PLAY</button>
+          <button class="btn-transport btn-pause" onclick="controlTransport('pause')">⏸ PAUSA</button>
+          <button class="btn-transport btn-stop" onclick="controlTransport('stop')">⏹ STOP</button>
+        </div>
+
+        <div class="progress-bar-container">
+          <input type="range" min="0" max="100" value="0" class="slider" id="timeline" oninput="onSeekChange(this.value)">
+          <div class="time-labels">
+            <span id="current-time">00:00</span>
+            <span id="total-time">00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Mezclador de Stems en Vivo</h2>
+        <div id="stems-list">Cargando pistas...</div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Control de Proyección y Conexión LAN -->
+    <div>
+      <div class="panel">
+        <h2>Control de Pantalla de Letras</h2>
+        <button class="btn-projection-action" id="btn-blackout" onclick="toggleBlackout()">⚫ Pantalla Negra (Blackout)</button>
+        <button class="btn-projection-action" id="btn-clear" onclick="toggleClearText()">🚫 Ocultar Texto</button>
+      </div>
+
+      <div class="panel">
+        <h2>Accesos de Red Local (LAN)</h2>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">Músicos (Escenario):</p>
+        <div class="link-box"><a id="musicians-link" target="_blank" href="/musicians">/musicians</a></div>
+
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">Proyección / OBS Studio:</p>
+        <div class="link-box"><a id="projection-link" target="_blank" href="/projection">/projection</a></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isSeeking = false;
+    let songDuration = 0;
+    let blackoutState = false;
+    let clearState = false;
+
+    async function loadNetworkInfo() {
+      try {
+        const res = await fetch('/api/network-info');
+        const data = await res.json();
+        document.getElementById('lan-ip').innerText = `LAN: ${data.local_ip}:${data.port}`;
+        document.getElementById('musicians-link').href = data.musicians_url;
+        document.getElementById('musicians-link').innerText = data.musicians_url;
+        document.getElementById('projection-link').href = data.projection_url;
+        document.getElementById('projection-link').innerText = data.projection_url;
+      } catch (e) {}
+    }
+
+    async function controlTransport(action) {
+      await fetch(`/api/transport/${action}`, { method: 'POST' });
+    }
+
+    function onSeekChange(val) {
+      isSeeking = true;
+      const targetSec = (val / 100) * songDuration;
+      document.getElementById('current-time').innerText = formatTime(targetSec);
+    }
+
+    document.getElementById('timeline').onchange = async function() {
+      const targetSec = (this.value / 100) * songDuration;
+      await fetch(`/api/transport/seek?pos=${targetSec}`, { method: 'POST' });
+      isSeeking = false;
+    };
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    async function loadStems() {
+      try {
+        const res = await fetch('/api/stems');
+        const stems = await res.json();
+        const container = document.getElementById('stems-list');
+        container.innerHTML = '';
+
+        stems.forEach(stem => {
+          const row = document.createElement('div');
+          row.className = 'stem-row';
+
+          const routeClass = stem.route === 'cue' ? 'route-cue' : 'route-master';
+          const routeText = stem.route === 'cue' ? 'CUE / IN-EAR' : 'SALA / FOH';
+
+          row.innerHTML = `
+            <div class="stem-name">${stem.name}</div>
+            <span class="route-tag ${routeClass}">${routeText}</span>
+            <input type="range" min="0" max="1" step="0.05" value="${stem.volume}" class="slider vol-slider"
+                   onchange="setVolume('${stem.name}', this.value)">
+            <button class="btn-toggle ${stem.mute ? 'active-mute' : ''}" onclick="toggleMute('${stem.name}', ${!stem.mute})">M</button>
+            <button class="btn-toggle ${stem.solo ? 'active-solo' : ''}" onclick="toggleSolo('${stem.name}', ${!stem.solo})">S</button>
+          `;
+          container.appendChild(row);
+        });
+      } catch (e) {}
+    }
+
+    async function setVolume(name, vol) {
+      await fetch(`/api/stems/${name}/volume?volume=${vol}`, { method: 'POST' });
+    }
+
+    async function toggleMute(name, mute) {
+      await fetch(`/api/stems/${name}/mute?mute=${mute}`, { method: 'POST' });
+      loadStems();
+    }
+
+    async function toggleSolo(name, solo) {
+      await fetch(`/api/stems/${name}/solo?solo=${solo}`, { method: 'POST' });
+      loadStems();
+    }
+
+    let ws = null;
+    function connectWS() {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${location.host}/ws/control`);
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'control_tick' && !isSeeking) {
+            const pos = data.pos;
+            if (songDuration > 0) {
+              document.getElementById('timeline').value = (pos / songDuration) * 100;
+            }
+            document.getElementById('current-time').innerText = formatTime(pos);
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => setTimeout(connectWS, 1500);
+      ws.onerror = () => ws.close();
+    }
+
+    function toggleBlackout() {
+      blackoutState = !blackoutState;
+      const btn = document.getElementById('btn-blackout');
+      btn.classList.toggle('active', blackoutState);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'set_projection', blackout: blackoutState }));
+      }
+    }
+
+    function toggleClearText() {
+      clearState = !clearState;
+      const btn = document.getElementById('btn-clear');
+      btn.classList.toggle('active', clearState);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'set_projection', clear: clearState }));
+      }
+    }
+
+    async function init() {
+      await loadNetworkInfo();
+      await loadStems();
+      const statusRes = await fetch('/api/status');
+      const status = await statusRes.json();
+      songDuration = status.duration_seconds;
+      document.getElementById('total-time').innerText = formatTime(songDuration);
+      connectWS();
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

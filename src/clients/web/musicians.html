@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Terminal Músicos | Worship Multitrack</title>
+  <style>
+    :root {
+      --bg-color: #0b0d13;
+      --card-bg: #141824;
+      --accent: #3b82f6;
+      --chord-color: #fbbf24;
+      --text-main: #f3f4f6;
+      --text-dim: #9ca3af;
+      --active-bg: rgba(59, 130, 246, 0.18);
+      --active-border: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding-bottom: 90px;
+      overflow-x: hidden;
+      touch-action: pan-y;
+    }
+
+    /* Barra Superior Fija */
+    header {
+      position: sticky;
+      top: 0;
+      background: rgba(11, 13, 19, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #1f2937;
+      padding: 10px 16px;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .song-info h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
+    .song-info p { font-size: 0.8rem; color: var(--text-dim); }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .key-badge {
+      background: #1f2937;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      color: var(--chord-color);
+      font-size: 0.9rem;
+    }
+
+    .btn-transpose {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-transpose:active { background: #3b82f6; }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ef4444;
+      transition: background 0.3s;
+    }
+    .status-dot.connected { background: #10b981; box-shadow: 0 0 8px #10b981; }
+
+    /* Barra Flotante de Sección y Acorde Actual */
+    .live-monitor {
+      background: linear-gradient(135deg, #1e1b4b, #172554);
+      border-bottom: 2px solid #3b82f6;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 57px;
+      z-index: 90;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    .current-section-badge {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: #2563eb;
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 800;
+    }
+    .live-chord-box {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--chord-color);
+      min-width: 80px;
+      text-align: right;
+      letter-spacing: -1px;
+      text-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
+    }
+
+    /* Estructura de Canción y Acordes */
+    main {
+      max-width: 720px;
+      margin: 16px auto;
+      padding: 0 12px;
+    }
+    .section-block {
+      margin-bottom: 20px;
+      background: var(--card-bg);
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    .section-block.active-section {
+      border-color: #3b82f6;
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.25);
+    }
+    .section-header {
+      background: #1e293b;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .line-row {
+      padding: 10px 14px;
+      border-bottom: 1px solid #182234;
+      transition: background 0.2s;
+    }
+    .line-row:last-child { border-bottom: none; }
+    .line-row.active-line {
+      background: var(--active-bg);
+      border-left: 4px solid var(--active-border);
+    }
+
+    .chords-line {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--chord-color);
+      margin-bottom: 4px;
+      min-height: 1.4rem;
+    }
+    .chord-tag {
+      display: inline-block;
+      margin-right: 18px;
+      background: rgba(251, 191, 36, 0.15);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .lyrics-line {
+      font-size: 1.05rem;
+      line-height: 1.4;
+      color: #f1f5f9;
+    }
+
+    /* Barra Inferior de Tiempo */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(11, 13, 19, 0.96);
+      border-top: 1px solid #1e293b;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .time-display {
+      font-family: monospace;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="song-info">
+      <h1 id="song-title">Cargando canción...</h1>
+      <p><span id="song-artist">--</span> | <span id="song-bpm">--</span> BPM</p>
+    </div>
+    <div class="header-controls">
+      <button class="btn-transpose" onclick="changeTranspose(-1)">-1</button>
+      <span class="key-badge" id="key-badge">G</span>
+      <button class="btn-transpose" onclick="changeTranspose(1)">+1</button>
+      <div class="status-dot" id="status-dot" title="Estado de conexión"></div>
+    </div>
+  </header>
+
+  <div class="live-monitor">
+    <div>
+      <span class="current-section-badge" id="live-section">LISTO</span>
+      <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;" id="live-lyric-preview">Esperando inicio...</div>
+    </div>
+    <div class="live-chord-box" id="live-chord">--</div>
+  </div>
+
+  <main id="song-container"></main>
+
+  <footer>
+    <div>Estado: <span id="play-status" style="font-weight:bold; color:#10b981;">Pausa</span></div>
+    <div class="time-display" id="time-display">00:00 / 00:00</div>
+  </footer>
+
+  <script>
+    let ws = null;
+    let currentSongData = null;
+    let transposeSemitones = 0;
+    let lastActiveLineEl = null;
+
+    // Mantener la pantalla encendida (Screen Wake Lock)
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {}
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') requestWakeLock();
+    });
+    requestWakeLock();
+
+    // Cargar estructura completa de la canción vía REST
+    async function loadSong(transpose = 0) {
+      try {
+        const res = await fetch(`/api/song?transpose=${transpose}`);
+        if (!res.ok) return;
+        currentSongData = await res.json();
+        renderSong(currentSongData);
+      } catch (e) {
+        console.error("Error cargando cancion:", e);
+      }
+    }
+
+    function renderSong(data) {
+      document.getElementById('song-title').innerText = data.title;
+      document.getElementById('song-artist').innerText = data.artist;
+      document.getElementById('song-bpm').innerText = data.bpm;
+      document.getElementById('key-badge').innerText = data.key;
+
+      const container = document.getElementById('song-container');
+      container.innerHTML = '';
+
+      data.sections.forEach((sec, sIdx) => {
+        const secEl = document.createElement('div');
+        secEl.className = 'section-block';
+        secEl.id = `sec-${sIdx}`;
+
+        const headEl = document.createElement('div');
+        headEl.className = 'section-header';
+        headEl.innerText = sec.name;
+        secEl.appendChild(headEl);
+
+        sec.lines.forEach((l, lIdx) => {
+          const lineEl = document.createElement('div');
+          lineEl.className = 'line-row';
+          lineEl.id = `line-${sIdx}-${lIdx}`;
+          lineEl.dataset.start = l.start_time;
+          lineEl.dataset.end = l.end_time;
+
+          if (l.chords && l.chords.length > 0) {
+            const chordsEl = document.createElement('div');
+            chordsEl.className = 'chords-line';
+            l.chords.forEach(c => {
+              const tag = document.createElement('span');
+              tag.className = 'chord-tag';
+              tag.innerText = c.chord;
+              chordsEl.appendChild(tag);
+            });
+            lineEl.appendChild(chordsEl);
+          }
+
+          const lyricsEl = document.createElement('div');
+          lyricsEl.className = 'lyrics-line';
+          lyricsEl.innerText = l.lyrics;
+          lineEl.appendChild(lyricsEl);
+
+          secEl.appendChild(lineEl);
+        });
+
+        container.appendChild(secEl);
+      });
+    }
+
+    function changeTranspose(delta) {
+      transposeSemitones += delta;
+      loadSong(transposeSemitones);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'set_transpose', semitones: transposeSemitones }));
+      }
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    // Conexión WebSocket para sincronización en tiempo real
+    function connectWebSocket() {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${location.host}/ws/musicians`;
+      ws = new WebSocket(wsUrl);
+
+      const dot = document.getElementById('status-dot');
+
+      ws.onopen = () => {
+        dot.classList.add('connected');
+        loadSong(transposeSemitones);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'tick') {
+            updateTick(data);
+          }
+        } catch (err) {}
+      };
+
+      ws.onclose = () => {
+        dot.classList.remove('connected');
+        setTimeout(connectWebSocket, 1500); // Reconexión automática transparente
+      };
+
+      ws.onerror = () => ws.close();
+    }
+
+    function updateTick(data) {
+      const pos = data.pos;
+      const isPlaying = data.playing;
+
+      document.getElementById('play-status').innerText = isPlaying ? 'EN VIVO' : 'PAUSA';
+      document.getElementById('play-status').style.color = isPlaying ? '#10b981' : '#f59e0b';
+
+      const dur = currentSongData ? currentSongData.duration : 0;
+      document.getElementById('time-display').innerText = `${formatTime(pos)} / ${formatTime(dur)}`;
+
+      document.getElementById('live-section').innerText = data.sec || 'SECCIÓN';
+      document.getElementById('live-chord').innerText = data.chord || '--';
+      document.getElementById('live-lyric-preview').innerText = data.lyric || '';
+
+      // Auto-Scroll y resaltado compás por compás
+      if (currentSongData) {
+        const allLines = document.querySelectorAll('.line-row');
+        let currentActive = null;
+
+        allLines.forEach(line => {
+          const s = parseFloat(line.dataset.start);
+          const e = parseFloat(line.dataset.end);
+          if (pos >= s && pos <= e) {
+            currentActive = line;
+          }
+        });
+
+        if (currentActive && currentActive !== lastActiveLineEl) {
+          if (lastActiveLineEl) lastActiveLineEl.classList.remove('active-line');
+          currentActive.classList.add('active-line');
+          lastActiveLineEl = currentActive;
+
+          // Scroll suave hacia la línea activa
+          currentActive.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+
+    window.onload = () => {
+      loadSong(0);
+      connectWebSocket();
+    };
+  </script>
+</body>
+</html>

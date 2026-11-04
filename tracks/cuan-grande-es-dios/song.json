@@ -1,0 +1,344 @@
+{
+  "id": "cuan-grande-es-dios",
+  "title": "Cuán Grande es Dios",
+  "artist": "En Espíritu y en Verdad",
+  "key": "G",
+  "original_key": "G",
+  "transpose_semitones": 0,
+  "bpm": 76.0,
+  "time_signature": "4/4",
+  "duration": 172.0,
+  "sections": [
+    {
+      "name": "Intro",
+      "start_time": 0.0,
+      "end_time": 12.5,
+      "lines": [
+        {
+          "start_time": 0.0,
+          "end_time": 6.0,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 0.0,
+              "chord": "G"
+            },
+            {
+              "time": 60.0,
+              "chord": "Em7"
+            }
+          ]
+        },
+        {
+          "start_time": 6.0,
+          "end_time": 12.5,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 6.0,
+              "chord": "C2"
+            },
+            {
+              "time": 62.0,
+              "chord": "D"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Verso 1",
+      "start_time": 12.5,
+      "end_time": 48.0,
+      "lines": [
+        {
+          "start_time": 12.5,
+          "end_time": 22.0,
+          "lyrics": "El esplendor de un Rey, vestido en majestad",
+          "chords": [
+            {
+              "time": 13.337,
+              "chord": "G"
+            },
+            {
+              "time": 15.012,
+              "chord": "Em7"
+            }
+          ]
+        },
+        {
+          "start_time": 22.0,
+          "end_time": 30.0,
+          "lyrics": "La tierra gozará, la tierra gozará",
+          "chords": [
+            {
+              "time": 23.647,
+              "chord": "C2"
+            },
+            {
+              "time": 25.765,
+              "chord": "D"
+            }
+          ]
+        },
+        {
+          "start_time": 30.0,
+          "end_time": 39.0,
+          "lyrics": "Cubierto está de luz, venció la oscuridad",
+          "chords": [
+            {
+              "time": 31.073,
+              "chord": "G"
+            },
+            {
+              "time": 33.317,
+              "chord": "Em7"
+            }
+          ]
+        },
+        {
+          "start_time": 39.0,
+          "end_time": 48.0,
+          "lyrics": "Y tiembla a Su voz, y tiembla a Su voz",
+          "chords": [
+            {
+              "time": 40.579,
+              "chord": "C2"
+            },
+            {
+              "time": 42.684,
+              "chord": "D"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Coro",
+      "start_time": 48.0,
+      "end_time": 70.0,
+      "lines": [
+        {
+          "start_time": 48.0,
+          "end_time": 59.0,
+          "lyrics": "Cuán grande es Dios, cántale: Cuán grande es Dios",
+          "chords": [
+            {
+              "time": 48.408,
+              "chord": "G"
+            },
+            {
+              "time": 50.857,
+              "chord": "Em7"
+            }
+          ]
+        },
+        {
+          "start_time": 59.0,
+          "end_time": 70.0,
+          "lyrics": "Y todos lo verán, cuán grande es Dios",
+          "chords": [
+            {
+              "time": 60.405,
+              "chord": "C"
+            },
+            {
+              "time": 61.486,
+              "chord": "D"
+            },
+            {
+              "time": 62.568,
+              "chord": "G"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Verso 2",
+      "start_time": 70.0,
+      "end_time": 106.0,
+      "lines": [
+        {
+          "start_time": 70.0,
+          "end_time": 79.0,
+          "lyrics": "Día a día Él está, y el tiempo está en Él",
+          "chords": [
+            {
+              "time": 70.585,
+              "chord": "G"
+            },
+            {
+              "time": 73.22,
+              "chord": "Em7"
+            }
+          ]
+        },
+        {
+          "start_time": 79.0,
+          "end_time": 88.0,
+          "lyrics": "Principio y el fin, principio y el fin",
+          "chords": [
+            {
+              "time": 80.579,
+              "chord": "C2"
+            },
+            {
+              "time": 82.684,
+              "chord": "D"
+            }
+          ]
+        },
+        {
+          "start_time": 88.0,
+          "end_time": 97.0,
+          "lyrics": "La Trinidad en Dios, el Padre, Hijo, Espíritu",
+          "chords": [
+            {
+              "time": 89.067,
+              "chord": "G"
+            },
+            {
+              "time": 90.756,
+              "chord": "Em7"
+            }
+          ]
+        },
+        {
+          "start_time": 97.0,
+          "end_time": 106.0,
+          "lyrics": "Cordero y el León, Cordero y el León",
+          "chords": [
+            {
+              "time": 98.444,
+              "chord": "C2"
+            },
+            {
+              "time": 100.556,
+              "chord": "D"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Coro",
+      "start_time": 106.0,
+      "end_time": 130.0,
+      "lines": [
+        {
+          "start_time": 106.0,
+          "end_time": 117.0,
+          "lyrics": "Cuán grande es Dios, cántale: Cuán grande es Dios",
+          "chords": [
+            {
+              "time": 106.408,
+              "chord": "G"
+            },
+            {
+              "time": 108.857,
+              "chord": "Em7"
+            }
+          ]
+        },
+        {
+          "start_time": 117.0,
+          "end_time": 130.0,
+          "lyrics": "Y todos lo verán, cuán grande es Dios",
+          "chords": [
+            {
+              "time": 118.405,
+              "chord": "C"
+            },
+            {
+              "time": 119.486,
+              "chord": "D"
+            },
+            {
+              "time": 120.568,
+              "chord": "G"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Puente",
+      "start_time": 130.0,
+      "end_time": 155.0,
+      "lines": [
+        {
+          "start_time": 130.0,
+          "end_time": 142.0,
+          "lyrics": "Tu Nombre sobre todo es, digno de alabar",
+          "chords": [
+            {
+              "time": 130.3,
+              "chord": "G"
+            },
+            {
+              "time": 132.5,
+              "chord": "Em7"
+            }
+          ]
+        },
+        {
+          "start_time": 142.0,
+          "end_time": 155.0,
+          "lyrics": "Y mi ser cantará: Cuán grande es Dios",
+          "chords": [
+            {
+              "time": 142.541,
+              "chord": "C"
+            },
+            {
+              "time": 144.486,
+              "chord": "D"
+            },
+            {
+              "time": 145.568,
+              "chord": "G"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Final",
+      "start_time": 155.0,
+      "end_time": 172.0,
+      "lines": [
+        {
+          "start_time": 155.0,
+          "end_time": 164.0,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 155.0,
+              "chord": "G"
+            },
+            {
+              "time": 215.0,
+              "chord": "Em7"
+            }
+          ]
+        },
+        {
+          "start_time": 164.0,
+          "end_time": 172.0,
+          "lyrics": "Cuán grande es Dios",
+          "chords": [
+            {
+              "time": 165.053,
+              "chord": "D"
+            },
+            {
+              "time": 167.158,
+              "chord": "G"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

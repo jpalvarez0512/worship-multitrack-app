@@ -20,7 +20,9 @@ from src.audio.synthetic import (
     generate_guide_cues,
     generate_instrument_stem,
 )
+from src.core.chordpro import ChordProParser
 from src.core.song import Song, create_demo_song
+from src.core.song_loader import SongLoader
 from src.server.websocket_manager import ChannelType, ConnectionManager
 from src.utils.network import get_connection_url, get_local_ip, print_ascii_qr
 
@@ -28,6 +30,9 @@ from src.utils.network import get_connection_url, get_local_ip, print_ascii_qr
 # -----------------------------------------------------------------------------
 # Instancias Globales
 # -----------------------------------------------------------------------------
+TRACKS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "tracks"))
+song_loader = SongLoader(tracks_root=TRACKS_DIR)
+
 engine: Optional[MultitrackEngine] = None
 ws_manager = ConnectionManager()
 current_song: Song = create_demo_song()
@@ -85,7 +90,7 @@ def on_engine_tick(pos_seconds: float, is_playing: bool) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manejo de arranque y apagado del servidor."""
-    global engine, main_event_loop
+    global engine, main_event_loop, current_song
     main_event_loop = asyncio.get_running_loop()
 
     # Inicializar motor de audio en modo SPLIT_STEREO por defecto
@@ -94,7 +99,18 @@ async def lifespan(app: FastAPI):
         buffer_size=256,
         routing_mode=RoutingMode.SPLIT_STEREO,
     )
-    setup_demo_audio(engine, current_song)
+    
+    # Cargar primera canción disponible en tracks/ o demo
+    available = song_loader.scan_songs()
+    if available:
+        try:
+            current_song = song_loader.load_song(available[0]["id"], engine)
+        except Exception as ex:
+            print(f"⚠️ Error cargando canción inicial: {ex}")
+            setup_demo_audio(engine, current_song)
+    else:
+        setup_demo_audio(engine, current_song)
+
     engine.register_tick_listener(on_engine_tick)
 
     local_ip = get_local_ip()
@@ -176,6 +192,74 @@ def get_status():
 def get_current_song(transpose: int = 0):
     """Devuelve la estructura completa de la canción con acordes (con transposición opcional)."""
     return current_song.to_full_dict(transpose_semitones=transpose)
+
+
+# -----------------------------------------------------------------------------
+# Endpoints de Biblioteca de Canciones y ChordPro
+# -----------------------------------------------------------------------------
+
+@app.get("/api/songs")
+def list_available_songs():
+    """Lista todas las canciones encontradas en la carpeta tracks/."""
+    return song_loader.scan_songs()
+
+
+@app.post("/api/songs/{song_id}/load")
+async def load_song_endpoint(song_id: str):
+    """Carga una canción específica de tracks/ y la sincroniza con el motor de audio."""
+    global current_song, engine
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    try:
+        engine.stop()
+        current_song = song_loader.load_song(song_id, engine)
+        await ws_manager.broadcast_to_channel(
+            ChannelType.MUSICIANS,
+            {"type": "song_changed", "song": current_song.to_summary_dict()},
+        )
+        await ws_manager.broadcast_to_channel(
+            ChannelType.PROJECTION,
+            {"type": "song_changed", "title": current_song.title},
+        )
+        return {"status": "loaded", "song": current_song.to_summary_dict()}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/songs/parse-preview")
+def parse_chordpro_preview(payload: dict):
+    """Parsea texto ChordPro en memoria y retorna la vista previa estructurada."""
+    content = payload.get("content", "")
+    if not content:
+        raise HTTPException(status_code=400, detail="El contenido no puede estar vacío")
+    parsed = ChordProParser.parse_string(content)
+    return parsed.to_full_dict()
+
+
+@app.post("/api/songs/import")
+async def import_song_endpoint(payload: dict):
+    """Importa texto ChordPro, crea la carpeta en tracks/ y opcionalmente la carga."""
+    global current_song, engine
+    content = payload.get("content", "")
+    custom_id = payload.get("id")
+    if not content:
+        raise HTTPException(status_code=400, detail="El contenido no puede estar vacío")
+    try:
+        song = song_loader.import_chordpro_text(content, custom_id=custom_id)
+        if payload.get("load_immediately", True) and engine is not None:
+            engine.stop()
+            current_song = song_loader.load_song(song.id, engine)
+            await ws_manager.broadcast_to_channel(
+                ChannelType.MUSICIANS,
+                {"type": "song_changed", "song": current_song.to_summary_dict()},
+            )
+            await ws_manager.broadcast_to_channel(
+                ChannelType.PROJECTION,
+                {"type": "song_changed", "title": current_song.title},
+            )
+        return {"status": "imported", "song": song.to_summary_dict()}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # -----------------------------------------------------------------------------

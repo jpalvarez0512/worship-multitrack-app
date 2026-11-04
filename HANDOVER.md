@@ -1,33 +1,41 @@
 # 🔄 Último Handover (Relevo)
-- **Fecha:** 2026-11-04 17:03
+- **Fecha:** 2026-11-04 17:14
 - **Desarrollador / Cuenta:** jpalvarez0512
 - **Rama activa:** main (Sincronizado con origin/main en GitHub)
 
 ### ✅ Completado en esta sesión:
-- **Motor de Audio Multitrack en Tiempo Real:**
-  - `src/audio/stem.py`: Manejo de stems, volumen, balance, mute, solo y ruteo estéreo (`cue` vs `master`).
-  - `src/audio/engine.py`: Mezcla con `sounddevice` y `numpy`, modo `SPLIT_STEREO` y reloj maestro a 25 Hz.
-  - `src/audio/synthetic.py`: Generador de audio de prueba para diagnósticos.
-  - `scripts/test_engine.py`: Diagnóstico validado y funcional.
-- **Servidor Central de Sincronización en Red y WebSockets:**
-  - `src/utils/network.py`: Detección automática de IP en red local (LAN) y generador de código QR para conexión instantánea de músicos.
-  - `src/core/song.py`: Modelo de canciones con secciones, acordes, letras y transposición dinámica por semitonos en tiempo real.
-  - `src/server/websocket_manager.py`: Distribución multicanal (`/ws/musicians`, `/ws/projection`, `/ws/control`) y protocolo mini-NTP de sincronización de reloj.
-  - `src/server/app.py`: API REST completa (transporte, stems, estado, red) y WebSockets integrados con `MultitrackEngine`.
-  - `main.py`: Punto de entrada unificado para iniciar el servidor en el puerto 8000.
-  - `scripts/test_server.py`: Suite de pruebas automatizadas del servidor con 100% de éxito.
-- **Interfaces Web Clientes en Tiempo Real (`src/clients/web/`):**
-  - `musicians.html`: Terminal de escenario de alto contraste para teléfonos y tablets con acordes en amarillo, letras, resaltado compás por compás, auto-scroll suave, transposición individual y Screen Wake Lock.
-  - `projection.html`: Pantalla limpia para templo y streaming con modo pantalla completa, soporte Lower-Thirds para OBS Studio/vMix con fondo transparente, blackout y borrado de texto.
-  - `control.html`: Consola web para el operador de sonido con botones de transporte, scrub timeline, mezclador de volumen de stems, mute/solo y accesos LAN con QR.
+- **Parser de Formato ChordPro con Marcas de Tiempo (`src/core/chordpro.py`):**
+  - Soporte para directivas estándar: `{title}`, `{artist}`, `{key}`, `{bpm}`, `{time}`, `{section}` / `{c}`.
+  - Soporte de marcas de tiempo al inicio de línea: `[mm:ss.xx]`, `[ss.xx]`, `[mm:ss]`.
+  - Separación automática en dos salidas:
+    - *Pantalla de Músicos:* Acordes `[G]`, `[Em7]`, `[D/F#]` con cálculo de tiempo métrico proporcional y transposición armónica dinámica.
+    - *Pantalla de Proyección:* Letra 100% limpia sin etiquetas técnicas ni corchetes.
+  - Serialización y deserialización bidireccional con `song.json`.
+- **Cargador de Biblioteca de Canciones (`src/core/song_loader.py`):**
+  - Escaneo automático de la carpeta `tracks/`.
+  - Detección inteligente de archivos `chart.pro`, `chart.txt` y `song.json` con regeneración automática cuando el archivo de texto cambia.
+  - Carga de pistas de audio reales desde `tracks/<cancion>/stems/` o generación automática de audio sintético si no hay archivos cargados aún.
+- **Gestión de Canciones en la API REST y WebSockets (`src/server/app.py`):**
+  - `GET /api/songs`: Lista de canciones en disco con conteo de stems y estado.
+  - `POST /api/songs/{id}/load`: Carga y cambio de canción en vivo, notificando a todos los móviles y proyectores conectados vía WebSocket (`song_changed`).
+  - `POST /api/songs/parse-preview`: Vista previa en tiempo real del parsing sin guardar.
+  - `POST /api/songs/import`: Creación de nuevas canciones a partir de texto ChordPro pegado.
+- **Consola Web con Editor e Importador Integrado (`src/clients/web/control.html`):**
+  - Selector de canciones en vivo en la barra superior.
+  - Modal para pegar texto ChordPro, botón de "Vista Previa" con división visual lado a lado (Músicos vs Proyección) y botón "Guardar y Cargar a la App".
+- **Canciones de Demostración Iniciales:**
+  - `tracks/cuan-grande-es-dios/`: Canción completa con 6 secciones y estructura ChordPro.
+  - `tracks/gracia-sublime-es/`: Canción importada y verificada.
+- **Pruebas Automatizadas:**
+  - `scripts/test_chordpro.py`: 100% de éxito validando parsing, extracción limpia, escaneo de disco, API y cambio de canción.
 
 ### 🚧 Trabajo en progreso (WIP):
-- Carga de pistas reales en carpeta `tracks/` y empaquetado para distribución (APK de Android / ejecutable de PC).
+- Carga de archivos de audio reales (WAV/MP3) en las carpetas `tracks/<cancion>/stems/`.
+- Empaquetado APK para Android o ejecutable portable para Windows.
 
 ### ⚠️ Decisiones técnicas o bloqueos:
-- Todo funciona en red local sin necesidad de internet ni configuración de puertos en el router.
-- La IP local detectada dinámicamente es `192.168.0.7:8000`.
+- Todo funciona en red local sin conexión a internet.
+- Cada canción en `tracks/` mantiene su independencia con su propio `chart.pro`, `song.json` y carpeta `stems/`.
 
 ### 🎯 Siguiente paso prioritario:
-- Probar la app en vivo ejecutando `python main.py` y abriendo las vistas en el navegador o móvil escaneando el código QR.
-- Implementar el importador de carpetas de pistas multitrack reales desde `tracks/` o empaquetar la aplicación Android (APK).
+- Iniciar el servidor local (`python main.py`), conectar dispositivos de prueba o empaquetar la aplicación cliente para Android.

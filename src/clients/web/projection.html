@@ -181,6 +181,8 @@
             updateProjection(data);
           } else if (data.type === 'projection_state') {
             applyBlackout(data.blackout, data.clear);
+          } else if (data.type === 'song_changed') {
+            document.getElementById('song-title-display').innerText = data.title;
           }
         } catch (e) {}
       };

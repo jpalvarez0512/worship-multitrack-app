@@ -335,6 +335,8 @@
           const data = JSON.parse(event.data);
           if (data.type === 'tick') {
             updateTick(data);
+          } else if (data.type === 'song_changed') {
+            loadSong(transposeSemitones);
           }
         } catch (err) {}
       };

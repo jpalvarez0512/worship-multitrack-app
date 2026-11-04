@@ -1,0 +1,124 @@
+{
+  "id": "gracia-sublime-es",
+  "title": "Gracia Sublime Es",
+  "artist": "Evan Craft",
+  "key": "Bb",
+  "original_key": "Bb",
+  "transpose_semitones": 0,
+  "bpm": 104.0,
+  "time_signature": "4/4",
+  "duration": 60.0,
+  "sections": [
+    {
+      "name": "Intro",
+      "start_time": 0.0,
+      "end_time": 10.0,
+      "lines": [
+        {
+          "start_time": 0.0,
+          "end_time": 10.0,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 0.0,
+              "chord": "Bb"
+            },
+            {
+              "time": 28.0,
+              "chord": "Eb"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Verso 1",
+      "start_time": 10.0,
+      "end_time": 40.0,
+      "lines": [
+        {
+          "start_time": 10.0,
+          "end_time": 20.5,
+          "lyrics": "¿Quién rompe el poder del pecado y la oscuridad?",
+          "chords": [
+            {
+              "time": 11.5,
+              "chord": "Bb"
+            },
+            {
+              "time": 13.5,
+              "chord": "Eb"
+            }
+          ]
+        },
+        {
+          "start_time": 20.5,
+          "end_time": 30.0,
+          "lyrics": "Su amor es tan fuerte, y es tan poderoso",
+          "chords": [
+            {
+              "time": 22.0,
+              "chord": "Gm"
+            },
+            {
+              "time": 24.1,
+              "chord": "F"
+            }
+          ]
+        },
+        {
+          "start_time": 30.0,
+          "end_time": 40.0,
+          "lyrics": "El Rey de gloria, el Rey de Majestad",
+          "chords": [
+            {
+              "time": 31.111,
+              "chord": "Eb"
+            },
+            {
+              "time": 33.667,
+              "chord": "F"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Coro",
+      "start_time": 40.0,
+      "end_time": 60.0,
+      "lines": [
+        {
+          "start_time": 40.0,
+          "end_time": 52.0,
+          "lyrics": "Gracia sublime es, perfecto es tu amor",
+          "chords": [
+            {
+              "time": 41.053,
+              "chord": "Bb"
+            },
+            {
+              "time": 43.684,
+              "chord": "Eb"
+            }
+          ]
+        },
+        {
+          "start_time": 52.0,
+          "end_time": 60.0,
+          "lyrics": "Tomaste mi lugar, cargaste tú mi cruz",
+          "chords": [
+            {
+              "time": 53.405,
+              "chord": "Gm"
+            },
+            {
+              "time": 55.568,
+              "chord": "F"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

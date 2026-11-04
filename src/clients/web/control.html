@@ -10,27 +10,66 @@
       --card: #1e293b;
       --border: #334155;
       --accent: #3b82f6;
+      --accent-hover: #2563eb;
       --text: #f8fafc;
       --text-muted: #94a3b8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
       color: var(--text);
       font-family: system-ui, -apple-system, sans-serif;
-      padding: 24px;
-      max-width: 1100px;
+      padding: 20px;
+      max-width: 1200px;
       margin: 0 auto;
     }
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
     }
-    h1 { font-size: 1.4rem; color: #fff; }
+    h1 { font-size: 1.35rem; color: #fff; }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .song-picker {
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .btn-action {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-action:hover { background: var(--accent-hover); }
+
     .lan-badge {
       background: #064e3b;
       color: #6ee7b7;
@@ -46,6 +85,10 @@
       gap: 20px;
     }
 
+    @media (max-width: 850px) {
+      .grid-layout { grid-template-columns: 1fr; }
+    }
+
     .panel {
       background: var(--card);
       border: 1px solid var(--border);
@@ -59,6 +102,7 @@
       color: #cbd5e1;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
     /* Transporte */
@@ -72,15 +116,15 @@
       padding: 14px;
       border: none;
       border-radius: 8px;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: bold;
       cursor: pointer;
       color: #fff;
       transition: opacity 0.2s;
     }
-    .btn-play { background: #10b981; }
-    .btn-pause { background: #f59e0b; }
-    .btn-stop { background: #ef4444; }
+    .btn-play { background: var(--success); }
+    .btn-pause { background: var(--warning); }
+    .btn-stop { background: var(--danger); }
     .btn-transport:active { opacity: 0.8; }
 
     /* Barra de progreso */
@@ -121,22 +165,25 @@
       border-bottom: 1px solid #293548;
     }
     .stem-name {
-      width: 100px;
+      width: 110px;
       font-weight: 600;
       font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .route-tag {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       padding: 2px 6px;
       border-radius: 4px;
       font-weight: 800;
+      min-width: 80px;
+      text-align: center;
     }
     .route-cue { background: #4338ca; color: #a5b4fc; }
     .route-master { background: #047857; color: #a7f3d0; }
 
-    .vol-slider {
-      flex: 1;
-    }
+    .vol-slider { flex: 1; }
     .btn-toggle {
       padding: 6px 12px;
       border-radius: 4px;
@@ -162,11 +209,9 @@
       margin-bottom: 8px;
       cursor: pointer;
     }
-    .btn-projection-action.active {
-      background: #dc2626;
-    }
+    .btn-projection-action.active { background: #dc2626; }
 
-    /* Links y QR */
+    /* Links LAN */
     .link-box {
       background: #0f172a;
       padding: 10px;
@@ -176,7 +221,90 @@
       font-family: monospace;
       font-size: 0.85rem;
     }
-    a { color: var(--accent); text-decoration: none; }
+    a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+    /* Modal Importador ChordPro */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 860px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+    .modal-header {
+      padding: 16px 20px;
+      background: #0f172a;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .chordpro-textarea {
+      width: 100%;
+      height: 220px;
+      background: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #f8fafc;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      padding: 12px;
+      resize: vertical;
+      margin-bottom: 14px;
+      outline: none;
+    }
+    .preview-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .preview-box {
+      background: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.85rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .preview-box h4 {
+      margin-bottom: 8px;
+      color: var(--accent);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .modal-footer {
+      padding: 14px 20px;
+      background: #0f172a;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
   </style>
 </head>
 <body>
@@ -186,14 +314,24 @@
       <h1>🎛 Panel de Control y Operador</h1>
       <p style="color:var(--text-muted); font-size:0.85rem;">Worship Multitrack Live Engine</p>
     </div>
-    <div class="lan-badge" id="lan-ip">Conectando...</div>
+    
+    <div class="header-actions">
+      <select class="song-picker" id="song-select" onchange="switchSong(this.value)">
+        <option value="">Cargando canciones...</option>
+      </select>
+      <button class="btn-action" onclick="openImportModal()">📄 + ChordPro</button>
+      <div class="lan-badge" id="lan-ip">Conectando...</div>
+    </div>
   </header>
 
   <div class="grid-layout">
     <!-- Columna Izquierda: Transporte y Mezclador -->
     <div>
       <div class="panel">
-        <h2>Transporte Multitrack</h2>
+        <h2>
+          <span>Transporte Multitrack</span>
+          <span style="font-size:0.85rem; color:#38bdf8;" id="current-song-title">--</span>
+        </h2>
         <div class="transport-controls">
           <button class="btn-transport btn-play" onclick="controlTransport('play')">▶ PLAY</button>
           <button class="btn-transport btn-pause" onclick="controlTransport('pause')">⏸ PAUSA</button>
@@ -225,11 +363,54 @@
 
       <div class="panel">
         <h2>Accesos de Red Local (LAN)</h2>
-        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">Músicos (Escenario):</p>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">🎸 Músicos (Escenario):</p>
         <div class="link-box"><a id="musicians-link" target="_blank" href="/musicians">/musicians</a></div>
 
-        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">Proyección / OBS Studio:</p>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">📽 Proyección / OBS Studio:</p>
         <div class="link-box"><a id="projection-link" target="_blank" href="/projection">/projection</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Editor e Importador ChordPro -->
+  <div class="modal-overlay" id="chordpro-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-size:1.1rem; color:#fff;">Importar / Crear Canción en ChordPro con Tiempo</h3>
+        <button onclick="closeImportModal()" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">
+          Pega aquí el texto ChordPro con marcas de tiempo <code>[mm:ss.xx]</code> y acordes <code>[C]</code>:
+        </p>
+        <textarea class="chordpro-textarea" id="chordpro-input" placeholder="{title: Gracia Sublime Es}
+{artist: Evan Craft}
+{key: Bb}
+{bpm: 104}
+
+{section: Intro}
+[00:00.00] [Bb]       [Eb]
+
+{section: Verso 1}
+[00:10.00] ¿Quién rompe el po[Bb]der del pecado y la oscu[Eb]ridad?
+[00:20.00] Su amor es tan [Gm]fuerte, y es tan pode[F]roso"></textarea>
+
+        <button class="btn-action" onclick="generatePreview()" style="background:#334155;">🔍 Vista Previa</button>
+
+        <div class="preview-columns" id="preview-section" style="display:none;">
+          <div class="preview-box">
+            <h4>🎸 Pantalla de Músicos (Acordes + Tiempo)</h4>
+            <div id="musicians-preview" style="line-height:1.5;"></div>
+          </div>
+          <div class="preview-box">
+            <h4>📽 Pantalla de Proyección (Letra Limpia)</h4>
+            <div id="projection-preview" style="line-height:1.5;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeImportModal()" style="background:#334155; border:none; color:#fff; padding:8px 14px; border-radius:6px; cursor:pointer;">Cancelar</button>
+        <button class="btn-action" onclick="saveAndLoadChordpro()" style="background:var(--success);">💾 Guardar y Cargar a la App</button>
       </div>
     </div>
   </div>
@@ -239,6 +420,7 @@
     let songDuration = 0;
     let blackoutState = false;
     let clearState = false;
+    let ws = null;
 
     async function loadNetworkInfo() {
       try {
@@ -249,6 +431,42 @@
         document.getElementById('musicians-link').innerText = data.musicians_url;
         document.getElementById('projection-link').href = data.projection_url;
         document.getElementById('projection-link').innerText = data.projection_url;
+      } catch (e) {}
+    }
+
+    async function loadSongsList() {
+      try {
+        const res = await fetch('/api/songs');
+        const songs = await res.json();
+        const select = document.getElementById('song-select');
+        select.innerHTML = '';
+
+        const statusRes = await fetch('/api/status');
+        const status = await statusRes.json();
+        const activeId = status.song.id;
+
+        songs.forEach(song => {
+          const opt = document.createElement('option');
+          opt.value = song.id;
+          opt.innerText = `${song.title} (${song.key} - ${song.bpm} BPM)`;
+          if (song.id === activeId) opt.selected = true;
+          select.appendChild(opt);
+        });
+
+        document.getElementById('current-song-title').innerText = `${status.song.title} (${status.song.key})`;
+      } catch (e) {}
+    }
+
+    async function switchSong(songId) {
+      if (!songId) return;
+      try {
+        const res = await fetch(`/api/songs/${songId}/load`, { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('current-song-title').innerText = `${data.song.title} (${data.song.key})`;
+          await refreshPlayerState();
+          await loadStems();
+        }
       } catch (e) {}
     }
 
@@ -289,7 +507,7 @@
           const routeText = stem.route === 'cue' ? 'CUE / IN-EAR' : 'SALA / FOH';
 
           row.innerHTML = `
-            <div class="stem-name">${stem.name}</div>
+            <div class="stem-name" title="${stem.name}">${stem.name}</div>
             <span class="route-tag ${routeClass}">${routeText}</span>
             <input type="range" min="0" max="1" step="0.05" value="${stem.volume}" class="slider vol-slider"
                    onchange="setVolume('${stem.name}', this.value)">
@@ -315,7 +533,6 @@
       loadStems();
     }
 
-    let ws = null;
     function connectWS() {
       const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
       ws = new WebSocket(`${protocol}//${location.host}/ws/control`);
@@ -355,13 +572,92 @@
       }
     }
 
-    async function init() {
-      await loadNetworkInfo();
-      await loadStems();
+    // Modal de ChordPro
+    function openImportModal() {
+      document.getElementById('chordpro-modal').classList.add('active');
+    }
+    function closeImportModal() {
+      document.getElementById('chordpro-modal').classList.remove('active');
+    }
+
+    async function generatePreview() {
+      const content = document.getElementById('chordpro-input').value;
+      if (!content.trim()) return;
+
+      try {
+        const res = await fetch('/api/songs/parse-preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content })
+        });
+        if (!res.ok) return;
+        const song = await res.json();
+
+        const musiciansDiv = document.getElementById('musicians-preview');
+        const projectionDiv = document.getElementById('projection-preview');
+        musiciansDiv.innerHTML = '';
+        projectionDiv.innerHTML = '';
+
+        song.sections.forEach(sec => {
+          const mSec = document.createElement('div');
+          mSec.innerHTML = `<strong style="color:#60a5fa;">[${sec.name}]</strong> (${formatTime(sec.start_time)})`;
+          musiciansDiv.appendChild(mSec);
+
+          const pSec = document.createElement('div');
+          pSec.innerHTML = `<strong style="color:#60a5fa;">[${sec.name}]</strong>`;
+          projectionDiv.appendChild(pSec);
+
+          sec.lines.forEach(l => {
+            const chordsStr = l.chords.map(c => `[${c.chord}]`).join(' ');
+            const mLine = document.createElement('div');
+            mLine.innerHTML = `<span style="color:#fbbf24; font-family:monospace;">${chordsStr}</span><br><span>${l.lyrics}</span>`;
+            mLine.style.marginBottom = '6px';
+            musiciansDiv.appendChild(mLine);
+
+            const pLine = document.createElement('div');
+            pLine.innerText = l.lyrics;
+            pLine.style.marginBottom = '4px';
+            projectionDiv.appendChild(pLine);
+          });
+        });
+
+        document.getElementById('preview-section').style.display = 'grid';
+      } catch (e) {}
+    }
+
+    async function saveAndLoadChordpro() {
+      const content = document.getElementById('chordpro-input').value;
+      if (!content.trim()) return;
+
+      try {
+        const res = await fetch('/api/songs/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content, load_immediately: true })
+        });
+        if (res.ok) {
+          closeImportModal();
+          await loadSongsList();
+          await refreshPlayerState();
+          await loadStems();
+        }
+      } catch (e) {}
+    }
+
+    async function refreshPlayerState() {
       const statusRes = await fetch('/api/status');
       const status = await statusRes.json();
       songDuration = status.duration_seconds;
       document.getElementById('total-time').innerText = formatTime(songDuration);
+      document.getElementById('current-time').innerText = formatTime(status.position_seconds);
+      document.getElementById('timeline').value = 0;
+    }
+
+    async function init() {
+      await loadNetworkInfo();
+      await loadSongsList();
+      await refreshPlayerState();
+      await loadStems();
       connectWS();
     }
 

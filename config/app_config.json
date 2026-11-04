@@ -1,0 +1,29 @@
+{
+  "app_name": "Worship Multitrack App",
+  "version": "1.0.0",
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "mdns_name": "worship-multitrack.local",
+    "sync_frequency_hz": 25
+  },
+  "audio": {
+    "sample_rate": 44100,
+    "buffer_size": 256,
+    "master_device_index": null,
+    "headphones_device_index": null,
+    "split_stereo_mode": true
+  },
+  "projection": {
+    "theme": "dark",
+    "font_family": "Inter, sans-serif",
+    "font_size_vw": 4.5,
+    "lower_thirds_enabled": false,
+    "anticipation_ms": 350
+  },
+  "musicians": {
+    "default_transposition": 0,
+    "auto_scroll_smoothness": "smooth",
+    "wake_lock_enabled": true
+  }
+}

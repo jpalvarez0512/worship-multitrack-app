@@ -8,6 +8,7 @@
     :root {
       --bg: #0f172a;
       --card: #1e293b;
+      --card-2: #0b1222;
       --border: #334155;
       --accent: #3b82f6;
       --accent-hover: #2563eb;
@@ -16,14 +17,15 @@
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
+      --chord: #fbbf24;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
       padding: 20px;
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
     }
     header {
@@ -37,38 +39,40 @@
       gap: 12px;
     }
     h1 { font-size: 1.35rem; color: #fff; }
-    
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
     .song-picker {
-      background: #0f172a;
+      background: var(--card-2);
       border: 1px solid #475569;
       color: #fff;
       padding: 8px 12px;
       border-radius: 6px;
       font-size: 0.9rem;
       font-weight: 600;
+      min-width: 240px;
       outline: none;
     }
 
-    .btn-action {
-      background: var(--accent);
-      color: #fff;
+    .btn {
       border: none;
       padding: 8px 14px;
       border-radius: 6px;
-      font-weight: bold;
+      font-weight: 700;
       font-size: 0.85rem;
       cursor: pointer;
+      color: #fff;
+      background: var(--accent);
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      white-space: nowrap;
     }
-    .btn-action:hover { background: var(--accent-hover); }
+    .btn:hover { filter: brightness(1.12); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary { background: #334155; }
+    .btn-success { background: var(--success); }
+    .btn-danger { background: #7f1d1d; }
+    .btn-sm { padding: 5px 9px; font-size: 0.75rem; }
 
     .lan-badge {
       background: #064e3b;
@@ -79,15 +83,8 @@
       font-weight: 600;
     }
 
-    .grid-layout {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 850px) {
-      .grid-layout { grid-template-columns: 1fr; }
-    }
+    .grid-layout { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; }
+    @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
 
     .panel {
       background: var(--card);
@@ -97,20 +94,17 @@
       margin-bottom: 20px;
     }
     .panel h2 {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       margin-bottom: 14px;
       color: #cbd5e1;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
     }
 
     /* Transporte */
-    .transport-controls {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
+    .transport-controls { display: flex; gap: 12px; margin-bottom: 16px; }
     .btn-transport {
       flex: 1;
       padding: 14px;
@@ -120,17 +114,12 @@
       font-weight: bold;
       cursor: pointer;
       color: #fff;
-      transition: opacity 0.2s;
     }
     .btn-play { background: var(--success); }
     .btn-pause { background: var(--warning); }
     .btn-stop { background: var(--danger); }
     .btn-transport:active { opacity: 0.8; }
 
-    /* Barra de progreso */
-    .progress-bar-container {
-      margin: 16px 0;
-    }
     .slider {
       width: 100%;
       height: 8px;
@@ -156,7 +145,7 @@
       margin-top: 6px;
     }
 
-    /* Mezclador de Stems */
+    /* Mezclador */
     .stem-row {
       display: flex;
       align-items: center;
@@ -165,7 +154,7 @@
       border-bottom: 1px solid #293548;
     }
     .stem-name {
-      width: 110px;
+      width: 120px;
       font-weight: 600;
       font-size: 0.9rem;
       white-space: nowrap;
@@ -173,16 +162,15 @@
       text-overflow: ellipsis;
     }
     .route-tag {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       padding: 2px 6px;
       border-radius: 4px;
       font-weight: 800;
-      min-width: 80px;
+      min-width: 82px;
       text-align: center;
     }
-    .route-cue { background: #4338ca; color: #a5b4fc; }
+    .route-cue { background: #4338ca; color: #c7d2fe; }
     .route-master { background: #047857; color: #a7f3d0; }
-
     .vol-slider { flex: 1; }
     .btn-toggle {
       padding: 6px 12px;
@@ -196,8 +184,41 @@
     }
     .btn-toggle.active-mute { background: #dc2626; color: #fff; }
     .btn-toggle.active-solo { background: #eab308; color: #000; }
+    .synthetic-note {
+      font-size: 0.8rem;
+      color: var(--warning);
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px dashed rgba(245, 158, 11, 0.4);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
 
-    /* Proyección rápida */
+    /* Biblioteca */
+    .library-item {
+      background: var(--card-2);
+      border: 1px solid #22304a;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .library-item.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+    .library-title { font-weight: 700; font-size: 0.92rem; }
+    .library-meta { font-size: 0.75rem; color: var(--text-muted); margin: 3px 0 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .pill { padding: 1px 6px; border-radius: 4px; font-weight: 700; font-size: 0.68rem; }
+    .pill-ok { background: #064e3b; color: #6ee7b7; }
+    .pill-warn { background: #78350f; color: #fde68a; }
+    .library-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .empty-state {
+      text-align: center;
+      padding: 18px 10px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+
+    /* Proyección */
     .btn-projection-action {
       width: 100%;
       padding: 10px;
@@ -211,9 +232,8 @@
     }
     .btn-projection-action.active { background: #dc2626; }
 
-    /* Links LAN */
     .link-box {
-      background: #0f172a;
+      background: var(--card-2);
       padding: 10px;
       border-radius: 6px;
       margin-bottom: 10px;
@@ -223,11 +243,11 @@
     }
     a { color: var(--accent); text-decoration: none; font-weight: 600; }
 
-    /* Modal Importador ChordPro */
+    /* Modal */
     .modal-overlay {
       display: none;
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      inset: 0;
       background: rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(4px);
       z-index: 1000;
@@ -237,12 +257,12 @@
     }
     .modal-overlay.active { display: flex; }
     .modal-card {
-      background: #1e293b;
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
       width: 100%;
-      max-width: 860px;
-      max-height: 90vh;
+      max-width: 900px;
+      max-height: 92vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -250,61 +270,140 @@
     }
     .modal-header {
       padding: 16px 20px;
-      background: #0f172a;
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .modal-body {
-      padding: 20px;
-      overflow-y: auto;
-      flex: 1;
+    .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+    .modal-footer {
+      padding: 14px 20px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
     }
+    .step-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin: 4px 0 10px;
+    }
+    .form-grid { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    @media (max-width: 700px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+    .field label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+    .field input {
+      width: 100%;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #fff;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .field input:focus, .chordpro-textarea:focus { border-color: var(--accent); }
+
+    .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+    .tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
     .chordpro-textarea {
       width: 100%;
-      height: 220px;
+      height: 200px;
       background: #0b0f19;
       border: 1px solid var(--border);
       border-radius: 8px;
       color: #f8fafc;
       font-family: ui-monospace, Menlo, Consolas, monospace;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       padding: 12px;
       resize: vertical;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
       outline: none;
     }
-    .preview-columns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-top: 14px;
+
+    .dropzone {
+      border: 2px dashed #475569;
+      border-radius: 10px;
+      padding: 22px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--card-2);
     }
+    .dropzone:hover, .dropzone.dragover { border-color: var(--accent); background: rgba(59, 130, 246, 0.08); color: #fff; }
+    .dropzone strong { color: #fff; }
+    .chart-file-chip {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #a7f3d0;
+    }
+
+    .file-list { margin-top: 12px; }
+    .file-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+      background: var(--card-2);
+      border-radius: 6px;
+      margin-bottom: 5px;
+      font-size: 0.85rem;
+    }
+    .file-row .fname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-row .fsize { color: var(--text-muted); font-family: monospace; font-size: 0.8rem; }
+    .file-row button { background: none; border: none; color: #f87171; cursor: pointer; font-size: 1rem; }
+
+    .preview-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
     .preview-box {
       background: #0b0f19;
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 12px;
       font-size: 0.85rem;
-      max-height: 200px;
+      max-height: 220px;
       overflow-y: auto;
     }
-    .preview-box h4 {
-      margin-bottom: 8px;
-      color: var(--accent);
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    .preview-box h4 { margin-bottom: 8px; color: var(--accent); font-size: 0.78rem; text-transform: uppercase; }
+
+    .progress-wrap { flex: 1; display: none; }
+    .progress-wrap.active { display: block; }
+    .progress-bar { height: 10px; background: #334155; border-radius: 5px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.2s; }
+    .progress-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* Notificaciones */
+    #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
+    .toast {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      animation: slideIn 0.25s ease-out;
+      white-space: pre-line;
     }
-    .modal-footer {
-      padding: 14px 20px;
-      background: #0f172a;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-    }
+    .toast-success { background: #065f46; color: #d1fae5; }
+    .toast-error { background: #7f1d1d; color: #fee2e2; }
+    .toast-info { background: #1e3a8a; color: #dbeafe; }
+    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
   </style>
 </head>
 <body>
@@ -314,12 +413,11 @@
       <h1>🎛 Panel de Control y Operador</h1>
       <p style="color:var(--text-muted); font-size:0.85rem;">Worship Multitrack Live Engine</p>
     </div>
-    
     <div class="header-actions">
-      <select class="song-picker" id="song-select" onchange="switchSong(this.value)">
+      <select class="song-picker" id="song-select" title="Canción activa">
         <option value="">Cargando canciones...</option>
       </select>
-      <button class="btn-action" onclick="openImportModal()">📄 + ChordPro</button>
+      <button class="btn btn-success" onclick="openCreateModal()">⬆ Nueva Canción</button>
       <div class="lan-badge" id="lan-ip">Conectando...</div>
     </div>
   </header>
@@ -337,24 +435,32 @@
           <button class="btn-transport btn-pause" onclick="controlTransport('pause')">⏸ PAUSA</button>
           <button class="btn-transport btn-stop" onclick="controlTransport('stop')">⏹ STOP</button>
         </div>
-
-        <div class="progress-bar-container">
-          <input type="range" min="0" max="100" value="0" class="slider" id="timeline" oninput="onSeekChange(this.value)">
-          <div class="time-labels">
-            <span id="current-time">00:00</span>
-            <span id="total-time">00:00</span>
-          </div>
+        <input type="range" min="0" max="100" step="0.1" value="0" class="slider" id="timeline">
+        <div class="time-labels">
+          <span id="current-time">00:00</span>
+          <span id="total-time">00:00</span>
         </div>
       </div>
 
       <div class="panel">
-        <h2>Mezclador de Stems en Vivo</h2>
+        <h2>
+          <span>Mezclador de Stems en Vivo</span>
+          <button class="btn btn-secondary btn-sm" id="btn-add-stems-active" onclick="openStemsModal(activeSongId)">🎵 + Pistas</button>
+        </h2>
         <div id="stems-list">Cargando pistas...</div>
       </div>
     </div>
 
-    <!-- Columna Derecha: Control de Proyección y Conexión LAN -->
+    <!-- Columna Derecha: Biblioteca, Proyección y LAN -->
     <div>
+      <div class="panel">
+        <h2>
+          <span>📚 Biblioteca de Canciones</span>
+          <button class="btn btn-secondary btn-sm" onclick="refreshLibrary()">⟳</button>
+        </h2>
+        <div id="library-list">Cargando...</div>
+      </div>
+
       <div class="panel">
         <h2>Control de Pantalla de Letras</h2>
         <button class="btn-projection-action" id="btn-blackout" onclick="toggleBlackout()">⚫ Pantalla Negra (Blackout)</button>
@@ -365,25 +471,53 @@
         <h2>Accesos de Red Local (LAN)</h2>
         <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">🎸 Músicos (Escenario):</p>
         <div class="link-box"><a id="musicians-link" target="_blank" href="/musicians">/musicians</a></div>
-
         <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">📽 Proyección / OBS Studio:</p>
         <div class="link-box"><a id="projection-link" target="_blank" href="/projection">/projection</a></div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Editor e Importador ChordPro -->
-  <div class="modal-overlay" id="chordpro-modal">
+  <!-- Modal único: crear canción / agregar pistas / editar letra -->
+  <div class="modal-overlay" id="song-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 style="font-size:1.1rem; color:#fff;">Importar / Crear Canción en ChordPro con Tiempo</h3>
-        <button onclick="closeImportModal()" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
+        <h3 style="font-size:1.1rem; color:#fff;" id="modal-title">Nueva Canción</h3>
+        <button onclick="closeModal()" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
       </div>
+
       <div class="modal-body">
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">
-          Pega aquí el texto ChordPro con marcas de tiempo <code>[mm:ss.xx]</code> y acordes <code>[C]</code>:
-        </p>
-        <textarea class="chordpro-textarea" id="chordpro-input" placeholder="{title: Gracia Sublime Es}
+        <!-- Paso 1: Datos -->
+        <div id="section-info">
+          <div class="step-title">1 · Datos de la canción</div>
+          <div class="form-grid">
+            <div class="field"><label>Título *</label><input id="f-title" placeholder="Ej. Cuán Grande es Dios"></div>
+            <div class="field"><label>Artista</label><input id="f-artist" placeholder="Ej. Marcos Witt"></div>
+            <div class="field"><label>Tono</label><input id="f-key" placeholder="G"></div>
+            <div class="field"><label>BPM</label><input id="f-bpm" placeholder="76" inputmode="decimal"></div>
+          </div>
+          <p style="font-size:0.75rem; color:var(--text-muted); margin:-8px 0 16px;">
+            Si tu archivo ChordPro ya trae <code>{title}</code>, <code>{key}</code> y <code>{bpm}</code>, esos valores tienen prioridad.
+          </p>
+        </div>
+
+        <!-- Paso 2: Letra y acordes -->
+        <div id="section-chart">
+          <div class="step-title" id="chart-step-title">2 · Letra y acordes (ChordPro con tiempos) — opcional</div>
+          <div class="tabs" id="chart-tabs">
+            <div class="tab active" data-tab="file" onclick="switchChartTab('file')">📄 Subir archivo</div>
+            <div class="tab" data-tab="text" onclick="switchChartTab('text')">✍ Pegar texto</div>
+          </div>
+
+          <div id="chart-tab-file">
+            <div class="dropzone" id="chart-dropzone">
+              Arrastra aquí tu archivo <strong>.pro / .txt / .cho</strong> o haz clic para elegirlo
+              <input type="file" id="chart-input" accept=".pro,.txt,.cho,.chordpro,.crd" hidden>
+            </div>
+            <div class="chart-file-chip" id="chart-file-chip"></div>
+          </div>
+
+          <div id="chart-tab-text" style="display:none;">
+            <textarea class="chordpro-textarea" id="chordpro-input" placeholder="{title: Gracia Sublime Es}
 {artist: Evan Craft}
 {key: Bb}
 {bpm: 104}
@@ -394,26 +528,47 @@
 {section: Verso 1}
 [00:10.00] ¿Quién rompe el po[Bb]der del pecado y la oscu[Eb]ridad?
 [00:20.00] Su amor es tan [Gm]fuerte, y es tan pode[F]roso"></textarea>
-
-        <button class="btn-action" onclick="generatePreview()" style="background:#334155;">🔍 Vista Previa</button>
-
-        <div class="preview-columns" id="preview-section" style="display:none;">
-          <div class="preview-box">
-            <h4>🎸 Pantalla de Músicos (Acordes + Tiempo)</h4>
-            <div id="musicians-preview" style="line-height:1.5;"></div>
           </div>
-          <div class="preview-box">
-            <h4>📽 Pantalla de Proyección (Letra Limpia)</h4>
-            <div id="projection-preview" style="line-height:1.5;"></div>
+
+          <button class="btn btn-secondary btn-sm" onclick="generatePreview()" style="margin-top:8px;">🔍 Vista Previa</button>
+          <div class="preview-columns" id="preview-section" style="display:none;">
+            <div class="preview-box">
+              <h4>🎸 Pantalla de Músicos</h4>
+              <div id="musicians-preview" style="line-height:1.5;"></div>
+            </div>
+            <div class="preview-box">
+              <h4>📽 Pantalla de Proyección</h4>
+              <div id="projection-preview" style="line-height:1.5;"></div>
+            </div>
           </div>
+          <div style="height:18px;"></div>
+        </div>
+
+        <!-- Paso 3: Pistas de audio -->
+        <div id="section-stems">
+          <div class="step-title" id="stems-step-title">3 · Pistas de audio (stems)</div>
+          <div class="dropzone" id="stems-dropzone">
+            Arrastra aquí tus pistas <strong>WAV, MP3, FLAC, OGG, M4A, AIFF</strong> (puedes seleccionar varias a la vez)<br>
+            <span style="font-size:0.78rem;">Los nombres con <em>click, guía, guide, cue</em> se envían solo a los in-ears de los músicos.</span>
+            <input type="file" id="stems-input" accept=".wav,.mp3,.flac,.ogg,.m4a,.aiff,.aif" multiple hidden>
+          </div>
+          <div class="file-list" id="stems-file-list"></div>
         </div>
       </div>
+
       <div class="modal-footer">
-        <button onclick="closeImportModal()" style="background:#334155; border:none; color:#fff; padding:8px 14px; border-radius:6px; cursor:pointer;">Cancelar</button>
-        <button class="btn-action" onclick="saveAndLoadChordpro()" style="background:var(--success);">💾 Guardar y Cargar a la App</button>
+        <div class="progress-wrap" id="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+          <div class="progress-label" id="progress-label">Subiendo...</div>
+        </div>
+        <div style="flex:1;" id="footer-spacer"></div>
+        <button class="btn btn-secondary" onclick="closeModal()" id="btn-cancel">Cancelar</button>
+        <button class="btn btn-success" onclick="submitModal()" id="btn-submit">⬆ Subir y Cargar</button>
       </div>
     </div>
   </div>
+
+  <div id="toast-container"></div>
 
   <script>
     let isSeeking = false;
@@ -421,243 +576,588 @@
     let blackoutState = false;
     let clearState = false;
     let ws = null;
+    let activeSongId = null;
+    let librarySongs = [];
 
-    async function loadNetworkInfo() {
-      try {
-        const res = await fetch('/api/network-info');
-        const data = await res.json();
-        document.getElementById('lan-ip').innerText = `LAN: ${data.local_ip}:${data.port}`;
-        document.getElementById('musicians-link').href = data.musicians_url;
-        document.getElementById('musicians-link').innerText = data.musicians_url;
-        document.getElementById('projection-link').href = data.projection_url;
-        document.getElementById('projection-link').innerText = data.projection_url;
-      } catch (e) {}
+    // Estado del modal
+    let modalMode = 'create';     // 'create' | 'stems' | 'chart'
+    let modalSongId = null;
+    let chartTab = 'file';
+    let chartFile = null;
+    let stemFiles = [];
+
+    const CUE_WORDS = ['click', 'clic', 'metronomo', 'metrónomo', 'guia', 'guía', 'guide', 'cue', 'count'];
+    const AUDIO_EXT = ['.wav', '.mp3', '.flac', '.ogg', '.m4a', '.aiff', '.aif'];
+    const CHART_EXT = ['.pro', '.txt', '.cho', '.chordpro', '.crd'];
+
+    // ---------------------------------------------------------------- Utilidades
+    function esc(str) {
+      return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
-
-    async function loadSongsList() {
-      try {
-        const res = await fetch('/api/songs');
-        const songs = await res.json();
-        const select = document.getElementById('song-select');
-        select.innerHTML = '';
-
-        const statusRes = await fetch('/api/status');
-        const status = await statusRes.json();
-        const activeId = status.song.id;
-
-        songs.forEach(song => {
-          const opt = document.createElement('option');
-          opt.value = song.id;
-          opt.innerText = `${song.title} (${song.key} - ${song.bpm} BPM)`;
-          if (song.id === activeId) opt.selected = true;
-          select.appendChild(opt);
-        });
-
-        document.getElementById('current-song-title').innerText = `${status.song.title} (${status.song.key})`;
-      } catch (e) {}
-    }
-
-    async function switchSong(songId) {
-      if (!songId) return;
-      try {
-        const res = await fetch(`/api/songs/${songId}/load`, { method: 'POST' });
-        if (res.ok) {
-          const data = await res.json();
-          document.getElementById('current-song-title').innerText = `${data.song.title} (${data.song.key})`;
-          await refreshPlayerState();
-          await loadStems();
-        }
-      } catch (e) {}
-    }
-
-    async function controlTransport(action) {
-      await fetch(`/api/transport/${action}`, { method: 'POST' });
-    }
-
-    function onSeekChange(val) {
-      isSeeking = true;
-      const targetSec = (val / 100) * songDuration;
-      document.getElementById('current-time').innerText = formatTime(targetSec);
-    }
-
-    document.getElementById('timeline').onchange = async function() {
-      const targetSec = (this.value / 100) * songDuration;
-      await fetch(`/api/transport/seek?pos=${targetSec}`, { method: 'POST' });
-      isSeeking = false;
-    };
-
     function formatTime(sec) {
+      sec = Math.max(0, sec || 0);
       const m = Math.floor(sec / 60);
       const s = Math.floor(sec % 60);
       return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
     }
+    function formatSize(bytes) {
+      if (bytes > 1024 * 1024 * 1024) return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+      return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    }
+    function extOf(name) {
+      const i = name.lastIndexOf('.');
+      return i >= 0 ? name.slice(i).toLowerCase() : '';
+    }
+    function toast(message, type = 'info', ms = 4500) {
+      const el = document.createElement('div');
+      el.className = `toast toast-${type}`;
+      el.textContent = message;
+      document.getElementById('toast-container').appendChild(el);
+      setTimeout(() => el.remove(), ms);
+    }
+    async function api(url, options = {}) {
+      const res = await fetch(url, options);
+      let data = null;
+      try { data = await res.json(); } catch (e) {}
+      if (!res.ok) {
+        const detail = data && data.detail ? (typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail)) : `Error ${res.status}`;
+        throw new Error(detail);
+      }
+      return data;
+    }
 
-    async function loadStems() {
+    // ---------------------------------------------------------------- Red LAN
+    async function loadNetworkInfo() {
       try {
-        const res = await fetch('/api/stems');
-        const stems = await res.json();
-        const container = document.getElementById('stems-list');
-        container.innerHTML = '';
+        const data = await api('/api/network-info');
+        document.getElementById('lan-ip').innerText = `LAN: ${data.local_ip}:${data.port}`;
+        const ml = document.getElementById('musicians-link');
+        ml.href = data.musicians_url; ml.innerText = data.musicians_url;
+        const pl = document.getElementById('projection-link');
+        pl.href = data.projection_url; pl.innerText = data.projection_url;
+      } catch (e) {
+        document.getElementById('lan-ip').innerText = 'Sin conexión';
+      }
+    }
 
-        stems.forEach(stem => {
-          const row = document.createElement('div');
-          row.className = 'stem-row';
+    // ---------------------------------------------------------------- Biblioteca
+    async function refreshLibrary() {
+      let status = null;
+      try {
+        status = await api('/api/status');
+        activeSongId = status.song.id;
+        document.getElementById('current-song-title').innerText = `${status.song.title} (${status.song.key})`;
+      } catch (e) {}
 
-          const routeClass = stem.route === 'cue' ? 'route-cue' : 'route-master';
-          const routeText = stem.route === 'cue' ? 'CUE / IN-EAR' : 'SALA / FOH';
+      try {
+        librarySongs = await api('/api/songs');
+      } catch (e) {
+        librarySongs = [];
+        toast('No se pudo leer la biblioteca de canciones.\n¿Reiniciaste el servidor después de actualizar? (' + e.message + ')', 'error', 8000);
+      }
+      renderSongPicker();
+      renderLibrary();
+    }
 
-          row.innerHTML = `
-            <div class="stem-name" title="${stem.name}">${stem.name}</div>
-            <span class="route-tag ${routeClass}">${routeText}</span>
-            <input type="range" min="0" max="1" step="0.05" value="${stem.volume}" class="slider vol-slider"
-                   onchange="setVolume('${stem.name}', this.value)">
-            <button class="btn-toggle ${stem.mute ? 'active-mute' : ''}" onclick="toggleMute('${stem.name}', ${!stem.mute})">M</button>
-            <button class="btn-toggle ${stem.solo ? 'active-solo' : ''}" onclick="toggleSolo('${stem.name}', ${!stem.solo})">S</button>
-          `;
-          container.appendChild(row);
-        });
+    function renderSongPicker() {
+      const select = document.getElementById('song-select');
+      select.innerHTML = '';
+      if (librarySongs.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.innerText = '— No hay canciones: usa "⬆ Nueva Canción" —';
+        select.appendChild(opt);
+        return;
+      }
+      const isDemo = !librarySongs.some(s => s.id === activeSongId);
+      if (isDemo) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.innerText = '— Elige una canción —';
+        select.appendChild(opt);
+      }
+      librarySongs.forEach(song => {
+        const opt = document.createElement('option');
+        opt.value = song.id;
+        opt.innerText = `${song.title} (${song.key} · ${song.bpm} BPM)`;
+        if (song.id === activeSongId) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function renderLibrary() {
+      const container = document.getElementById('library-list');
+      container.innerHTML = '';
+      if (librarySongs.length === 0) {
+        container.innerHTML = `<div class="empty-state">Tu biblioteca está vacía.<br><br>
+          <button class="btn btn-success btn-sm" onclick="openCreateModal()">⬆ Subir mi primera canción</button></div>`;
+        return;
+      }
+      librarySongs.forEach(song => {
+        const item = document.createElement('div');
+        item.className = 'library-item' + (song.id === activeSongId ? ' active' : '');
+
+        const lyricPill = song.sections_count > 0
+          ? `<span class="pill pill-ok">LETRA ✓</span>`
+          : `<span class="pill pill-warn">SIN LETRA</span>`;
+        const audioPill = song.stems_count > 0
+          ? `<span class="pill pill-ok">${song.stems_count} PISTAS</span>`
+          : `<span class="pill pill-warn">SIN AUDIO</span>`;
+
+        item.innerHTML = `
+          <div class="library-title">${song.id === activeSongId ? '▶ ' : ''}${esc(song.title)}</div>
+          <div class="library-meta">${esc(song.artist)} · ${esc(song.key)} · ${song.bpm} BPM ${lyricPill} ${audioPill}</div>
+          <div class="library-actions"></div>`;
+
+        const actions = item.querySelector('.library-actions');
+        const mk = (label, cls, fn) => {
+          const b = document.createElement('button');
+          b.className = `btn btn-sm ${cls}`;
+          b.textContent = label;
+          b.addEventListener('click', fn);
+          actions.appendChild(b);
+        };
+        if (song.id !== activeSongId) mk('▶ Cargar', '', () => switchSong(song.id));
+        mk('🎵 + Pistas', 'btn-secondary', () => openStemsModal(song.id));
+        mk('📝 Letra', 'btn-secondary', () => openChartModal(song.id));
+        mk('🗑', 'btn-danger', () => deleteSong(song));
+        container.appendChild(item);
+      });
+    }
+
+    async function switchSong(songId) {
+      if (!songId) return;
+      toast('Cargando canción...', 'info', 2000);
+      try {
+        const data = await api(`/api/songs/${encodeURIComponent(songId)}/load`, { method: 'POST' });
+        showWarnings(data.warnings);
+        toast(`✓ "${data.song.title}" lista para tocar`, 'success');
+      } catch (e) {
+        toast('No se pudo cargar la canción:\n' + e.message, 'error', 8000);
+      }
+      await refreshAll();
+    }
+
+    async function deleteSong(song) {
+      if (!confirm(`¿Eliminar "${song.title}" por completo?\nSe borrarán su letra y sus ${song.stems_count} pistas de audio del disco.`)) return;
+      try {
+        await api(`/api/songs/${encodeURIComponent(song.id)}`, { method: 'DELETE' });
+        toast(`"${song.title}" eliminada`, 'success');
+      } catch (e) {
+        toast('No se pudo eliminar: ' + e.message, 'error');
+      }
+      await refreshAll();
+    }
+
+    function showWarnings(warnings) {
+      if (warnings && warnings.length) {
+        toast('⚠ Algunas pistas no se pudieron leer:\n' + warnings.join('\n'), 'error', 10000);
+      }
+    }
+
+    document.getElementById('song-select').addEventListener('change', e => switchSong(e.target.value));
+
+    // ---------------------------------------------------------------- Transporte
+    async function controlTransport(action) {
+      try {
+        await api(`/api/transport/${action}`, { method: 'POST' });
+      } catch (e) {
+        toast(`No se pudo ejecutar ${action}: ${e.message}`, 'error');
+      }
+    }
+
+    const timeline = document.getElementById('timeline');
+    timeline.addEventListener('input', () => {
+      isSeeking = true;
+      document.getElementById('current-time').innerText = formatTime((timeline.value / 100) * songDuration);
+    });
+    timeline.addEventListener('change', async () => {
+      const targetSec = (timeline.value / 100) * songDuration;
+      try { await api(`/api/transport/seek?pos=${targetSec}`, { method: 'POST' }); } catch (e) {}
+      isSeeking = false;
+    });
+
+    async function refreshPlayerState() {
+      try {
+        const status = await api('/api/status');
+        songDuration = status.duration_seconds;
+        document.getElementById('total-time').innerText = formatTime(songDuration);
+        document.getElementById('current-time').innerText = formatTime(status.position_seconds);
+        timeline.value = songDuration > 0 ? (status.position_seconds / songDuration) * 100 : 0;
       } catch (e) {}
     }
 
-    async function setVolume(name, vol) {
-      await fetch(`/api/stems/${name}/volume?volume=${vol}`, { method: 'POST' });
+    // ---------------------------------------------------------------- Mezclador
+    async function loadStems() {
+      const container = document.getElementById('stems-list');
+      let stems = [];
+      try { stems = await api('/api/stems'); } catch (e) { container.innerText = 'No disponible'; return; }
+      container.innerHTML = '';
+
+      const activeInfo = librarySongs.find(s => s.id === activeSongId);
+      document.getElementById('btn-add-stems-active').style.display = activeInfo ? '' : 'none';
+      if (!activeInfo || activeInfo.stems_count === 0) {
+        const note = document.createElement('div');
+        note.className = 'synthetic-note';
+        note.textContent = activeInfo
+          ? '🔈 Esta canción aún no tiene audio propio: suenan pistas de prueba generadas (click, guía, pad, bajo). Usa "🎵 + Pistas" para subir tus stems.'
+          : '🔈 Canción de demostración con pistas de prueba generadas.';
+        container.appendChild(note);
+      }
+
+      stems.forEach(stem => {
+        const row = document.createElement('div');
+        row.className = 'stem-row';
+        const isCue = stem.route === 'cue';
+        row.innerHTML = `
+          <div class="stem-name" title="${esc(stem.name)}">${esc(stem.name)}</div>
+          <span class="route-tag ${isCue ? 'route-cue' : 'route-master'}">${isCue ? 'CUE / IN-EAR' : 'SALA / FOH'}</span>
+          <input type="range" min="0" max="1" step="0.05" value="${stem.volume}" class="slider vol-slider">
+          <button class="btn-toggle ${stem.mute ? 'active-mute' : ''}" data-act="mute">M</button>
+          <button class="btn-toggle ${stem.solo ? 'active-solo' : ''}" data-act="solo">S</button>`;
+        const enc = encodeURIComponent(stem.name);
+        row.querySelector('input').addEventListener('change', e =>
+          api(`/api/stems/${enc}/volume?volume=${e.target.value}`, { method: 'POST' }).catch(() => {}));
+        row.querySelector('[data-act="mute"]').addEventListener('click', async () => {
+          await api(`/api/stems/${enc}/mute?mute=${!stem.mute}`, { method: 'POST' }).catch(() => {});
+          loadStems();
+        });
+        row.querySelector('[data-act="solo"]').addEventListener('click', async () => {
+          await api(`/api/stems/${enc}/solo?solo=${!stem.solo}`, { method: 'POST' }).catch(() => {});
+          loadStems();
+        });
+        container.appendChild(row);
+      });
     }
 
-    async function toggleMute(name, mute) {
-      await fetch(`/api/stems/${name}/mute?mute=${mute}`, { method: 'POST' });
-      loadStems();
-    }
-
-    async function toggleSolo(name, solo) {
-      await fetch(`/api/stems/${name}/solo?solo=${solo}`, { method: 'POST' });
-      loadStems();
-    }
-
+    // ---------------------------------------------------------------- WebSocket
     function connectWS() {
       const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
       ws = new WebSocket(`${protocol}//${location.host}/ws/control`);
-
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'control_tick' && !isSeeking) {
-            const pos = data.pos;
-            if (songDuration > 0) {
-              document.getElementById('timeline').value = (pos / songDuration) * 100;
-            }
-            document.getElementById('current-time').innerText = formatTime(pos);
+            if (songDuration > 0) timeline.value = (data.pos / songDuration) * 100;
+            document.getElementById('current-time').innerText = formatTime(data.pos);
           }
         } catch (e) {}
       };
-
       ws.onclose = () => setTimeout(connectWS, 1500);
       ws.onerror = () => ws.close();
     }
 
     function toggleBlackout() {
       blackoutState = !blackoutState;
-      const btn = document.getElementById('btn-blackout');
-      btn.classList.toggle('active', blackoutState);
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'set_projection', blackout: blackoutState }));
-      }
+      document.getElementById('btn-blackout').classList.toggle('active', blackoutState);
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'set_projection', blackout: blackoutState }));
     }
-
     function toggleClearText() {
       clearState = !clearState;
-      const btn = document.getElementById('btn-clear');
-      btn.classList.toggle('active', clearState);
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'set_projection', clear: clearState }));
+      document.getElementById('btn-clear').classList.toggle('active', clearState);
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'set_projection', clear: clearState }));
+    }
+
+    // ---------------------------------------------------------------- Modal
+    function resetModal() {
+      ['f-title', 'f-artist', 'f-key', 'f-bpm'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('chordpro-input').value = '';
+      document.getElementById('preview-section').style.display = 'none';
+      chartFile = null;
+      stemFiles = [];
+      document.getElementById('chart-file-chip').textContent = '';
+      document.getElementById('stems-file-list').innerHTML = '';
+      renderStemFiles();
+      setProgress(false);
+      switchChartTab('file');
+    }
+
+    function showSections({ info, chart, stems }) {
+      document.getElementById('section-info').style.display = info ? '' : 'none';
+      document.getElementById('section-chart').style.display = chart ? '' : 'none';
+      document.getElementById('section-stems').style.display = stems ? '' : 'none';
+    }
+
+    function openCreateModal() {
+      resetModal();
+      modalMode = 'create';
+      modalSongId = null;
+      document.getElementById('modal-title').textContent = '⬆ Nueva Canción';
+      document.getElementById('chart-step-title').textContent = '2 · Letra y acordes (ChordPro con tiempos) — opcional, puedes agregarla después';
+      document.getElementById('stems-step-title').textContent = '3 · Pistas de audio (stems) — opcional';
+      document.getElementById('chart-tabs').style.display = '';
+      document.getElementById('btn-submit').textContent = '⬆ Subir y Cargar';
+      showSections({ info: true, chart: true, stems: true });
+      document.getElementById('song-modal').classList.add('active');
+      document.getElementById('f-title').focus();
+    }
+
+    function openStemsModal(songId) {
+      if (!songId) return;
+      resetModal();
+      modalMode = 'stems';
+      modalSongId = songId;
+      const song = librarySongs.find(s => s.id === songId);
+      document.getElementById('modal-title').textContent = `🎵 Agregar pistas a "${song ? song.title : songId}"`;
+      document.getElementById('stems-step-title').textContent = 'Pistas de audio (si un archivo tiene el mismo nombre que uno existente, se reemplaza)';
+      document.getElementById('btn-submit').textContent = '⬆ Subir Pistas';
+      showSections({ info: false, chart: false, stems: true });
+
+      // Mostrar pistas existentes con opción de borrarlas
+      if (song && song.stems && song.stems.length) {
+        const list = document.getElementById('stems-file-list');
+        const header = document.createElement('div');
+        header.style.cssText = 'font-size:0.75rem;color:var(--text-muted);margin:8px 0 6px;';
+        header.textContent = 'Pistas actuales en esta canción:';
+        list.appendChild(header);
+        song.stems.forEach(st => {
+          const row = document.createElement('div');
+          row.className = 'file-row';
+          row.innerHTML = `<span>🎧</span><span class="fname">${esc(st.file)}</span><span class="fsize">${st.size_mb} MB</span><button title="Eliminar del disco">🗑</button>`;
+          row.querySelector('button').addEventListener('click', async () => {
+            if (!confirm(`¿Eliminar la pista "${st.file}"?`)) return;
+            try {
+              await api(`/api/songs/${encodeURIComponent(songId)}/stems/${encodeURIComponent(st.file)}`, { method: 'DELETE' });
+              row.remove();
+              toast(`Pista "${st.file}" eliminada`, 'success');
+              await refreshAll();
+            } catch (e) { toast('No se pudo eliminar: ' + e.message, 'error'); }
+          });
+          list.appendChild(row);
+        });
+      }
+      document.getElementById('song-modal').classList.add('active');
+    }
+
+    async function openChartModal(songId) {
+      resetModal();
+      modalMode = 'chart';
+      modalSongId = songId;
+      const song = librarySongs.find(s => s.id === songId);
+      document.getElementById('modal-title').textContent = `📝 Letra y acordes de "${song ? song.title : songId}"`;
+      document.getElementById('chart-step-title').textContent = 'Edita el texto ChordPro con marcas de tiempo [mm:ss.xx]';
+      document.getElementById('chart-tabs').style.display = '';
+      document.getElementById('btn-submit').textContent = '💾 Guardar Letra';
+      showSections({ info: false, chart: true, stems: false });
+      switchChartTab('text');
+      try {
+        const data = await api(`/api/songs/${encodeURIComponent(songId)}/chart`);
+        document.getElementById('chordpro-input').value = data.content || '';
+      } catch (e) { toast('No se pudo leer la letra: ' + e.message, 'error'); }
+      document.getElementById('song-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('song-modal').classList.remove('active');
+    }
+
+    function switchChartTab(tab) {
+      chartTab = tab;
+      document.querySelectorAll('#chart-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      document.getElementById('chart-tab-file').style.display = tab === 'file' ? '' : 'none';
+      document.getElementById('chart-tab-text').style.display = tab === 'text' ? '' : 'none';
+    }
+
+    // --- Archivo ChordPro
+    function setChartFile(file) {
+      if (!file) return;
+      if (!CHART_EXT.includes(extOf(file.name))) {
+        toast(`"${file.name}" no es un archivo de letra (.pro, .txt, .cho)`, 'error');
+        return;
+      }
+      chartFile = file;
+      document.getElementById('chart-file-chip').textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      // Cargar también en el área de texto para la vista previa / edición.
+      // Se intenta UTF-8 y, si falla, Windows-1252 (archivos ANSI del Bloc de notas) para no romper las tildes.
+      const reader = new FileReader();
+      reader.onload = () => {
+        let text;
+        try {
+          text = new TextDecoder('utf-8', { fatal: true }).decode(reader.result);
+        } catch (e) {
+          text = new TextDecoder('windows-1252').decode(reader.result);
+        }
+        document.getElementById('chordpro-input').value = text.replace(/^\uFEFF/, '');
+        generatePreview();
+      };
+      reader.readAsArrayBuffer(file);
+    }
+    setupDropzone('chart-dropzone', 'chart-input', files => setChartFile(files[0]));
+
+    // --- Stems
+    function addStemFiles(files) {
+      let rejected = [];
+      for (const f of files) {
+        if (!AUDIO_EXT.includes(extOf(f.name))) { rejected.push(f.name); continue; }
+        stemFiles = stemFiles.filter(x => x.name !== f.name);
+        stemFiles.push(f);
+      }
+      if (rejected.length) toast('Se ignoraron archivos que no son audio:\n' + rejected.join('\n'), 'error', 6000);
+      renderStemFiles();
+    }
+    function renderStemFiles() {
+      const list = document.getElementById('stems-file-list');
+      list.querySelectorAll('.new-file').forEach(el => el.remove());
+      stemFiles.forEach((f, idx) => {
+        const lower = f.name.toLowerCase();
+        const isCue = CUE_WORDS.some(w => lower.includes(w));
+        const row = document.createElement('div');
+        row.className = 'file-row new-file';
+        row.innerHTML = `
+          <span class="route-tag ${isCue ? 'route-cue' : 'route-master'}">${isCue ? 'CUE / IN-EAR' : 'SALA / FOH'}</span>
+          <span class="fname">${esc(f.name)}</span>
+          <span class="fsize">${formatSize(f.size)}</span>
+          <button title="Quitar">✕</button>`;
+        row.querySelector('button').addEventListener('click', () => { stemFiles.splice(idx, 1); renderStemFiles(); });
+        list.appendChild(row);
+      });
+      if (stemFiles.length > 1) {
+        const total = stemFiles.reduce((a, f) => a + f.size, 0);
+        const sum = document.createElement('div');
+        sum.className = 'new-file';
+        sum.style.cssText = 'font-size:0.78rem;color:var(--text-muted);text-align:right;margin-top:4px;';
+        sum.textContent = `${stemFiles.length} pistas · ${formatSize(total)} en total`;
+        list.appendChild(sum);
       }
     }
+    setupDropzone('stems-dropzone', 'stems-input', files => addStemFiles(files));
 
-    // Modal de ChordPro
-    function openImportModal() {
-      document.getElementById('chordpro-modal').classList.add('active');
-    }
-    function closeImportModal() {
-      document.getElementById('chordpro-modal').classList.remove('active');
+    function setupDropzone(zoneId, inputId, onFiles) {
+      const zone = document.getElementById(zoneId);
+      const input = document.getElementById(inputId);
+      zone.addEventListener('click', () => input.click());
+      input.addEventListener('change', () => { onFiles(Array.from(input.files)); input.value = ''; });
+      ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('dragover'); }));
+      ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('dragover'); }));
+      zone.addEventListener('drop', e => onFiles(Array.from(e.dataTransfer.files)));
     }
 
+    // --- Vista previa
     async function generatePreview() {
       const content = document.getElementById('chordpro-input').value;
-      if (!content.trim()) return;
-
+      if (!content.trim()) { toast('Primero sube o pega el texto ChordPro.', 'info'); return; }
       try {
-        const res = await fetch('/api/songs/parse-preview', {
+        const song = await api('/api/songs/parse-preview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content })
         });
-        if (!res.ok) return;
-        const song = await res.json();
-
-        const musiciansDiv = document.getElementById('musicians-preview');
-        const projectionDiv = document.getElementById('projection-preview');
-        musiciansDiv.innerHTML = '';
-        projectionDiv.innerHTML = '';
-
+        const mDiv = document.getElementById('musicians-preview');
+        const pDiv = document.getElementById('projection-preview');
+        mDiv.innerHTML = ''; pDiv.innerHTML = '';
+        if (!song.sections.length) {
+          mDiv.innerHTML = pDiv.innerHTML = '<em style="color:var(--warning)">No se encontraron líneas con letra o acordes.</em>';
+        }
         song.sections.forEach(sec => {
-          const mSec = document.createElement('div');
-          mSec.innerHTML = `<strong style="color:#60a5fa;">[${sec.name}]</strong> (${formatTime(sec.start_time)})`;
-          musiciansDiv.appendChild(mSec);
-
-          const pSec = document.createElement('div');
-          pSec.innerHTML = `<strong style="color:#60a5fa;">[${sec.name}]</strong>`;
-          projectionDiv.appendChild(pSec);
-
+          mDiv.insertAdjacentHTML('beforeend', `<strong style="color:#60a5fa;">[${esc(sec.name)}]</strong> <span style="color:var(--text-muted)">${formatTime(sec.start_time)}</span>`);
+          pDiv.insertAdjacentHTML('beforeend', `<strong style="color:#60a5fa;">[${esc(sec.name)}]</strong>`);
           sec.lines.forEach(l => {
-            const chordsStr = l.chords.map(c => `[${c.chord}]`).join(' ');
-            const mLine = document.createElement('div');
-            mLine.innerHTML = `<span style="color:#fbbf24; font-family:monospace;">${chordsStr}</span><br><span>${l.lyrics}</span>`;
-            mLine.style.marginBottom = '6px';
-            musiciansDiv.appendChild(mLine);
-
-            const pLine = document.createElement('div');
-            pLine.innerText = l.lyrics;
-            pLine.style.marginBottom = '4px';
-            projectionDiv.appendChild(pLine);
+            const chords = l.chords.map(c => `[${esc(c.chord)}]`).join(' ');
+            mDiv.insertAdjacentHTML('beforeend', `<div style="margin-bottom:6px;"><span style="color:var(--chord);font-family:monospace;">${chords}</span><br>${esc(l.lyrics)}</div>`);
+            pDiv.insertAdjacentHTML('beforeend', `<div style="margin-bottom:4px;">${esc(l.lyrics)}</div>`);
           });
         });
-
         document.getElementById('preview-section').style.display = 'grid';
-      } catch (e) {}
+      } catch (e) {
+        toast('Error en la vista previa: ' + e.message, 'error');
+      }
     }
 
-    async function saveAndLoadChordpro() {
-      const content = document.getElementById('chordpro-input').value;
-      if (!content.trim()) return;
+    // --- Progreso
+    function setProgress(active, pct = 0, label = '') {
+      document.getElementById('progress-wrap').classList.toggle('active', active);
+      document.getElementById('footer-spacer').style.display = active ? 'none' : '';
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-label').textContent = label;
+      document.getElementById('btn-submit').disabled = active;
+      document.getElementById('btn-cancel').disabled = active;
+    }
 
+    function uploadWithProgress(url, formData) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url);
+        xhr.upload.onprogress = e => {
+          if (!e.lengthComputable) return;
+          const pct = Math.round((e.loaded / e.total) * 100);
+          setProgress(true, pct, pct < 100
+            ? `Subiendo ${formatSize(e.loaded)} de ${formatSize(e.total)} (${pct}%)`
+            : 'Procesando audio en el servidor... (puede tardar unos segundos con pistas largas)');
+        };
+        xhr.onload = () => {
+          let data = null;
+          try { data = JSON.parse(xhr.responseText); } catch (e) {}
+          if (xhr.status >= 200 && xhr.status < 300) resolve(data);
+          else reject(new Error(data && data.detail ? data.detail : `Error ${xhr.status}`));
+        };
+        xhr.onerror = () => reject(new Error('Se perdió la conexión con el servidor durante la subida.'));
+        xhr.send(formData);
+      });
+    }
+
+    async function submitModal() {
       try {
-        const res = await fetch('/api/songs/import', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content, load_immediately: true })
-        });
-        if (res.ok) {
-          closeImportModal();
-          await loadSongsList();
-          await refreshPlayerState();
-          await loadStems();
+        if (modalMode === 'create') {
+          const title = document.getElementById('f-title').value.trim();
+          const text = document.getElementById('chordpro-input').value.trim();
+          if (!title && !chartFile && !text) {
+            toast('Escribe al menos el título de la canción o adjunta su archivo ChordPro.', 'error');
+            return;
+          }
+          const fd = new FormData();
+          fd.append('title', title);
+          fd.append('artist', document.getElementById('f-artist').value.trim());
+          fd.append('key', document.getElementById('f-key').value.trim());
+          fd.append('bpm', document.getElementById('f-bpm').value.trim());
+          fd.append('load_immediately', 'true');
+          // El área de texto refleja el archivo elegido y cualquier edición posterior
+          if (text) fd.append('chart_text', text);
+          stemFiles.forEach(f => fd.append('stems', f, f.name));
+
+          setProgress(true, 0, 'Preparando subida...');
+          const data = await uploadWithProgress('/api/songs/upload', fd);
+          showWarnings(data.warnings);
+          toast(`✓ Canción creada${data.stems_saved.length ? ` con ${data.stems_saved.length} pistas` : ''} y cargada`, 'success');
+
+        } else if (modalMode === 'stems') {
+          if (!stemFiles.length) { toast('Agrega al menos una pista de audio.', 'error'); return; }
+          const fd = new FormData();
+          stemFiles.forEach(f => fd.append('stems', f, f.name));
+          setProgress(true, 0, 'Preparando subida...');
+          const data = await uploadWithProgress(`/api/songs/${encodeURIComponent(modalSongId)}/stems`, fd);
+          showWarnings(data.warnings);
+          toast(`✓ ${data.stems_saved.length} pistas agregadas`, 'success');
+
+        } else if (modalMode === 'chart') {
+          const content = document.getElementById('chordpro-input').value;
+          if (!content.trim()) { toast('El texto ChordPro está vacío.', 'error'); return; }
+          setProgress(true, 50, 'Guardando letra...');
+          await api(`/api/songs/${encodeURIComponent(modalSongId)}/chart`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+          });
+          toast('✓ Letra actualizada', 'success');
         }
-      } catch (e) {}
+        setProgress(false);
+        closeModal();
+        await refreshAll();
+      } catch (e) {
+        setProgress(false);
+        toast('No se pudo completar:\n' + e.message, 'error', 9000);
+      }
     }
 
-    async function refreshPlayerState() {
-      const statusRes = await fetch('/api/status');
-      const status = await statusRes.json();
-      songDuration = status.duration_seconds;
-      document.getElementById('total-time').innerText = formatTime(songDuration);
-      document.getElementById('current-time').innerText = formatTime(status.position_seconds);
-      document.getElementById('timeline').value = 0;
+    // ---------------------------------------------------------------- Inicio
+    async function refreshAll() {
+      await refreshLibrary();
+      await refreshPlayerState();
+      await loadStems();
     }
 
     async function init() {
       await loadNetworkInfo();
-      await loadSongsList();
-      await refreshPlayerState();
-      await loadStems();
+      await refreshAll();
       connectWS();
     }
 

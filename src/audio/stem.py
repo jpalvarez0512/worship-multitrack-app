@@ -43,7 +43,9 @@ class StemTrack:
             self.route = route
         else:
             lower_name = name.lower()
-            if any(cue_word in lower_name for cue_word in ["click", "metronomo", "guia", "guide", "cue"]):
+            if any(cue_word in lower_name for cue_word in [
+                "click", "clic", "metronomo", "metrónomo", "guia", "guía", "guide", "cue", "count",
+            ]):
                 self.route = "cue"
             else:
                 self.route = "master"
@@ -125,8 +127,9 @@ class StemTrack:
                 )
                 int_data[int_data >= 0x800000] -= 0x1000000
                 float_data = int_data.astype(np.float32) / 8388608.0
-            elif sampwidth == 4:  # 32-bit int o float
-                float_data = np.frombuffer(raw_bytes, dtype=np.float32)
+            elif sampwidth == 4:  # 32-bit PCM entero (los WAV float32 no los abre `wave` y van a soundfile)
+                int_data = np.frombuffer(raw_bytes, dtype=np.int32)
+                float_data = int_data.astype(np.float32) / 2147483648.0
             else:
                 int_data = np.frombuffer(raw_bytes, dtype=np.uint8)
                 float_data = (int_data.astype(np.float32) - 128.0) / 128.0

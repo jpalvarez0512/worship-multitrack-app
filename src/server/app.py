@@ -8,8 +8,8 @@ import json
 import os
 import sys
 from contextlib import asynccontextmanager
-from typing import Optional
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from typing import List, Optional
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -22,7 +22,7 @@ from src.audio.synthetic import (
 )
 from src.core.chordpro import ChordProParser
 from src.core.song import Song, create_demo_song
-from src.core.song_loader import SongLoader
+from src.core.song_loader import AUDIO_EXTENSIONS, CHART_EXTENSIONS, SongLoader
 from src.server.websocket_manager import ChannelType, ConnectionManager
 from src.utils.network import get_connection_url, get_local_ip, print_ascii_qr
 
@@ -195,8 +195,69 @@ def get_current_song(transpose: int = 0):
 
 
 # -----------------------------------------------------------------------------
-# Endpoints de Biblioteca de Canciones y ChordPro
+# Endpoints de Biblioteca de Canciones, ChordPro y Subida de Archivos
 # -----------------------------------------------------------------------------
+# Nota: estos endpoints son funciones normales (no async) a propósito. FastAPI las
+# ejecuta en un hilo aparte, así la decodificación de WAV/MP3 pesados o el guardado
+# de archivos grandes no congela los WebSockets de músicos y proyección.
+
+def _notify_song_changed() -> None:
+    """Avisa a músicos y proyección que cambió la canción (seguro desde cualquier hilo)."""
+    if main_event_loop is None or not main_event_loop.is_running():
+        return
+    asyncio.run_coroutine_threadsafe(
+        ws_manager.broadcast_to_channel(
+            ChannelType.MUSICIANS,
+            {"type": "song_changed", "song": current_song.to_summary_dict()},
+        ),
+        main_event_loop,
+    )
+    asyncio.run_coroutine_threadsafe(
+        ws_manager.broadcast_to_channel(
+            ChannelType.PROJECTION,
+            {"type": "song_changed", "title": current_song.title},
+        ),
+        main_event_loop,
+    )
+
+
+def _activate_song(song_id: str) -> dict:
+    """Detiene la reproducción, carga la canción en el motor y notifica a los clientes."""
+    global current_song
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    engine.stop()
+    current_song = song_loader.load_song(song_id, engine)
+    _notify_song_changed()
+    return {
+        "status": "loaded",
+        "song": current_song.to_summary_dict(),
+        "warnings": list(song_loader.last_load_errors),
+    }
+
+
+def _read_text_upload(upload: UploadFile) -> str:
+    """Lee un archivo de texto subido tolerando UTF-8 (con o sin BOM) y Latin-1 (Bloc de notas antiguo)."""
+    raw = upload.file.read()
+    for encoding in ("utf-8-sig", "cp1252", "latin-1"):
+        try:
+            return raw.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return raw.decode("utf-8", errors="replace")
+
+
+def _validate_audio_uploads(files: List[UploadFile]) -> None:
+    """Rechaza archivos que no sean audio antes de escribir nada en disco."""
+    for f in files:
+        ext = os.path.splitext(f.filename or "")[1].lower()
+        if ext not in AUDIO_EXTENSIONS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"'{f.filename}' no es un archivo de audio admitido "
+                f"({', '.join(sorted(AUDIO_EXTENSIONS))}).",
+            )
+
 
 @app.get("/api/songs")
 def list_available_songs():
@@ -205,23 +266,12 @@ def list_available_songs():
 
 
 @app.post("/api/songs/{song_id}/load")
-async def load_song_endpoint(song_id: str):
+def load_song_endpoint(song_id: str):
     """Carga una canción específica de tracks/ y la sincroniza con el motor de audio."""
-    global current_song, engine
-    if engine is None:
-        raise HTTPException(status_code=503, detail="Motor no disponible")
     try:
-        engine.stop()
-        current_song = song_loader.load_song(song_id, engine)
-        await ws_manager.broadcast_to_channel(
-            ChannelType.MUSICIANS,
-            {"type": "song_changed", "song": current_song.to_summary_dict()},
-        )
-        await ws_manager.broadcast_to_channel(
-            ChannelType.PROJECTION,
-            {"type": "song_changed", "title": current_song.title},
-        )
-        return {"status": "loaded", "song": current_song.to_summary_dict()}
+        return _activate_song(song_id)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -237,27 +287,163 @@ def parse_chordpro_preview(payload: dict):
 
 
 @app.post("/api/songs/import")
-async def import_song_endpoint(payload: dict):
+def import_song_endpoint(payload: dict):
     """Importa texto ChordPro, crea la carpeta en tracks/ y opcionalmente la carga."""
-    global current_song, engine
     content = payload.get("content", "")
     custom_id = payload.get("id")
     if not content:
         raise HTTPException(status_code=400, detail="El contenido no puede estar vacío")
     try:
         song = song_loader.import_chordpro_text(content, custom_id=custom_id)
-        if payload.get("load_immediately", True) and engine is not None:
-            engine.stop()
-            current_song = song_loader.load_song(song.id, engine)
-            await ws_manager.broadcast_to_channel(
-                ChannelType.MUSICIANS,
-                {"type": "song_changed", "song": current_song.to_summary_dict()},
-            )
-            await ws_manager.broadcast_to_channel(
-                ChannelType.PROJECTION,
-                {"type": "song_changed", "title": current_song.title},
-            )
+        if payload.get("load_immediately", True):
+            _activate_song(song.id)
         return {"status": "imported", "song": song.to_summary_dict()}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/songs/upload")
+def upload_song_endpoint(
+    title: str = Form(""),
+    artist: str = Form(""),
+    key: str = Form(""),
+    bpm: str = Form(""),
+    chart_text: str = Form(""),
+    load_immediately: bool = Form(True),
+    chart_file: Optional[UploadFile] = File(None),
+    stems: Optional[List[UploadFile]] = File(None),
+):
+    """
+    Crea una canción nueva desde la web: título/metadatos, ChordPro (archivo o texto pegado)
+    y pistas de audio (stems). Todo se guarda en tracks/<cancion>/.
+    """
+    stem_files = [s for s in (stems or []) if s.filename]
+    _validate_audio_uploads(stem_files)
+
+    content = chart_text.strip()
+    if chart_file is not None and chart_file.filename:
+        if os.path.splitext(chart_file.filename)[1].lower() not in CHART_EXTENSIONS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"El archivo de letra debe ser {', '.join(sorted(CHART_EXTENSIONS))}.",
+            )
+        content = _read_text_upload(chart_file).strip()
+
+    if not title.strip() and not content:
+        raise HTTPException(status_code=400, detail="Escribe un título o adjunta un archivo ChordPro.")
+
+    try:
+        bpm_value = float(bpm) if bpm.strip() else None
+    except ValueError:
+        raise HTTPException(status_code=400, detail="El BPM debe ser un número (ej. 76 o 104.5).")
+
+    try:
+        song_id = song_loader.create_song(
+            title=title.strip(),
+            chordpro_content=content,
+            artist=artist.strip(),
+            key=key.strip(),
+            bpm=bpm_value,
+        )
+        saved = song_loader.save_stem_files(song_id, [(s.filename, s.file) for s in stem_files])
+
+        result = {"status": "uploaded", "song_id": song_id, "stems_saved": saved, "warnings": []}
+        if load_immediately:
+            activation = _activate_song(song_id)
+            result["song"] = activation["song"]
+            result["warnings"] = activation["warnings"]
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/songs/{song_id}/stems")
+def add_stems_endpoint(song_id: str, stems: List[UploadFile] = File(...)):
+    """Agrega (o reemplaza si tienen el mismo nombre) pistas de audio a una canción existente."""
+    stem_files = [s for s in stems if s.filename]
+    if not stem_files:
+        raise HTTPException(status_code=400, detail="No se recibió ningún archivo de audio.")
+    _validate_audio_uploads(stem_files)
+    try:
+        saved = song_loader.save_stem_files(song_id, [(s.filename, s.file) for s in stem_files])
+        result = {"status": "stems_added", "song_id": song_id, "stems_saved": saved, "warnings": []}
+        if current_song.id == song_id:
+            result["warnings"] = _activate_song(song_id)["warnings"]
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.delete("/api/songs/{song_id}/stems/{filename}")
+def delete_stem_endpoint(song_id: str, filename: str):
+    """Elimina una pista de audio de una canción."""
+    try:
+        song_loader.delete_stem(song_id, filename)
+        if current_song.id == song_id:
+            _activate_song(song_id)
+        return {"status": "stem_deleted", "file": filename}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/songs/{song_id}/chart")
+def get_chart_endpoint(song_id: str):
+    """Devuelve el texto ChordPro de una canción para editarlo en la consola."""
+    try:
+        folder = song_loader._song_folder(song_id)
+        chart_path = SongLoader._find_chart(folder)
+        if not chart_path:
+            return {"song_id": song_id, "content": ""}
+        with open(chart_path, "r", encoding="utf-8") as f:
+            return {"song_id": song_id, "content": f.read()}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.put("/api/songs/{song_id}/chart")
+def update_chart_endpoint(song_id: str, payload: dict):
+    """Reemplaza la letra/acordes (ChordPro) de una canción existente conservando sus stems."""
+    content = payload.get("content", "")
+    if not content.strip():
+        raise HTTPException(status_code=400, detail="El contenido no puede estar vacío")
+    try:
+        folder = song_loader._song_folder(song_id)
+        if not os.path.exists(folder):
+            raise FileNotFoundError(f"Canción no encontrada: {song_id}")
+        song_loader.import_chordpro_text(content, custom_id=song_id)
+        if current_song.id == song_id:
+            _activate_song(song_id)
+        return {"status": "chart_updated", "song_id": song_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.delete("/api/songs/{song_id}")
+def delete_song_endpoint(song_id: str):
+    """Elimina una canción completa (letra, json y pistas de audio) de tracks/."""
+    global current_song
+    try:
+        was_active = current_song.id == song_id
+        if was_active and engine is not None:
+            engine.stop()
+        song_loader.delete_song(song_id)
+        if was_active and engine is not None:
+            current_song = create_demo_song()
+            setup_demo_audio(engine, current_song)
+            _notify_song_changed()
+        return {"status": "song_deleted", "song_id": song_id}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

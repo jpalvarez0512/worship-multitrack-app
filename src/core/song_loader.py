@@ -5,7 +5,8 @@ Subagente responsable: 01-lead-architect & 02-audio-multitrack-engineer
 
 import os
 import re
-from typing import Dict, List, Optional
+import shutil
+from typing import BinaryIO, Iterable, List, Optional, Tuple
 from src.audio.engine import MultitrackEngine
 from src.audio.stem import StemTrack
 from src.audio.synthetic import (
@@ -13,12 +14,27 @@ from src.audio.synthetic import (
     generate_guide_cues,
     generate_instrument_stem,
 )
-from src.core.chordpro import ChordProParser
+from src.core.chordpro import ChordProParser, slugify
 from src.core.song import Song
 
 
-AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".m4a"}
+AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".m4a", ".aiff", ".aif"}
+CHART_EXTENSIONS = {".pro", ".txt", ".cho", ".chordpro", ".crd"}
 CHORDPRO_FILENAMES = ["chart.pro", "chart.txt", "song.pro", "song.txt", "song.cho", "song.chordpro"]
+COPY_CHUNK_SIZE = 1024 * 1024  # 1 MB por bloque al guardar archivos subidos
+
+
+def sanitize_filename(filename: str) -> str:
+    """
+    Limpia el nombre de un archivo subido para evitar rutas maliciosas (../)
+    y caracteres no válidos en Windows, preservando la extensión.
+    """
+    base = os.path.basename(filename.replace("\\", "/"))
+    name, ext = os.path.splitext(base)
+    safe_name = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", name).strip(" .")
+    if not safe_name:
+        safe_name = "pista"
+    return f"{safe_name}{ext.lower()}"
 
 
 class SongLoader:
@@ -30,6 +46,45 @@ class SongLoader:
     def __init__(self, tracks_root: str):
         self.tracks_root = os.path.abspath(tracks_root)
         os.makedirs(self.tracks_root, exist_ok=True)
+        # Archivos de audio que no se pudieron decodificar en la última carga
+        self.last_load_errors: List[str] = []
+
+    # --------------------------------------------------------------------------
+    # Utilidades de rutas
+    # --------------------------------------------------------------------------
+
+    def _song_folder(self, song_id: str) -> str:
+        """Ruta absoluta de la carpeta de una canción, validando que esté dentro de tracks/."""
+        folder = os.path.abspath(os.path.join(self.tracks_root, song_id))
+        if os.path.dirname(folder) != self.tracks_root:
+            raise ValueError(f"Identificador de canción inválido: {song_id}")
+        return folder
+
+    def _stems_dir(self, song_id: str) -> str:
+        return os.path.join(self._song_folder(song_id), "stems")
+
+    @staticmethod
+    def _find_chart(folder_path: str) -> Optional[str]:
+        for fname in CHORDPRO_FILENAMES:
+            candidate = os.path.join(folder_path, fname)
+            if os.path.exists(candidate):
+                return candidate
+        return None
+
+    @staticmethod
+    def _list_audio_files(folder_path: str) -> List[str]:
+        """Busca audios en <cancion>/stems/ y, si no existe, en la raíz de la canción."""
+        stems_dir = os.path.join(folder_path, "stems")
+        search_dir = stems_dir if os.path.isdir(stems_dir) else folder_path
+        files = []
+        for f in sorted(os.listdir(search_dir)):
+            if os.path.splitext(f)[1].lower() in AUDIO_EXTENSIONS:
+                files.append(os.path.join(search_dir, f))
+        return files
+
+    # --------------------------------------------------------------------------
+    # Lectura de la biblioteca
+    # --------------------------------------------------------------------------
 
     def scan_songs(self) -> List[dict]:
         """
@@ -41,53 +96,44 @@ class SongLoader:
 
         for entry in os.scandir(self.tracks_root):
             if entry.is_dir():
-                song_folder = entry.path
-                info = self._inspect_song_folder(song_folder)
+                info = self._inspect_song_folder(entry.path)
                 if info:
                     songs_list.append(info)
 
         return sorted(songs_list, key=lambda s: s["title"].lower())
 
-    def _inspect_song_folder(self, folder_path: str) -> Optional[dict]:
+    def _read_song_metadata(self, folder_path: str) -> Optional[Song]:
+        """Obtiene el objeto Song desde chart.pro (regenerando song.json si cambió) o song.json."""
         folder_name = os.path.basename(folder_path)
-        chart_file = None
+        chart_file = self._find_chart(folder_path)
         json_file = os.path.join(folder_path, "song.json")
 
-        for fname in CHORDPRO_FILENAMES:
-            candidate = os.path.join(folder_path, fname)
-            if os.path.exists(candidate):
-                chart_file = candidate
-                break
+        if chart_file and (
+            not os.path.exists(json_file) or os.path.getmtime(chart_file) > os.path.getmtime(json_file)
+        ):
+            song = ChordProParser.parse_file(chart_file)
+            song.id = folder_name
+            ChordProParser.export_to_json(song, json_file)
+            return song
+        if os.path.exists(json_file):
+            song = ChordProParser.load_from_json(json_file)
+            song.id = folder_name
+            return song
+        return None
 
-        # Contar archivos de audio en la carpeta raíz de la canción o en subcarpeta stems/
-        stems_dir = os.path.join(folder_path, "stems")
-        audio_files = []
-        if os.path.exists(stems_dir) and os.path.isdir(stems_dir):
-            for f in os.listdir(stems_dir):
-                if os.path.splitext(f)[1].lower() in AUDIO_EXTENSIONS:
-                    audio_files.append(os.path.join(stems_dir, f))
-        else:
-            for f in os.listdir(folder_path):
-                if os.path.splitext(f)[1].lower() in AUDIO_EXTENSIONS:
-                    audio_files.append(os.path.join(folder_path, f))
+    def _inspect_song_folder(self, folder_path: str) -> Optional[dict]:
+        folder_name = os.path.basename(folder_path)
+        chart_file = self._find_chart(folder_path)
+        json_file = os.path.join(folder_path, "song.json")
+        audio_files = self._list_audio_files(folder_path)
 
         # Si no hay chart ni json ni audio, omitir carpeta vacía
         if not chart_file and not os.path.exists(json_file) and not audio_files:
             return None
 
-        # Obtener metadatos de la canción
         song_obj = None
         try:
-            if chart_file:
-                # Si el chart es más reciente que el json o no hay json, parsear chart
-                if not os.path.exists(json_file) or os.path.getmtime(chart_file) > os.path.getmtime(json_file):
-                    song_obj = ChordProParser.parse_file(chart_file)
-                    song_obj.id = folder_name
-                    ChordProParser.export_to_json(song_obj, json_file)
-                else:
-                    song_obj = ChordProParser.load_from_json(json_file)
-            elif os.path.exists(json_file):
-                song_obj = ChordProParser.load_from_json(json_file)
+            song_obj = self._read_song_metadata(folder_path)
         except Exception:
             pass
 
@@ -105,93 +151,169 @@ class SongLoader:
                 "sections_count": 0,
             }
 
+        summary["id"] = folder_name
         summary["folder"] = folder_path
         summary["has_chart"] = chart_file is not None
         summary["stems_count"] = len(audio_files)
+        summary["stems"] = [
+            {"file": os.path.basename(p), "size_mb": round(os.path.getsize(p) / (1024 * 1024), 1)}
+            for p in audio_files
+        ]
         return summary
+
+    # --------------------------------------------------------------------------
+    # Carga en el motor de audio
+    # --------------------------------------------------------------------------
 
     def load_song(self, song_id: str, engine: MultitrackEngine) -> Song:
         """
         Carga una canción específica y monta sus pistas en el motor de audio.
         """
-        folder_path = os.path.join(self.tracks_root, song_id)
+        folder_path = self._song_folder(song_id)
         if not os.path.exists(folder_path):
             raise FileNotFoundError(f"Carpeta de canción no encontrada: {song_id}")
 
-        json_file = os.path.join(folder_path, "song.json")
-        chart_file = None
-        for fname in CHORDPRO_FILENAMES:
-            candidate = os.path.join(folder_path, fname)
-            if os.path.exists(candidate):
-                chart_file = candidate
-                break
+        song = self._read_song_metadata(folder_path)
+        audio_paths = self._list_audio_files(folder_path)
 
-        if chart_file and (not os.path.exists(json_file) or os.path.getmtime(chart_file) > os.path.getmtime(json_file)):
-            song = ChordProParser.parse_file(chart_file)
-            song.id = song_id
-            ChordProParser.export_to_json(song, json_file)
-        elif os.path.exists(json_file):
-            song = ChordProParser.load_from_json(json_file)
-        else:
-            raise ValueError("No se encontró archivo ChordPro (.pro) ni song.json en la carpeta.")
+        if song is None:
+            if not audio_paths:
+                raise ValueError("No se encontró archivo ChordPro (.pro), song.json ni pistas de audio.")
+            # Canción solo con audio: crear metadatos mínimos (sin letras todavía)
+            song = Song(
+                id=song_id,
+                title=song_id.replace("-", " ").title(),
+                artist="Desconocido",
+                key="C",
+                bpm=120.0,
+            )
 
-        # Cargar Stems de Audio
-        stems_dir = os.path.join(folder_path, "stems")
-        audio_paths = []
-        if os.path.exists(stems_dir) and os.path.isdir(stems_dir):
-            for f in os.listdir(stems_dir):
-                if os.path.splitext(f)[1].lower() in AUDIO_EXTENSIONS:
-                    audio_paths.append(os.path.join(stems_dir, f))
-        else:
-            for f in os.listdir(folder_path):
-                if os.path.splitext(f)[1].lower() in AUDIO_EXTENSIONS:
-                    audio_paths.append(os.path.join(folder_path, f))
+        # Decodificar primero y luego reemplazar, para no dejar el motor vacío si un archivo falla
+        loaded_stems: List[StemTrack] = []
+        errors: List[str] = []
+        for path in audio_paths:
+            stem_name = os.path.splitext(os.path.basename(path))[0]
+            try:
+                loaded_stems.append(StemTrack.load_from_file(path, name=stem_name))
+            except Exception as ex:
+                errors.append(f"{os.path.basename(path)}: {ex}")
+
+        if audio_paths and not loaded_stems:
+            raise ValueError("No se pudo leer ninguna pista de audio. " + " | ".join(errors))
 
         engine.clear_stems()
 
-        if audio_paths:
-            # Cargar pistas reales del usuario
-            for path in audio_paths:
-                stem_name = os.path.splitext(os.path.basename(path))[0]
-                stem_track = StemTrack.load_from_file(path, name=stem_name)
+        if loaded_stems:
+            for stem_track in loaded_stems:
                 engine.add_stem(stem_track)
         else:
             # Generar audio sintético sincronizado con el BPM y la duración de la canción
             duration = max(song.duration_seconds, 60.0)
-            click = generate_click_track(bpm=song.bpm, duration_seconds=duration)
-            guide = generate_guide_cues(bpm=song.bpm, duration_seconds=duration)
-            pad = generate_instrument_stem("Pad", frequency=196.0, duration_seconds=duration)
-            bass = generate_instrument_stem("Bajo", frequency=98.0, duration_seconds=duration)
+            engine.add_stem(generate_click_track(bpm=song.bpm, duration_seconds=duration))
+            engine.add_stem(generate_guide_cues(bpm=song.bpm, duration_seconds=duration))
+            engine.add_stem(generate_instrument_stem("Pad", frequency=196.0, duration_seconds=duration))
+            engine.add_stem(generate_instrument_stem("Bajo", frequency=98.0, duration_seconds=duration))
 
-            engine.add_stem(click)
-            engine.add_stem(guide)
-            engine.add_stem(pad)
-            engine.add_stem(bass)
-
+        self.last_load_errors = errors
         return song
+
+    # --------------------------------------------------------------------------
+    # Creación e importación (texto ChordPro y archivos subidos desde la web)
+    # --------------------------------------------------------------------------
 
     def import_chordpro_text(self, chordpro_content: str, custom_id: Optional[str] = None) -> Song:
         """
-        Crea una nueva carpeta de canción a partir de texto ChordPro ingresado por el usuario.
+        Crea (o actualiza) una carpeta de canción a partir de texto ChordPro.
         """
         song = ChordProParser.parse_string(chordpro_content, default_id="cancion-nueva")
-        song_id = custom_id or song.id
-        # Limpiar nombre para carpeta
-        song_id = re.sub(r"[^a-zA-Z0-9_\-]", "", song_id.lower().replace(" ", "-"))
-        if not song_id:
-            song_id = "cancion-adoracion"
+        song_id = slugify(custom_id or song.id) or "cancion-adoracion"
         song.id = song_id
 
-        folder_path = os.path.join(self.tracks_root, song_id)
-        os.makedirs(folder_path, exist_ok=True)
-        stems_dir = os.path.join(folder_path, "stems")
-        os.makedirs(stems_dir, exist_ok=True)
+        folder_path = self._song_folder(song_id)
+        os.makedirs(os.path.join(folder_path, "stems"), exist_ok=True)
 
-        chart_path = os.path.join(folder_path, "chart.pro")
-        with open(chart_path, "w", encoding="utf-8") as f:
+        with open(os.path.join(folder_path, "chart.pro"), "w", encoding="utf-8") as f:
             f.write(chordpro_content)
 
-        json_path = os.path.join(folder_path, "song.json")
-        ChordProParser.export_to_json(song, json_path)
-
+        ChordProParser.export_to_json(song, os.path.join(folder_path, "song.json"))
         return song
+
+    def create_song(
+        self,
+        title: str,
+        chordpro_content: Optional[str] = None,
+        artist: str = "",
+        key: str = "",
+        bpm: Optional[float] = None,
+    ) -> str:
+        """
+        Crea una canción nueva. Si hay texto ChordPro se usa tal cual; si no, se genera
+        un chart.pro mínimo con los metadatos para poder agregar la letra más tarde.
+        Retorna el identificador (nombre de carpeta) de la canción.
+        """
+        content = (chordpro_content or "").strip()
+        if not content:
+            # Si la canción ya existe con su letra, no sobrescribirla: solo se agregarán stems
+            existing_id = slugify(title or "")
+            if existing_id:
+                existing_folder = self._song_folder(existing_id)
+                if os.path.isdir(existing_folder) and self._find_chart(existing_folder):
+                    os.makedirs(os.path.join(existing_folder, "stems"), exist_ok=True)
+                    return existing_id
+
+            lines = [f"{{title: {title or 'Canción nueva'}}}"]
+            if artist:
+                lines.append(f"{{artist: {artist}}}")
+            if key:
+                lines.append(f"{{key: {key}}}")
+            if bpm:
+                lines.append(f"{{bpm: {bpm:g}}}")
+            content = "\n".join(lines) + "\n"
+        elif title and not re.search(r"^\{\s*(title|t)\s*:", content, re.MULTILINE | re.IGNORECASE):
+            # El chart no trae título: anteponer el que escribió el usuario
+            content = f"{{title: {title}}}\n" + content
+
+        song = self.import_chordpro_text(content, custom_id=title or None)
+        return song.id
+
+    def save_stem_files(self, song_id: str, files: Iterable[Tuple[str, BinaryIO]]) -> List[str]:
+        """
+        Guarda archivos de audio subidos en tracks/<cancion>/stems/.
+        `files` es una secuencia de tuplas (nombre_original, flujo_binario).
+        Retorna la lista de nombres de archivo guardados.
+        """
+        folder_path = self._song_folder(song_id)
+        if not os.path.exists(folder_path):
+            raise FileNotFoundError(f"Canción no encontrada: {song_id}")
+
+        stems_dir = self._stems_dir(song_id)
+        os.makedirs(stems_dir, exist_ok=True)
+
+        saved = []
+        for original_name, stream in files:
+            safe_name = sanitize_filename(original_name)
+            if os.path.splitext(safe_name)[1] not in AUDIO_EXTENSIONS:
+                raise ValueError(
+                    f"'{original_name}' no es un formato de audio admitido "
+                    f"({', '.join(sorted(AUDIO_EXTENSIONS))})."
+                )
+            dest = os.path.join(stems_dir, safe_name)
+            with open(dest, "wb") as out:
+                shutil.copyfileobj(stream, out, COPY_CHUNK_SIZE)
+            saved.append(safe_name)
+        return saved
+
+    def delete_stem(self, song_id: str, filename: str) -> None:
+        """Elimina una pista de audio de una canción."""
+        safe_name = sanitize_filename(filename)
+        path = os.path.join(self._stems_dir(song_id), safe_name)
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Pista no encontrada: {filename}")
+        os.remove(path)
+
+    def delete_song(self, song_id: str) -> None:
+        """Elimina por completo la carpeta de una canción (chart, json y stems)."""
+        folder_path = self._song_folder(song_id)
+        if not os.path.exists(folder_path):
+            raise FileNotFoundError(f"Canción no encontrada: {song_id}")
+        shutil.rmtree(folder_path)

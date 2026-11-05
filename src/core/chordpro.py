@@ -6,8 +6,21 @@ Subagente responsable: 01-lead-architect & 03-network-sync-engineer
 import json
 import os
 import re
+import unicodedata
 from typing import List, Optional, Tuple
 from src.core.song import ChordMarker, Song, SongLine, SongSection
+
+
+def slugify(text: str) -> str:
+    """
+    Convierte un título en un identificador seguro para carpetas.
+    Ej: "Cuán Grande es Dios" -> "cuan-grande-es-dios" (conserva letras sin tilde).
+    """
+    normalized = unicodedata.normalize("NFKD", text)
+    ascii_text = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    ascii_text = ascii_text.lower().strip().replace(" ", "-")
+    ascii_text = re.sub(r"[^a-z0-9_\-]", "", ascii_text)
+    return re.sub(r"-{2,}", "-", ascii_text).strip("-")
 
 
 # Expresiones regulares para directivas y marcado
@@ -62,7 +75,7 @@ class ChordProParser:
 
                 if key in ("title", "t"):
                     meta["title"] = val
-                    slug = re.sub(r"[^a-zA-Z0-9_\-]", "", val.lower().replace(" ", "-"))
+                    slug = slugify(val)
                     if slug:
                         meta["id"] = slug
                 elif key in ("artist", "a", "subtitle", "st"):

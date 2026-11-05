@@ -34,8 +34,10 @@ htmlcov/
 tracks/**/*.wav
 tracks/**/*.flac
 tracks/**/*.aiff
+tracks/**/*.aif
 tracks/**/*.mp3
 tracks/**/*.ogg
+tracks/**/*.m4a
 !tracks/**/song.json
 !tracks/**/README.md
 

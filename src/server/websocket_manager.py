@@ -85,6 +85,8 @@ class ConnectionManager:
         next_section: str = "",
         current_lyric: str = "",
         current_chord: str = "",
+        projection_lyric: Optional[str] = None,
+        projection_section: Optional[str] = None,
     ) -> None:
         """
         Emite la actualización periódica del reloj a todos los canales
@@ -92,7 +94,7 @@ class ConnectionManager:
         """
         now = time.time()
 
-        # 1. Canal de Músicos: tiempo, compás, acordes y letra
+        # 1. Canal de Músicos: tiempo exacto, compás, acordes y letra
         if self._channels[ChannelType.MUSICIANS]:
             musician_payload = {
                 "type": "tick",
@@ -106,14 +108,16 @@ class ConnectionManager:
             }
             await self.broadcast_to_channel(ChannelType.MUSICIANS, musician_payload)
 
-        # 2. Canal de Proyección: solo letra limpia y estado de visualización
+        # 2. Canal de Proyección: letra limpia con anticipación de lectura y estado visual
         if self._channels[ChannelType.PROJECTION]:
+            proj_txt = current_lyric if projection_lyric is None else projection_lyric
+            proj_sec = current_section if projection_section is None else projection_section
             projection_payload = {
                 "type": "projection_tick",
                 "pos": round(position_seconds, 3),
                 "playing": is_playing,
-                "sec": current_section,
-                "lyric": "" if self._projection_clear_text else current_lyric,
+                "sec": proj_sec,
+                "lyric": "" if self._projection_clear_text else proj_txt,
                 "blackout": self._projection_blackout,
                 "clear": self._projection_clear_text,
             }

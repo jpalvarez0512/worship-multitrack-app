@@ -4,7 +4,7 @@ Subagente responsable: 01-lead-architect & 03-network-sync-engineer
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 CHROMATIC_SHARP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
@@ -50,14 +50,15 @@ def transpose_chord(chord: str, semitones: int) -> str:
 
 @dataclass
 class ChordMarker:
-    """Representa un acorde en una posición temporal específica dentro de la línea."""
+    """Representa un acorde en una posición temporal y silábica específica dentro de la línea."""
     time: float  # Tiempo en segundos relativo al inicio de la canción
     chord: str
+    char_offset: int = 0  # Índice de carácter sobre la letra limpia donde cae el acorde
 
 
 @dataclass
 class SongLine:
-    """Línea de letra y acordes sincronizados."""
+    """Línea (compás/frase) de letra y acordes sincronizados."""
     start_time: float
     end_time: float
     lyrics: str
@@ -72,6 +73,7 @@ class SongLine:
                 {
                     "time": round(c.time, 3),
                     "chord": transpose_chord(c.chord, transpose_semitones),
+                    "char_offset": c.char_offset,
                 }
                 for c in self.chords
             ],
@@ -113,9 +115,10 @@ class Song:
         return max(sec.end_time for sec in self.sections)
 
     def get_section_at(self, current_time: float) -> Optional[SongSection]:
-        """Obtiene la sección que se está ejecutando en el tiempo dado."""
-        for sec in self.sections:
-            if sec.start_time <= current_time <= sec.end_time:
+        """Obtiene la sección que se está ejecutando en el tiempo dado (sin solapamiento en bordes)."""
+        for idx, sec in enumerate(self.sections):
+            is_last = idx == len(self.sections) - 1
+            if sec.start_time <= current_time < sec.end_time or (is_last and sec.start_time <= current_time <= sec.end_time):
                 return sec
         return None
 
@@ -123,10 +126,28 @@ class Song:
         """Obtiene la línea actual de letra y acordes."""
         sec = self.get_section_at(current_time)
         if sec:
-            for line in sec.lines:
-                if line.start_time <= current_time <= line.end_time:
+            for idx, line in enumerate(sec.lines):
+                is_last = idx == len(sec.lines) - 1
+                if line.start_time <= current_time < line.end_time or (is_last and line.start_time <= current_time <= line.end_time):
                     return line
         return None
+
+    def get_projection_lyric_at(self, current_time: float, lead_seconds: float = 1.5) -> Tuple[str, str]:
+        """
+        Obtiene (letra_limpia, nombre_seccion) para la pantalla de proyección,
+        adelantándose `lead_seconds` segundos para dar tiempo de lectura a la congregación
+        y ocultando marcadores instrumentales.
+        """
+        lookup_time = max(0.0, current_time + max(0.0, lead_seconds))
+        sec = self.get_section_at(lookup_time)
+        sec_name = sec.name if sec else ""
+        line = self.get_active_line_at(lookup_time)
+        if not line:
+            return "", sec_name
+        txt = (line.lyrics or "").strip()
+        if txt.startswith("[") and txt.endswith("]"):
+            return "", sec_name
+        return txt, sec_name
 
     def to_summary_dict(self) -> dict:
         return {

@@ -6,390 +6,767 @@
   <title>Terminal Músicos | Worship Multitrack</title>
   <style>
     :root {
-      --bg-color: #0b0d13;
-      --card-bg: #141824;
+      --bg: #090c15;
+      --card: #131a2a;
+      --card-border: #1e293b;
       --accent: #3b82f6;
-      --chord-color: #fbbf24;
-      --text-main: #f3f4f6;
-      --text-dim: #9ca3af;
-      --active-bg: rgba(59, 130, 246, 0.18);
-      --active-border: #3b82f6;
+      --chord-hero: #ffe600;
+      --chord-sec: #fbbf24;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --success: #10b981;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      padding-bottom: 90px;
-      overflow-x: hidden;
-      touch-action: pan-y;
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    /* Contenedor Principal en Modo Stage (100% Pantalla) */
+    .stage-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
     }
 
     /* Barra Superior Fija */
     header {
-      position: sticky;
-      top: 0;
-      background: rgba(11, 13, 19, 0.95);
+      background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(8px);
-      border-bottom: 1px solid #1f2937;
+      border-bottom: 1px solid var(--card-border);
       padding: 10px 16px;
-      z-index: 100;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      z-index: 50;
     }
-    .song-info h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
-    .song-info p { font-size: 0.8rem; color: var(--text-dim); }
+    .song-meta h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 45vw;
+    }
+    .song-meta p {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
 
-    .header-controls {
+    .header-tools {
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .key-badge {
-      background: #1f2937;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-weight: bold;
-      color: var(--chord-color);
-      font-size: 0.9rem;
-    }
-
-    .btn-transpose {
+    .view-toggle-btn {
       background: #1e293b;
       border: 1px solid #334155;
-      color: #fff;
+      color: #cbd5e1;
       padding: 6px 10px;
       border-radius: 6px;
+      font-size: 0.78rem;
       font-weight: 700;
       cursor: pointer;
     }
-    .btn-transpose:active { background: #3b82f6; }
+    .view-toggle-btn.active {
+      background: #1d4ed8;
+      color: #fff;
+      border-color: #3b82f6;
+    }
 
-    .status-dot {
+    .transpose-box {
+      display: flex;
+      align-items: center;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .btn-tp {
+      background: transparent;
+      border: none;
+      color: #fff;
+      padding: 6px 10px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .btn-tp:active { background: #3b82f6; }
+    .key-badge {
+      padding: 4px 10px;
+      font-weight: 900;
+      font-size: 0.95rem;
+      color: var(--chord-hero);
+      min-width: 44px;
+      text-align: center;
+      background: #1e293b;
+    }
+
+    .net-dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
       background: #ef4444;
       transition: background 0.3s;
     }
-    .status-dot.connected { background: #10b981; box-shadow: 0 0 8px #10b981; }
+    .net-dot.connected {
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
 
-    /* Barra Flotante de Sección y Acorde Actual */
-    .live-monitor {
-      background: linear-gradient(135deg, #1e1b4b, #172554);
-      border-bottom: 2px solid #3b82f6;
-      padding: 12px 16px;
+    /* -------------------------------------------------------------
+       VISTA 1: COMPÁS ACTUAL (MODO PRINCIPAL EN VIVO)
+       ------------------------------------------------------------- */
+    #view-measure {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px 20px 18px;
+      overflow: hidden;
+    }
+
+    /* Barra Superior del Compás: Sección, Pulso de Compás y Reloj */
+    .measure-top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: sticky;
-      top: 57px;
-      z-index: 90;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      margin-bottom: 8px;
     }
-    .current-section-badge {
-      font-size: 0.9rem;
+    .section-pill {
+      font-size: 0.92rem;
+      font-weight: 900;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       background: #2563eb;
       color: #fff;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 6px;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
     }
-    .live-chord-box {
-      font-size: 2.2rem;
-      font-weight: 900;
-      color: var(--chord-color);
-      min-width: 80px;
-      text-align: right;
-      letter-spacing: -1px;
-      text-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
+    .beat-pulse-box {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .beat-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 1px solid #334155;
+      transition: all 0.08s ease;
+    }
+    .beat-dot.beat-active {
+      background: #38bdf8;
+      box-shadow: 0 0 12px #38bdf8;
+      transform: scale(1.3);
+    }
+    .beat-dot.beat-one.beat-active {
+      background: var(--chord-hero);
+      box-shadow: 0 0 14px var(--chord-hero);
+      transform: scale(1.4);
     }
 
-    /* Estructura de Canción y Acordes */
-    main {
-      max-width: 720px;
-      margin: 16px auto;
-      padding: 0 12px;
+    /* HERO CHORD: El Acorde Actual Gigante */
+    .hero-chord-panel {
+      background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 75%);
+      border: 2px solid #3b82f6;
+      border-radius: 18px;
+      padding: 18px 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), 0 0 20px rgba(59, 130, 246, 0.25);
+      position: relative;
+      margin: 8px 0;
+      flex-shrink: 0;
+    }
+    .hero-chord-label {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #93c5fd;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: -4px;
+    }
+    .hero-chord-name {
+      font-size: clamp(4.2rem, 15vw, 8.2rem);
+      font-weight: 900;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--chord-hero);
+      line-height: 1;
+      letter-spacing: -2px;
+      text-shadow:
+        0 4px 18px rgba(0, 0, 0, 0.9),
+        0 0 28px rgba(255, 230, 0, 0.45);
+      margin: 4px 0;
+      min-height: 1.15em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-next-chord {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+    .hero-next-chord strong {
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 1.15rem;
+    }
+
+    /* Tarjeta del Compás / Línea que toca en este momento */
+    .current-measure-card {
+      background: var(--card);
+      border: 1px solid #2b3952;
+      border-left: 6px solid #3b82f6;
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin: 8px 0;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .measure-chords-flow {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+    .measure-chord-pill {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--chord-sec);
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      padding: 4px 12px;
+      border-radius: 8px;
+      transition: all 0.12s ease;
+    }
+    .measure-chord-pill.active-in-measure {
+      color: #000;
+      background: var(--chord-hero);
+      border-color: #fff;
+      box-shadow: 0 0 18px rgba(255, 230, 0, 0.65);
+      transform: scale(1.12);
+    }
+    .measure-lyrics-text {
+      font-size: clamp(1.3rem, 3.2vw, 2.2rem);
+      font-weight: 700;
+      line-height: 1.35;
+      color: #f1f5f9;
+      min-height: 1.4em;
+    }
+
+    /* Vista Previa del Próximo Compás */
+    .upcoming-preview-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px dashed #334155;
+      border-radius: 10px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .upcoming-tag {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: #1e293b;
+      color: #94a3b8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .upcoming-chords {
+      font-family: monospace;
+      font-weight: 700;
+      color: #60a5fa;
+      margin-right: 8px;
+    }
+
+    /* -------------------------------------------------------------
+       VISTA 2: HOJA COMPLETA (MODO REPASO / PARTITURA)
+       ------------------------------------------------------------- */
+    #view-sheet {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      max-width: 820px;
+      margin: 0 auto;
+      width: 100%;
     }
     .section-block {
-      margin-bottom: 20px;
-      background: var(--card-bg);
+      background: var(--card);
+      border: 1px solid var(--card-border);
       border-radius: 10px;
-      border: 1px solid #1e293b;
+      margin-bottom: 16px;
       overflow: hidden;
-      transition: all 0.3s;
     }
-    .section-block.active-section {
+    .section-block.active-sec {
       border-color: #3b82f6;
-      box-shadow: 0 0 16px rgba(59, 130, 246, 0.25);
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.3);
     }
-    .section-header {
+    .section-block-head {
       background: #1e293b;
       padding: 8px 14px;
+      font-weight: 800;
       font-size: 0.85rem;
-      font-weight: 700;
       color: #94a3b8;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
     }
-
-    .line-row {
+    .sheet-line {
       padding: 10px 14px;
-      border-bottom: 1px solid #182234;
-      transition: background 0.2s;
+      border-bottom: 1px solid #1c273a;
+      transition: background 0.15s;
     }
-    .line-row:last-child { border-bottom: none; }
-    .line-row.active-line {
-      background: var(--active-bg);
-      border-left: 4px solid var(--active-border);
+    .sheet-line:last-child { border-bottom: none; }
+    .sheet-line.active-line {
+      background: rgba(59, 130, 246, 0.18);
+      border-left: 5px solid #3b82f6;
     }
-
-    .chords-line {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    .sheet-chords {
+      font-family: monospace;
       font-size: 1.15rem;
       font-weight: 800;
-      color: var(--chord-color);
+      color: var(--chord-sec);
       margin-bottom: 4px;
-      min-height: 1.4rem;
     }
-    .chord-tag {
-      display: inline-block;
-      margin-right: 18px;
-      background: rgba(251, 191, 36, 0.15);
-      padding: 1px 6px;
-      border-radius: 4px;
-    }
-    .lyrics-line {
+    .sheet-lyrics {
       font-size: 1.05rem;
       line-height: 1.4;
       color: #f1f5f9;
     }
 
-    /* Barra Inferior de Tiempo */
+    /* Barra Inferior Fija de Estado */
     footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(11, 13, 19, 0.96);
-      border-top: 1px solid #1e293b;
+      background: rgba(11, 15, 25, 0.96);
+      border-top: 1px solid var(--card-border);
       padding: 8px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 0.85rem;
-      color: #94a3b8;
+      color: var(--text-dim);
+      flex-shrink: 0;
     }
-    .time-display {
+    .live-status-pill {
+      font-weight: 800;
+      font-size: 0.82rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .status-live { background: #064e3b; color: #6ee7b7; }
+    .status-paused { background: #78350f; color: #fde68a; }
+    .time-digits {
       font-family: monospace;
       font-size: 1.1rem;
-      font-weight: bold;
+      font-weight: 700;
       color: #38bdf8;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="song-info">
-      <h1 id="song-title">Cargando canción...</h1>
-      <p><span id="song-artist">--</span> | <span id="song-bpm">--</span> BPM</p>
-    </div>
-    <div class="header-controls">
-      <button class="btn-transpose" onclick="changeTranspose(-1)">-1</button>
-      <span class="key-badge" id="key-badge">G</span>
-      <button class="btn-transpose" onclick="changeTranspose(1)">+1</button>
-      <div class="status-dot" id="status-dot" title="Estado de conexión"></div>
-    </div>
-  </header>
+  <div class="stage-container">
+    <header>
+      <div class="song-meta">
+        <h1 id="hdr-title">Cargando canción...</h1>
+        <p><span id="hdr-artist">--</span> · <span id="hdr-bpm">--</span> BPM</p>
+      </div>
 
-  <div class="live-monitor">
-    <div>
-      <span class="current-section-badge" id="live-section">LISTO</span>
-      <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;" id="live-lyric-preview">Esperando inicio...</div>
+      <div class="header-tools">
+        <button class="view-toggle-btn active" id="btn-mode-measure" onclick="setViewMode('measure')">🎯 Compás actual</button>
+        <button class="view-toggle-btn" id="btn-mode-sheet" onclick="setViewMode('sheet')">📄 Hoja completa</button>
+
+        <div class="transpose-box">
+          <button class="btn-tp" onclick="changeTranspose(-1)">-1</button>
+          <div class="key-badge" id="hdr-key">G</div>
+          <button class="btn-tp" onclick="changeTranspose(1)">+1</button>
+        </div>
+
+        <div class="net-dot" id="net-dot" title="Conexión WebSocket"></div>
+      </div>
+    </header>
+
+    <!-- 1. VISTA DE COMPÁS ACTUAL (MODO PRINCIPAL) -->
+    <div id="view-measure">
+      <div class="measure-top-bar">
+        <div class="section-pill" id="m-section">INTRO</div>
+        <div class="beat-pulse-box" id="beat-box">
+          <div class="beat-dot beat-one" id="dot-1"></div>
+          <div class="beat-dot" id="dot-2"></div>
+          <div class="beat-dot" id="dot-3"></div>
+          <div class="beat-dot" id="dot-4"></div>
+        </div>
+      </div>
+
+      <!-- ACORDE HERO GIGANTE -->
+      <div class="hero-chord-panel">
+        <div class="hero-chord-label">Acorde en curso</div>
+        <div class="hero-chord-name" id="hero-chord">--</div>
+        <div class="hero-next-chord" id="hero-next-wrapper">
+          Siguiente: <strong id="hero-next">--</strong>
+        </div>
+      </div>
+
+      <!-- COMPÁS QUE TOCA EN ESTE MOMENTO -->
+      <div class="current-measure-card">
+        <div class="measure-chords-flow" id="m-chords-flow"></div>
+        <div class="measure-lyrics-text" id="m-lyrics">Esperando inicio...</div>
+      </div>
+
+      <!-- PRÓXIMO COMPÁS -->
+      <div class="upcoming-preview-card" id="upcoming-box">
+        <span class="upcoming-tag">Próximo compás</span>
+        <span class="upcoming-chords" id="upcoming-chords">--</span>
+        <span id="upcoming-lyrics" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">--</span>
+      </div>
     </div>
-    <div class="live-chord-box" id="live-chord">--</div>
+
+    <!-- 2. VISTA DE HOJA COMPLETA -->
+    <div id="view-sheet">
+      <div id="sheet-container"></div>
+    </div>
+
+    <footer>
+      <div>
+        <span class="live-status-pill status-paused" id="footer-status">PAUSA</span>
+      </div>
+      <div class="time-digits" id="footer-time">00:00 / 00:00</div>
+    </footer>
   </div>
-
-  <main id="song-container"></main>
-
-  <footer>
-    <div>Estado: <span id="play-status" style="font-weight:bold; color:#10b981;">Pausa</span></div>
-    <div class="time-display" id="time-display">00:00 / 00:00</div>
-  </footer>
 
   <script>
     let ws = null;
-    let currentSongData = null;
-    let transposeSemitones = 0;
-    let lastActiveLineEl = null;
+    let currentSong = null;
+    let personalTranspose = 0;
+    let viewMode = 'measure'; // 'measure' | 'sheet'
 
-    // Mantener la pantalla encendida (Screen Wake Lock)
-    async function requestWakeLock() {
+    // Reloj interpolado de 60fps con NTP
+    let lastServerPos = 0;
+    let lastServerTimestamp = 0;
+    let isPlaying = false;
+    let animFrameId = null;
+
+    // Wake Lock para evitar que la tablet se apague en el atril
+    async function initWakeLock() {
       try {
-        if ('wakeLock' in navigator) {
-          await navigator.wakeLock.request('screen');
-        }
-      } catch (err) {}
+        if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
+      } catch (e) {}
     }
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') requestWakeLock();
+      if (document.visibilityState === 'visible') initWakeLock();
     });
-    requestWakeLock();
+    initWakeLock();
 
-    // Cargar estructura completa de la canción vía REST
-    async function loadSong(transpose = 0) {
-      try {
-        const res = await fetch(`/api/song?transpose=${transpose}`);
-        if (!res.ok) return;
-        currentSongData = await res.json();
-        renderSong(currentSongData);
-      } catch (e) {
-        console.error("Error cargando cancion:", e);
-      }
-    }
-
-    function renderSong(data) {
-      document.getElementById('song-title').innerText = data.title;
-      document.getElementById('song-artist').innerText = data.artist;
-      document.getElementById('song-bpm').innerText = data.bpm;
-      document.getElementById('key-badge').innerText = data.key;
-
-      const container = document.getElementById('song-container');
-      container.innerHTML = '';
-
-      data.sections.forEach((sec, sIdx) => {
-        const secEl = document.createElement('div');
-        secEl.className = 'section-block';
-        secEl.id = `sec-${sIdx}`;
-
-        const headEl = document.createElement('div');
-        headEl.className = 'section-header';
-        headEl.innerText = sec.name;
-        secEl.appendChild(headEl);
-
-        sec.lines.forEach((l, lIdx) => {
-          const lineEl = document.createElement('div');
-          lineEl.className = 'line-row';
-          lineEl.id = `line-${sIdx}-${lIdx}`;
-          lineEl.dataset.start = l.start_time;
-          lineEl.dataset.end = l.end_time;
-
-          if (l.chords && l.chords.length > 0) {
-            const chordsEl = document.createElement('div');
-            chordsEl.className = 'chords-line';
-            l.chords.forEach(c => {
-              const tag = document.createElement('span');
-              tag.className = 'chord-tag';
-              tag.innerText = c.chord;
-              chordsEl.appendChild(tag);
-            });
-            lineEl.appendChild(chordsEl);
-          }
-
-          const lyricsEl = document.createElement('div');
-          lyricsEl.className = 'lyrics-line';
-          lyricsEl.innerText = l.lyrics;
-          lineEl.appendChild(lyricsEl);
-
-          secEl.appendChild(lineEl);
-        });
-
-        container.appendChild(secEl);
-      });
-    }
-
-    function changeTranspose(delta) {
-      transposeSemitones += delta;
-      loadSong(transposeSemitones);
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'set_transpose', semitones: transposeSemitones }));
-      }
+    function setViewMode(mode) {
+      viewMode = mode;
+      document.getElementById('view-measure').style.display = mode === 'measure' ? 'flex' : 'none';
+      document.getElementById('view-sheet').style.display = mode === 'sheet' ? 'block' : 'none';
+      document.getElementById('btn-mode-measure').classList.toggle('active', mode === 'measure');
+      document.getElementById('btn-mode-sheet').classList.toggle('active', mode === 'sheet');
     }
 
     function formatTime(sec) {
+      sec = Math.max(0, sec || 0);
       const m = Math.floor(sec / 60);
       const s = Math.floor(sec % 60);
       return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
-    // Conexión WebSocket para sincronización en tiempo real
+    async function loadSongData() {
+      try {
+        const res = await fetch(`/api/song?transpose=${personalTranspose}`);
+        if (!res.ok) return;
+        currentSong = await res.json();
+        renderHeader();
+        renderSheet();
+        updateDisplayAt(getCurrentInterpolatedPos());
+      } catch (e) {}
+    }
+
+    function renderHeader() {
+      if (!currentSong) return;
+      document.getElementById('hdr-title').textContent = currentSong.title;
+      document.getElementById('hdr-artist').textContent = currentSong.artist || 'Adoración';
+      document.getElementById('hdr-bpm').textContent = currentSong.bpm || 120;
+      document.getElementById('hdr-key').textContent = currentSong.key || 'C';
+    }
+
+    function renderSheet() {
+      const container = document.getElementById('sheet-container');
+      container.innerHTML = '';
+      if (!currentSong || !currentSong.sections) return;
+
+      currentSong.sections.forEach((sec, sIdx) => {
+        const block = document.createElement('div');
+        block.className = 'section-block';
+        block.id = `sheet-sec-${sIdx}`;
+
+        const head = document.createElement('div');
+        head.className = 'section-block-head';
+        head.textContent = sec.name;
+        block.appendChild(head);
+
+        sec.lines.forEach((l, lIdx) => {
+          const row = document.createElement('div');
+          row.className = 'sheet-line';
+          row.id = `sheet-line-${sIdx}-${lIdx}`;
+          row.dataset.start = l.start_time;
+          row.dataset.end = l.end_time;
+
+          if (l.chords && l.chords.length) {
+            const ch = document.createElement('div');
+            ch.className = 'sheet-chords';
+            ch.textContent = l.chords.map(c => `[${c.chord}]`).join('   ');
+            row.appendChild(ch);
+          }
+          const ly = document.createElement('div');
+          ly.className = 'sheet-lyrics';
+          ly.textContent = l.lyrics || '(Instrumental)';
+          row.appendChild(ly);
+
+          block.appendChild(row);
+        });
+        container.appendChild(block);
+      });
+    }
+
+    function changeTranspose(delta) {
+      personalTranspose += delta;
+      loadSongData();
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'set_transpose', semitones: personalTranspose }));
+      }
+    }
+
+    // Calcula posición en segundos con precisión milimétrica entre ticks
+    function getCurrentInterpolatedPos() {
+      if (!isPlaying || !lastServerTimestamp) return lastServerPos;
+      const elapsed = (performance.now() - lastServerTimestamp) / 1000;
+      const dur = currentSong ? currentSong.duration : 9999;
+      return Math.min(dur, lastServerPos + elapsed);
+    }
+
+    // Encuentra la línea y sección actual y la siguiente
+    function findLineState(t) {
+      if (!currentSong || !currentSong.sections) return null;
+      let activeLine = null;
+      let nextLine = null;
+      let activeSectionName = "";
+      let foundActive = false;
+
+      for (let sIdx = 0; sIdx < currentSong.sections.length; sIdx++) {
+        const sec = currentSong.sections[sIdx];
+        for (let lIdx = 0; lIdx < sec.lines.length; lIdx++) {
+          const line = sec.lines[lIdx];
+          if (!foundActive) {
+            if (t >= line.start_time && t < line.end_time) {
+              activeLine = line;
+              activeSectionName = sec.name;
+              foundActive = true;
+            }
+          } else if (!nextLine) {
+            nextLine = line;
+            break;
+          }
+        }
+        if (activeLine && nextLine) break;
+      }
+
+      // Si está en el final
+      if (!activeLine && currentSong.sections.length) {
+        const lastSec = currentSong.sections[currentSong.sections.length - 1];
+        if (lastSec.lines.length) {
+          const lastLine = lastSec.lines[lastSec.lines.length - 1];
+          if (t >= lastLine.start_time) {
+            activeLine = lastLine;
+            activeSectionName = lastSec.name;
+          }
+        }
+      }
+
+      return { line: activeLine, section: activeSectionName, next: nextLine };
+    }
+
+    function updateDisplayAt(pos) {
+      const dur = currentSong ? currentSong.duration : 0;
+      document.getElementById('footer-time').textContent = `${formatTime(pos)} / ${formatTime(dur)}`;
+
+      // Pulso visual de compás (1-2-3-4) según BPM
+      const bpm = (currentSong && currentSong.bpm) ? currentSong.bpm : 120;
+      const beatDuration = 60.0 / bpm;
+      const totalBeats = Math.floor(pos / beatDuration);
+      const currentBeatInBar = (totalBeats % 4) + 1; // 1, 2, 3 o 4
+
+      [1, 2, 3, 4].forEach(b => {
+        const dot = document.getElementById(`dot-${b}`);
+        if (dot) dot.classList.toggle('beat-active', isPlaying && b === currentBeatInBar);
+      });
+
+      const st = findLineState(pos);
+      if (!st || !st.line) {
+        document.getElementById('m-section').textContent = 'LISTO';
+        document.getElementById('hero-chord').textContent = '--';
+        document.getElementById('hero-next').textContent = '--';
+        document.getElementById('m-chords-flow').innerHTML = '';
+        document.getElementById('m-lyrics').textContent = 'Esperando inicio...';
+        document.getElementById('upcoming-chords').textContent = '--';
+        document.getElementById('upcoming-lyrics').textContent = '--';
+        return;
+      }
+
+      // 1. Sección actual
+      document.getElementById('m-section').textContent = st.section || 'SECCIÓN';
+
+      // 2. Determinar acorde activo en este compás y el siguiente
+      let currentActiveChord = "";
+      let nextChord = "";
+      const line = st.line;
+
+      if (line.chords && line.chords.length) {
+        for (let i = 0; i < line.chords.length; i++) {
+          const c = line.chords[i];
+          if (pos >= c.time) {
+            currentActiveChord = c.chord;
+            nextChord = (i + 1 < line.chords.length) ? line.chords[i + 1].chord : "";
+          }
+        }
+        if (!currentActiveChord && line.chords.length) {
+          currentActiveChord = line.chords[0].chord;
+          nextChord = line.chords.length > 1 ? line.chords[1].chord : "";
+        }
+      }
+
+      if (!nextChord && st.next && st.next.chords && st.next.chords.length) {
+        nextChord = st.next.chords[0].chord;
+      }
+
+      // Acorde Hero Gigante
+      document.getElementById('hero-chord').textContent = currentActiveChord || '·';
+      document.getElementById('hero-next').textContent = nextChord || '--';
+      document.getElementById('hero-next-wrapper').style.opacity = nextChord ? '1' : '0.4';
+
+      // Flujo de acordes del compás actual: resalta en grande el que toca en este segundo
+      const chordsFlow = document.getElementById('m-chords-flow');
+      chordsFlow.innerHTML = '';
+      if (line.chords && line.chords.length) {
+        line.chords.forEach(c => {
+          const pill = document.createElement('span');
+          pill.className = 'measure-chord-pill' + (c.chord === currentActiveChord ? ' active-in-measure' : '');
+          pill.textContent = c.chord;
+          chordsFlow.appendChild(pill);
+        });
+      }
+
+      // Letra del compás que toca en este momento
+      document.getElementById('m-lyrics').textContent = line.lyrics || '(Instrumental)';
+
+      // Próximo compás
+      if (st.next) {
+        const nextChordsText = (st.next.chords || []).map(c => `[${c.chord}]`).join(' ');
+        document.getElementById('upcoming-chords').textContent = nextChordsText || '';
+        document.getElementById('upcoming-lyrics').textContent = st.next.lyrics || '(Instrumental)';
+      } else {
+        document.getElementById('upcoming-chords').textContent = '';
+        document.getElementById('upcoming-lyrics').textContent = 'Fin de la canción';
+      }
+
+      // Resaltado en Vista 2 (Hoja Completa) si está visible
+      if (viewMode === 'sheet') {
+        const allLines = document.querySelectorAll('.sheet-line');
+        allLines.forEach(row => {
+          const s = parseFloat(row.dataset.start);
+          const e = parseFloat(row.dataset.end);
+          const isActive = pos >= s && pos < e;
+          row.classList.toggle('active-line', isActive);
+          if (isActive && !row.dataset.seen) {
+            row.dataset.seen = "1";
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else if (!isActive) {
+            delete row.dataset.seen;
+          }
+        });
+      }
+    }
+
+    // Bucle de Render a 60 FPS
+    function startClockLoop() {
+      if (animFrameId) return;
+      function loop() {
+        updateDisplayAt(getCurrentInterpolatedPos());
+        animFrameId = requestAnimationFrame(loop);
+      }
+      animFrameId = requestAnimationFrame(loop);
+    }
+
     function connectWebSocket() {
       const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${location.host}/ws/musicians`;
-      ws = new WebSocket(wsUrl);
-
-      const dot = document.getElementById('status-dot');
+      ws = new WebSocket(`${protocol}//${location.host}/ws/musicians`);
+      const dot = document.getElementById('net-dot');
 
       ws.onopen = () => {
         dot.classList.add('connected');
-        loadSong(transposeSemitones);
+        loadSongData();
       };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'tick') {
-            updateTick(data);
+            lastServerPos = data.pos;
+            lastServerTimestamp = performance.now();
+            isPlaying = Boolean(data.playing);
+
+            const stPill = document.getElementById('footer-status');
+            stPill.textContent = isPlaying ? 'EN VIVO' : 'PAUSA';
+            stPill.className = `live-status-pill ${isPlaying ? 'status-live' : 'status-paused'}`;
+
           } else if (data.type === 'song_changed') {
-            loadSong(transposeSemitones);
+            if (typeof data.default_transpose === 'number') {
+              personalTranspose = data.default_transpose;
+            }
+            loadSongData();
           }
-        } catch (err) {}
+        } catch (e) {}
       };
 
       ws.onclose = () => {
         dot.classList.remove('connected');
-        setTimeout(connectWebSocket, 1500); // Reconexión automática transparente
+        setTimeout(connectWebSocket, 1200);
       };
-
       ws.onerror = () => ws.close();
     }
 
-    function updateTick(data) {
-      const pos = data.pos;
-      const isPlaying = data.playing;
-
-      document.getElementById('play-status').innerText = isPlaying ? 'EN VIVO' : 'PAUSA';
-      document.getElementById('play-status').style.color = isPlaying ? '#10b981' : '#f59e0b';
-
-      const dur = currentSongData ? currentSongData.duration : 0;
-      document.getElementById('time-display').innerText = `${formatTime(pos)} / ${formatTime(dur)}`;
-
-      document.getElementById('live-section').innerText = data.sec || 'SECCIÓN';
-      document.getElementById('live-chord').innerText = data.chord || '--';
-      document.getElementById('live-lyric-preview').innerText = data.lyric || '';
-
-      // Auto-Scroll y resaltado compás por compás
-      if (currentSongData) {
-        const allLines = document.querySelectorAll('.line-row');
-        let currentActive = null;
-
-        allLines.forEach(line => {
-          const s = parseFloat(line.dataset.start);
-          const e = parseFloat(line.dataset.end);
-          if (pos >= s && pos <= e) {
-            currentActive = line;
-          }
-        });
-
-        if (currentActive && currentActive !== lastActiveLineEl) {
-          if (lastActiveLineEl) lastActiveLineEl.classList.remove('active-line');
-          currentActive.classList.add('active-line');
-          lastActiveLineEl = currentActive;
-
-          // Scroll suave hacia la línea activa
-          currentActive.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-    }
-
     window.onload = () => {
-      loadSong(0);
+      loadSongData();
       connectWebSocket();
+      startClockLoop();
     };
   </script>
 </body>

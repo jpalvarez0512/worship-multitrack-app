@@ -30,7 +30,7 @@ wheels/
 htmlcov/
 
 # Audio Files pesados (GitHub tiene un límite de 100 MB por archivo)
-# Se ignoran archivos de audio grandes en tracks, pero se preservan los JSON y metadatos
+# Se ignoran archivos de audio grandes en tracks, pero se preservan los JSON, letras y metadatos
 tracks/**/*.wav
 tracks/**/*.flac
 tracks/**/*.aiff
@@ -38,8 +38,19 @@ tracks/**/*.aif
 tracks/**/*.mp3
 tracks/**/*.ogg
 tracks/**/*.m4a
+tracks/**/stems/*
+!tracks/**/stems/.gitkeep
+!tracks/**/chart.pro
+!tracks/**/chart.txt
+!tracks/**/song.pro
+!tracks/**/song.txt
+!tracks/**/song.cho
 !tracks/**/song.json
 !tracks/**/README.md
+
+# Fondos personalizados de proyección (imágenes/videos subidos por el usuario)
+config/backgrounds/*
+!config/backgrounds/.gitkeep
 
 # Builds y Binarios locales
 *.exe

@@ -284,10 +284,10 @@ class MultitrackEngine:
         self._stop_ticker_event.set()
 
     def _ticker_loop(self) -> None:
-        """Bucle periódico a 25 Hz (cada 40 ms) para notificar la posición actual."""
+        """Bucle periódico a ~33 Hz (cada 30 ms) para notificar la posición actual sin latencia perceptible."""
         while not self._stop_ticker_event.is_set() and self._is_playing:
             self._notify_tick()
-            time.sleep(0.04)
+            time.sleep(0.03)
 
     def _notify_tick(self) -> None:
         """Emite el evento con la posición actual a todos los suscriptores."""

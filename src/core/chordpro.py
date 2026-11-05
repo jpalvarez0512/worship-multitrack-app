@@ -161,7 +161,7 @@ class ChordProParser:
                 et = st + 8.0  # Duración por defecto para la última línea
             item["end_time"] = et
 
-        # Agrupar en SongSections
+        # Agrupar en SongSections calculando tiempos exactos de acordes según la duración real del compás
         for sec_name, s_lines in raw_sections:
             if not s_lines:
                 continue
@@ -171,15 +171,35 @@ class ChordProParser:
 
             for line_data in s_lines:
                 lyrics = line_data["clean_lyric"]
-                # Si la línea no tiene texto audible, etiquetar como Instrumental para proyección
-                if not lyrics and line_data["chords"]:
+                line_start = line_data["start_time"]
+                line_end = line_data["end_time"]
+                line_dur = max(0.5, line_end - line_start)
+                raw_chords = line_data["chords"]
+                chord_markers: List[ChordMarker] = []
+
+                if not lyrics and raw_chords:
+                    # Compás instrumental: repartir los acordes equitativamente en la duración del compás
                     lyrics = "[ Instrumental ]"
+                    n_chords = len(raw_chords)
+                    for c_idx, c in enumerate(raw_chords):
+                        c_time = round(line_start + (c_idx / float(n_chords)) * line_dur, 3)
+                        chord_markers.append(ChordMarker(time=c_time, chord=c["chord"], char_offset=0))
+                else:
+                    total_len = max(len(lyrics), 1)
+                    for c_idx, c in enumerate(raw_chords):
+                        char_pos = min(max(0, c["char_offset"]), len(lyrics))
+                        # El primer acorde entra al inicio del compás si está en las primeras sílabas
+                        if c_idx == 0 and char_pos <= 10:
+                            c_time = round(line_start, 3)
+                        else:
+                            c_time = round(line_start + (char_pos / float(total_len)) * (line_dur * 0.85), 3)
+                        chord_markers.append(ChordMarker(time=c_time, chord=c["chord"], char_offset=char_pos))
 
                 line_obj = SongLine(
-                    start_time=line_data["start_time"],
-                    end_time=line_data["end_time"],
+                    start_time=line_start,
+                    end_time=line_end,
                     lyrics=lyrics,
-                    chords=[ChordMarker(time=c["time"], chord=c["chord"]) for c in line_data["chords"]],
+                    chords=chord_markers,
                 )
                 section_obj.lines.append(line_obj)
 
@@ -190,44 +210,33 @@ class ChordProParser:
     @classmethod
     def _extract_chords_and_lyrics(cls, text_with_chords: str, line_start_time: float) -> Tuple[List[dict], str]:
         """
-        Separa los acordes [C] de la letra limpia y calcula la posición temporal aproximada
-        de cada acorde dentro del compás de la frase.
+        Separa los acordes [C] de la letra limpia y conserva el índice exacto de sílaba (char_offset).
         """
         chords = []
         clean_chars = []
         cursor_in_clean = 0
 
-        # Buscar todos los acordes y sus posiciones en el texto original
         matches = list(CHORD_TAG_REGEX.finditer(text_with_chords))
-
         last_idx = 0
         for m in matches:
-            # Texto antes del acorde
             prefix = text_with_chords[last_idx:m.start()]
             clean_chars.append(prefix)
             cursor_in_clean += len(prefix)
 
-            chord_name = m.group(1)
-            # Acorde asignado al cursor de caracteres actual
             chords.append({
-                "chord": chord_name,
+                "chord": m.group(1),
                 "char_offset": cursor_in_clean,
-                "time": line_start_time,  # Se ajusta proporcionalmente abajo
+                "time": line_start_time,
             })
             last_idx = m.end()
 
-        # Texto restante
         clean_chars.append(text_with_chords[last_idx:])
-        clean_lyric = "".join(clean_chars).strip()
+        raw_clean = "".join(clean_chars)
+        leading_spaces = len(raw_clean) - len(raw_clean.lstrip())
+        clean_lyric = raw_clean.strip()
 
-        # Calcular tiempo relativo de cada acorde según su posición en la frase
-        total_len = max(len(clean_lyric), 1)
-        # Asumiendo una duración base de frase de 4 a 6 segundos
-        for idx, c in enumerate(chords):
-            char_pos = c.pop("char_offset")
-            # Los acordes posteriores se desfasan progresivamente según su posición
-            time_offset = (char_pos / float(total_len)) * 4.0
-            c["time"] = round(line_start_time + time_offset, 3)
+        for c in chords:
+            c["char_offset"] = max(0, c["char_offset"] - leading_spaces)
 
         return chords, clean_lyric
 
@@ -239,11 +248,15 @@ class ChordProParser:
         default_id = os.path.splitext(os.path.basename(file_path))[0]
         return cls.parse_string(content, default_id=default_id)
 
+    SCHEMA_VERSION = 2
+
     @classmethod
     def export_to_json(cls, song: Song, output_path: str) -> None:
         """Serializa la canción estructurada a song.json."""
+        payload = song.to_full_dict()
+        payload["schema_version"] = cls.SCHEMA_VERSION
         with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(song.to_full_dict(), f, indent=2, ensure_ascii=False)
+            json.dump(payload, f, indent=2, ensure_ascii=False)
 
     @classmethod
     def load_from_json(cls, json_path: str) -> Song:
@@ -271,7 +284,11 @@ class ChordProParser:
                     end_time=line_data["end_time"],
                     lyrics=line_data["lyrics"],
                     chords=[
-                        ChordMarker(time=c["time"], chord=c["chord"])
+                        ChordMarker(
+                            time=c["time"],
+                            chord=c["chord"],
+                            char_offset=int(c.get("char_offset", 0)),
+                        )
                         for c in line_data.get("chords", [])
                     ],
                 )

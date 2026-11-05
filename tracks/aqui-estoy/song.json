@@ -1,0 +1,1282 @@
+{
+  "id": "aqui-estoy",
+  "title": "Aquí Estoy (The Stand)",
+  "artist": "Hillsong UNITED",
+  "key": "A",
+  "original_key": "A",
+  "transpose_semitones": 0,
+  "bpm": 71.0,
+  "time_signature": "4/4",
+  "duration": 435.43,
+  "sections": [
+    {
+      "name": "Cuenta Inicial (4 Compases)",
+      "start_time": 0.0,
+      "end_time": 13.52,
+      "lines": [
+        {
+          "start_time": 0.0,
+          "end_time": 13.52,
+          "lyrics": "",
+          "chords": []
+        }
+      ]
+    },
+    {
+      "name": "Intro",
+      "start_time": 13.52,
+      "end_time": 40.56,
+      "lines": [
+        {
+          "start_time": 13.52,
+          "end_time": 27.04,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 13.52,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 20.28,
+              "chord": "Asus2",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 27.04,
+          "end_time": 40.56,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 27.04,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 33.8,
+              "chord": "Asus2",
+              "char_offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Verso 1",
+      "start_time": 40.56,
+      "end_time": 67.18,
+      "lines": [
+        {
+          "start_time": 40.56,
+          "end_time": 46.9,
+          "lyrics": "Tú eres el principio",
+          "chords": [
+            {
+              "time": 40.56,
+              "chord": "A",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 46.9,
+          "end_time": 53.66,
+          "lyrics": "Tuya es la eternidad",
+          "chords": [
+            {
+              "time": 46.9,
+              "chord": "D2",
+              "char_offset": 2
+            }
+          ]
+        },
+        {
+          "start_time": 53.66,
+          "end_time": 58.73,
+          "lyrics": "Llamaste el mundo a existencia",
+          "chords": [
+            {
+              "time": 53.66,
+              "chord": "A/C#",
+              "char_offset": 3
+            },
+            {
+              "time": 57.108,
+              "chord": "F#m7",
+              "char_offset": 24
+            }
+          ]
+        },
+        {
+          "start_time": 58.73,
+          "end_time": 67.18,
+          "lyrics": "Me acerco a Ti",
+          "chords": [
+            {
+              "time": 64.886,
+              "chord": "D2",
+              "char_offset": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Verso 2",
+      "start_time": 67.18,
+      "end_time": 92.96,
+      "lines": [
+        {
+          "start_time": 67.18,
+          "end_time": 73.94,
+          "lyrics": "Moriste por mis fracasos",
+          "chords": [
+            {
+              "time": 67.18,
+              "chord": "A",
+              "char_offset": 2
+            }
+          ]
+        },
+        {
+          "start_time": 73.94,
+          "end_time": 80.7,
+          "lyrics": "Llevaste mi culpa en la cruz",
+          "chords": [
+            {
+              "time": 73.94,
+              "chord": "D2",
+              "char_offset": 3
+            }
+          ]
+        },
+        {
+          "start_time": 80.7,
+          "end_time": 85.78,
+          "lyrics": "Cargaste en tus hombros mi carga",
+          "chords": [
+            {
+              "time": 80.7,
+              "chord": "A/C#",
+              "char_offset": 3
+            },
+            {
+              "time": 84.343,
+              "chord": "F#m7",
+              "char_offset": 27
+            }
+          ]
+        },
+        {
+          "start_time": 85.78,
+          "end_time": 92.96,
+          "lyrics": "Me acerco a Ti",
+          "chords": [
+            {
+              "time": 91.011,
+              "chord": "D2",
+              "char_offset": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pre-Coro 1",
+      "start_time": 92.96,
+      "end_time": 121.27,
+      "lines": [
+        {
+          "start_time": 92.96,
+          "end_time": 106.48,
+          "lyrics": "¿Qué puedo hacer? ¿Qué puedo decir?",
+          "chords": [
+            {
+              "time": 97.228,
+              "chord": "D2",
+              "char_offset": 13
+            },
+            {
+              "time": 98.87,
+              "chord": "Bm7",
+              "char_offset": 18
+            },
+            {
+              "time": 103.139,
+              "chord": "F#m7",
+              "char_offset": 31
+            }
+          ]
+        },
+        {
+          "start_time": 106.48,
+          "end_time": 121.27,
+          "lyrics": "Te ofrezco mi corazón, completamente a Ti",
+          "chords": [
+            {
+              "time": 110.773,
+              "chord": "D2",
+              "char_offset": 14
+            },
+            {
+              "time": 113.532,
+              "chord": "E",
+              "char_offset": 23
+            },
+            {
+              "time": 115.985,
+              "chord": "F#m7",
+              "char_offset": 31
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Verso 3",
+      "start_time": 121.27,
+      "end_time": 147.04,
+      "lines": [
+        {
+          "start_time": 121.27,
+          "end_time": 128.03,
+          "lyrics": "En tu salvación camino",
+          "chords": [
+            {
+              "time": 121.27,
+              "chord": "A",
+              "char_offset": 3
+            }
+          ]
+        },
+        {
+          "start_time": 128.03,
+          "end_time": 134.79,
+          "lyrics": "Tu Espíritu vive en mí",
+          "chords": [
+            {
+              "time": 128.03,
+              "chord": "D2",
+              "char_offset": 5
+            }
+          ]
+        },
+        {
+          "start_time": 134.79,
+          "end_time": 139.86,
+          "lyrics": "Declararé tus promesas",
+          "chords": [
+            {
+              "time": 134.79,
+              "chord": "A/C#",
+              "char_offset": 2
+            },
+            {
+              "time": 138.12,
+              "chord": "F#m7",
+              "char_offset": 17
+            }
+          ]
+        },
+        {
+          "start_time": 139.86,
+          "end_time": 147.04,
+          "lyrics": "Me acerco a Ti",
+          "chords": [
+            {
+              "time": 145.091,
+              "chord": "D2",
+              "char_offset": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pre-Coro 2",
+      "start_time": 147.04,
+      "end_time": 174.09,
+      "lines": [
+        {
+          "start_time": 147.04,
+          "end_time": 160.56,
+          "lyrics": "¿Qué puedo hacer? ¿Qué puedo decir?",
+          "chords": [
+            {
+              "time": 151.308,
+              "chord": "D2",
+              "char_offset": 13
+            },
+            {
+              "time": 152.95,
+              "chord": "Bm7",
+              "char_offset": 18
+            },
+            {
+              "time": 157.219,
+              "chord": "F#m7",
+              "char_offset": 31
+            }
+          ]
+        },
+        {
+          "start_time": 160.56,
+          "end_time": 174.09,
+          "lyrics": "Te ofrezco mi corazón, completamente a Ti",
+          "chords": [
+            {
+              "time": 164.487,
+              "chord": "D2",
+              "char_offset": 14
+            },
+            {
+              "time": 167.012,
+              "chord": "E",
+              "char_offset": 23
+            },
+            {
+              "time": 169.256,
+              "chord": "F#m7",
+              "char_offset": 31
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pre-Coro 3 (Subida)",
+      "start_time": 174.09,
+      "end_time": 196.06,
+      "lines": [
+        {
+          "start_time": 174.09,
+          "end_time": 187.61,
+          "lyrics": "¿Qué puedo hacer? ¿Qué puedo decir?",
+          "chords": [
+            {
+              "time": 178.358,
+              "chord": "D2",
+              "char_offset": 13
+            },
+            {
+              "time": 180.0,
+              "chord": "Bm7",
+              "char_offset": 18
+            },
+            {
+              "time": 184.269,
+              "chord": "F#m7",
+              "char_offset": 31
+            },
+            {
+              "time": 185.582,
+              "chord": "A",
+              "char_offset": 35
+            }
+          ]
+        },
+        {
+          "start_time": 187.61,
+          "end_time": 196.06,
+          "lyrics": "Te ofrezco mi corazón, completamente a Ti",
+          "chords": [
+            {
+              "time": 190.063,
+              "chord": "Bm7",
+              "char_offset": 14
+            },
+            {
+              "time": 191.639,
+              "chord": "E",
+              "char_offset": 23
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Puente Instrumental 1",
+      "start_time": 196.06,
+      "end_time": 223.1,
+      "lines": [
+        {
+          "start_time": 196.06,
+          "end_time": 202.82,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 196.06,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 197.75,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 199.44,
+              "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 201.13,
+              "chord": "F#m7",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 202.82,
+          "end_time": 209.58,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 202.82,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 204.51,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 206.2,
+              "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 207.89,
+              "chord": "F#m7",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 209.58,
+          "end_time": 216.34,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 209.58,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 211.27,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 212.96,
+              "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 214.65,
+              "chord": "F#m7",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 216.34,
+          "end_time": 223.1,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 216.34,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 218.03,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 219.72,
+              "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 221.41,
+              "chord": "F#m7",
+              "char_offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Puente Instrumental 2 (Sube)",
+      "start_time": 223.1,
+      "end_time": 250.14,
+      "lines": [
+        {
+          "start_time": 223.1,
+          "end_time": 229.86,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 223.1,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 224.79,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 226.48,
+              "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 228.17,
+              "chord": "F#m7",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 229.86,
+          "end_time": 236.62,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 229.86,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 231.55,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 233.24,
+              "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 234.93,
+              "chord": "F#m7",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 236.62,
+          "end_time": 243.38,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 236.62,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 238.31,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 240.0,
+              "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 241.69,
+              "chord": "F#m7",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 243.38,
+          "end_time": 250.14,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 243.38,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 245.07,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 246.76,
+              "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 248.45,
+              "chord": "F#m7",
+              "char_offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Coro 1 (Suave)",
+      "start_time": 250.14,
+      "end_time": 277.18,
+      "lines": [
+        {
+          "start_time": 250.14,
+          "end_time": 256.9,
+          "lyrics": "Aquí estoy, con manos alzadas vengo",
+          "chords": [
+            {
+              "time": 250.14,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 251.289,
+              "chord": "A",
+              "char_offset": 7
+            },
+            {
+              "time": 252.767,
+              "chord": "E",
+              "char_offset": 16
+            },
+            {
+              "time": 254.08,
+              "chord": "F#m7",
+              "char_offset": 24
+            }
+          ]
+        },
+        {
+          "start_time": 256.9,
+          "end_time": 263.66,
+          "lyrics": "Pues Tú todo lo diste por mí",
+          "chords": [
+            {
+              "time": 256.9,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 257.926,
+              "chord": "A",
+              "char_offset": 5
+            },
+            {
+              "time": 258.952,
+              "chord": "E",
+              "char_offset": 10
+            },
+            {
+              "time": 262.236,
+              "chord": "F#m7",
+              "char_offset": 26
+            }
+          ]
+        },
+        {
+          "start_time": 263.66,
+          "end_time": 270.42,
+          "lyrics": "Aquí estoy, mi alma a Ti entrego",
+          "chords": [
+            {
+              "time": 263.66,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 264.917,
+              "chord": "A",
+              "char_offset": 7
+            },
+            {
+              "time": 266.353,
+              "chord": "E",
+              "char_offset": 15
+            },
+            {
+              "time": 268.508,
+              "chord": "F#m7",
+              "char_offset": 27
+            }
+          ]
+        },
+        {
+          "start_time": 270.42,
+          "end_time": 277.18,
+          "lyrics": "Tuyo soy, Señor",
+          "chords": [
+            {
+              "time": 270.42,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 272.335,
+              "chord": "A",
+              "char_offset": 5
+            },
+            {
+              "time": 275.017,
+              "chord": "E",
+              "char_offset": 12
+            },
+            {
+              "time": 276.166,
+              "chord": "F#m7",
+              "char_offset": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Coro 2 (Sube - Entra Banda)",
+      "start_time": 277.18,
+      "end_time": 304.23,
+      "lines": [
+        {
+          "start_time": 277.18,
+          "end_time": 283.94,
+          "lyrics": "Aquí estoy, con manos alzadas vengo",
+          "chords": [
+            {
+              "time": 277.18,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 278.329,
+              "chord": "A",
+              "char_offset": 7
+            },
+            {
+              "time": 279.807,
+              "chord": "E",
+              "char_offset": 16
+            },
+            {
+              "time": 281.12,
+              "chord": "F#m7",
+              "char_offset": 24
+            }
+          ]
+        },
+        {
+          "start_time": 283.94,
+          "end_time": 290.7,
+          "lyrics": "Pues Tú todo lo diste por mí",
+          "chords": [
+            {
+              "time": 283.94,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 284.966,
+              "chord": "A",
+              "char_offset": 5
+            },
+            {
+              "time": 285.992,
+              "chord": "E",
+              "char_offset": 10
+            },
+            {
+              "time": 289.276,
+              "chord": "F#m7",
+              "char_offset": 26
+            }
+          ]
+        },
+        {
+          "start_time": 290.7,
+          "end_time": 297.46,
+          "lyrics": "Aquí estoy, mi alma a Ti entrego",
+          "chords": [
+            {
+              "time": 290.7,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 291.957,
+              "chord": "A",
+              "char_offset": 7
+            },
+            {
+              "time": 293.393,
+              "chord": "E",
+              "char_offset": 15
+            },
+            {
+              "time": 295.548,
+              "chord": "F#m7",
+              "char_offset": 27
+            }
+          ]
+        },
+        {
+          "start_time": 297.46,
+          "end_time": 304.23,
+          "lyrics": "Tuyo soy, Señor",
+          "chords": [
+            {
+              "time": 297.46,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 299.378,
+              "chord": "A",
+              "char_offset": 5
+            },
+            {
+              "time": 302.064,
+              "chord": "E",
+              "char_offset": 12
+            },
+            {
+              "time": 303.214,
+              "chord": "F#m7",
+              "char_offset": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Coro 3 (Clímax)",
+      "start_time": 304.23,
+      "end_time": 331.27,
+      "lines": [
+        {
+          "start_time": 304.23,
+          "end_time": 310.99,
+          "lyrics": "Aquí estoy, con manos alzadas vengo",
+          "chords": [
+            {
+              "time": 304.23,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 305.379,
+              "chord": "A",
+              "char_offset": 7
+            },
+            {
+              "time": 306.857,
+              "chord": "E",
+              "char_offset": 16
+            },
+            {
+              "time": 308.17,
+              "chord": "F#m7",
+              "char_offset": 24
+            }
+          ]
+        },
+        {
+          "start_time": 310.99,
+          "end_time": 317.75,
+          "lyrics": "Pues Tú todo lo diste por mí",
+          "chords": [
+            {
+              "time": 310.99,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 312.016,
+              "chord": "A",
+              "char_offset": 5
+            },
+            {
+              "time": 313.042,
+              "chord": "E",
+              "char_offset": 10
+            },
+            {
+              "time": 316.326,
+              "chord": "F#m7",
+              "char_offset": 26
+            }
+          ]
+        },
+        {
+          "start_time": 317.75,
+          "end_time": 324.51,
+          "lyrics": "Aquí estoy, mi alma a Ti entrego",
+          "chords": [
+            {
+              "time": 317.75,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 319.007,
+              "chord": "A",
+              "char_offset": 7
+            },
+            {
+              "time": 320.443,
+              "chord": "E",
+              "char_offset": 15
+            },
+            {
+              "time": 322.598,
+              "chord": "F#m7",
+              "char_offset": 27
+            }
+          ]
+        },
+        {
+          "start_time": 324.51,
+          "end_time": 331.27,
+          "lyrics": "Tuyo soy, Señor",
+          "chords": [
+            {
+              "time": 324.51,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 326.425,
+              "chord": "A",
+              "char_offset": 5
+            },
+            {
+              "time": 329.107,
+              "chord": "E",
+              "char_offset": 12
+            },
+            {
+              "time": 330.256,
+              "chord": "F#m7",
+              "char_offset": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Coro 4 (Fuerte)",
+      "start_time": 331.27,
+      "end_time": 358.31,
+      "lines": [
+        {
+          "start_time": 331.27,
+          "end_time": 338.03,
+          "lyrics": "Aquí estoy, con manos alzadas vengo",
+          "chords": [
+            {
+              "time": 331.27,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 332.419,
+              "chord": "A",
+              "char_offset": 7
+            },
+            {
+              "time": 333.897,
+              "chord": "E",
+              "char_offset": 16
+            },
+            {
+              "time": 335.21,
+              "chord": "F#m7",
+              "char_offset": 24
+            }
+          ]
+        },
+        {
+          "start_time": 338.03,
+          "end_time": 344.79,
+          "lyrics": "Pues Tú todo lo diste por mí",
+          "chords": [
+            {
+              "time": 338.03,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 339.056,
+              "chord": "A",
+              "char_offset": 5
+            },
+            {
+              "time": 340.082,
+              "chord": "E",
+              "char_offset": 10
+            },
+            {
+              "time": 343.366,
+              "chord": "F#m7",
+              "char_offset": 26
+            }
+          ]
+        },
+        {
+          "start_time": 344.79,
+          "end_time": 351.55,
+          "lyrics": "Aquí estoy, mi alma a Ti entrego",
+          "chords": [
+            {
+              "time": 344.79,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 346.047,
+              "chord": "A",
+              "char_offset": 7
+            },
+            {
+              "time": 347.483,
+              "chord": "E",
+              "char_offset": 15
+            },
+            {
+              "time": 349.638,
+              "chord": "F#m7",
+              "char_offset": 27
+            }
+          ]
+        },
+        {
+          "start_time": 351.55,
+          "end_time": 358.31,
+          "lyrics": "Tuyo soy, Señor",
+          "chords": [
+            {
+              "time": 351.55,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 353.465,
+              "chord": "A",
+              "char_offset": 5
+            },
+            {
+              "time": 356.147,
+              "chord": "E",
+              "char_offset": 12
+            },
+            {
+              "time": 357.296,
+              "chord": "F#m7",
+              "char_offset": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Coro 5 (Suave - Voces y Pad)",
+      "start_time": 358.31,
+      "end_time": 390.43,
+      "lines": [
+        {
+          "start_time": 358.31,
+          "end_time": 365.07,
+          "lyrics": "Aquí estoy, con manos alzadas vengo",
+          "chords": [
+            {
+              "time": 358.31,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 359.459,
+              "chord": "A",
+              "char_offset": 7
+            },
+            {
+              "time": 360.937,
+              "chord": "E",
+              "char_offset": 16
+            },
+            {
+              "time": 362.25,
+              "chord": "F#m7",
+              "char_offset": 24
+            }
+          ]
+        },
+        {
+          "start_time": 365.07,
+          "end_time": 371.83,
+          "lyrics": "Pues Tú todo lo diste por mí",
+          "chords": [
+            {
+              "time": 365.07,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 366.096,
+              "chord": "A",
+              "char_offset": 5
+            },
+            {
+              "time": 367.122,
+              "chord": "E",
+              "char_offset": 10
+            },
+            {
+              "time": 370.406,
+              "chord": "F#m7",
+              "char_offset": 26
+            }
+          ]
+        },
+        {
+          "start_time": 371.83,
+          "end_time": 378.59,
+          "lyrics": "Aquí estoy, mi alma a Ti entrego",
+          "chords": [
+            {
+              "time": 371.83,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 373.087,
+              "chord": "A",
+              "char_offset": 7
+            },
+            {
+              "time": 374.523,
+              "chord": "E",
+              "char_offset": 15
+            },
+            {
+              "time": 376.678,
+              "chord": "F#m7",
+              "char_offset": 27
+            }
+          ]
+        },
+        {
+          "start_time": 378.59,
+          "end_time": 390.43,
+          "lyrics": "Tuyo soy, Señor",
+          "chords": [
+            {
+              "time": 378.59,
+              "chord": "D2",
+              "char_offset": 0
+            },
+            {
+              "time": 381.945,
+              "chord": "A",
+              "char_offset": 5
+            },
+            {
+              "time": 386.641,
+              "chord": "E",
+              "char_offset": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pre-Coro Final (Ritardando)",
+      "start_time": 390.43,
+      "end_time": 419.9,
+      "lines": [
+        {
+          "start_time": 390.43,
+          "end_time": 404.35,
+          "lyrics": "¿Qué puedo hacer? ¿Qué puedo decir?",
+          "chords": [
+            {
+              "time": 394.825,
+              "chord": "D2",
+              "char_offset": 13
+            },
+            {
+              "time": 396.515,
+              "chord": "Bm7",
+              "char_offset": 18
+            },
+            {
+              "time": 400.91,
+              "chord": "F#m7",
+              "char_offset": 31
+            },
+            {
+              "time": 402.262,
+              "chord": "A",
+              "char_offset": 35
+            }
+          ]
+        },
+        {
+          "start_time": 404.35,
+          "end_time": 419.9,
+          "lyrics": "Te ofrezco mi corazón, completamente a Ti",
+          "chords": [
+            {
+              "time": 408.863,
+              "chord": "Bm7",
+              "char_offset": 14
+            },
+            {
+              "time": 411.765,
+              "chord": "Esus4",
+              "char_offset": 23
+            },
+            {
+              "time": 416.923,
+              "chord": "E",
+              "char_offset": 39
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Final",
+      "start_time": 419.9,
+      "end_time": 435.43,
+      "lines": [
+        {
+          "start_time": 419.9,
+          "end_time": 427.43,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 419.9,
+              "chord": "E",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 427.43,
+          "end_time": 435.43,
+          "lyrics": "",
+          "chords": []
+        }
+      ]
+    }
+  ],
+  "schema_version": 2
+}

@@ -21,11 +21,13 @@
           "chords": [
             {
               "time": 0.0,
-              "chord": "Bb"
+              "chord": "Bb",
+              "char_offset": 0
             },
             {
-              "time": 28.0,
-              "chord": "Eb"
+              "time": 5.0,
+              "chord": "Eb",
+              "char_offset": 0
             }
           ]
         }
@@ -42,12 +44,14 @@
           "lyrics": "¿Quién rompe el poder del pecado y la oscuridad?",
           "chords": [
             {
-              "time": 11.5,
-              "chord": "Bb"
+              "time": 13.347,
+              "chord": "Bb",
+              "char_offset": 18
             },
             {
-              "time": 13.5,
-              "chord": "Eb"
+              "time": 17.809,
+              "chord": "Eb",
+              "char_offset": 42
             }
           ]
         },
@@ -57,12 +61,14 @@
           "lyrics": "Su amor es tan fuerte, y es tan poderoso",
           "chords": [
             {
-              "time": 22.0,
-              "chord": "Gm"
+              "time": 23.528,
+              "chord": "Gm",
+              "char_offset": 15
             },
             {
-              "time": 24.1,
-              "chord": "F"
+              "time": 27.767,
+              "chord": "F",
+              "char_offset": 36
             }
           ]
         },
@@ -72,12 +78,14 @@
           "lyrics": "El Rey de gloria, el Rey de Majestad",
           "chords": [
             {
-              "time": 31.111,
-              "chord": "Eb"
+              "time": 30.0,
+              "chord": "Eb",
+              "char_offset": 10
             },
             {
-              "time": 33.667,
-              "chord": "F"
+              "time": 37.792,
+              "chord": "F",
+              "char_offset": 33
             }
           ]
         }
@@ -94,12 +102,14 @@
           "lyrics": "Gracia sublime es, perfecto es tu amor",
           "chords": [
             {
-              "time": 41.053,
-              "chord": "Bb"
+              "time": 40.0,
+              "chord": "Bb",
+              "char_offset": 10
             },
             {
-              "time": 43.684,
-              "chord": "Eb"
+              "time": 49.395,
+              "chord": "Eb",
+              "char_offset": 35
             }
           ]
         },
@@ -109,16 +119,19 @@
           "lyrics": "Tomaste mi lugar, cargaste tú mi cruz",
           "chords": [
             {
-              "time": 53.405,
-              "chord": "Gm"
+              "time": 54.389,
+              "chord": "Gm",
+              "char_offset": 13
             },
             {
-              "time": 55.568,
-              "chord": "F"
+              "time": 58.065,
+              "chord": "F",
+              "char_offset": 33
             }
           ]
         }
       ]
     }
-  ]
+  ],
+  "schema_version": 2
 }

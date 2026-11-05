@@ -3,6 +3,7 @@ Cargador y Gestor de Paquetes de Canciones y Stems en Disco
 Subagente responsable: 01-lead-architect & 02-audio-multitrack-engineer
 """
 
+import json
 import os
 import re
 import shutil
@@ -102,15 +103,32 @@ class SongLoader:
 
         return sorted(songs_list, key=lambda s: s["title"].lower())
 
+    def load_song_metadata(self, song_id: str) -> Optional[Song]:
+        """Retorna el objeto Song estructurado de una canción por su ID sin requerir audio."""
+        folder = self._song_folder(song_id)
+        if not os.path.exists(folder):
+            raise FileNotFoundError(f"Carpeta de canción no encontrada: {song_id}")
+        return self._read_song_metadata(folder)
+
     def _read_song_metadata(self, folder_path: str) -> Optional[Song]:
         """Obtiene el objeto Song desde chart.pro (regenerando song.json si cambió) o song.json."""
         folder_name = os.path.basename(folder_path)
         chart_file = self._find_chart(folder_path)
         json_file = os.path.join(folder_path, "song.json")
 
-        if chart_file and (
-            not os.path.exists(json_file) or os.path.getmtime(chart_file) > os.path.getmtime(json_file)
-        ):
+        needs_recompile = False
+        if chart_file:
+            if not os.path.exists(json_file) or os.path.getmtime(chart_file) > os.path.getmtime(json_file):
+                needs_recompile = True
+            else:
+                try:
+                    with open(json_file, "r", encoding="utf-8") as jf:
+                        if json.load(jf).get("schema_version") != ChordProParser.SCHEMA_VERSION:
+                            needs_recompile = True
+                except Exception:
+                    needs_recompile = True
+
+        if chart_file and needs_recompile:
             song = ChordProParser.parse_file(chart_file)
             song.id = folder_name
             ChordProParser.export_to_json(song, json_file)

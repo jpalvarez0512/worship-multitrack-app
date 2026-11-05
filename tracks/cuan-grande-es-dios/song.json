@@ -25,7 +25,7 @@
               "char_offset": 0
             },
             {
-              "time": 3.0,
+              "time": 3.158,
               "chord": "Em7",
               "char_offset": 0
             }
@@ -42,7 +42,7 @@
               "char_offset": 0
             },
             {
-              "time": 9.25,
+              "time": 9.158,
               "chord": "D",
               "char_offset": 0
             }
@@ -66,7 +66,7 @@
               "char_offset": 9
             },
             {
-              "time": 17.57,
+              "time": 18.816,
               "chord": "Em7",
               "char_offset": 27
             }
@@ -78,12 +78,12 @@
           "lyrics": "La tierra gozará, la tierra gozará",
           "chords": [
             {
-              "time": 24.8,
+              "time": 22.0,
               "chord": "C2",
               "char_offset": 14
             },
             {
-              "time": 28.4,
+              "time": 29.895,
               "chord": "D",
               "char_offset": 32
             }
@@ -95,12 +95,12 @@
           "lyrics": "Cubierto está de luz, venció la oscuridad",
           "chords": [
             {
-              "time": 32.052,
+              "time": 30.0,
               "chord": "G",
               "char_offset": 11
             },
             {
-              "time": 36.344,
+              "time": 37.105,
               "chord": "Em7",
               "char_offset": 34
             }
@@ -112,12 +112,12 @@
           "lyrics": "Y tiembla a Su voz, y tiembla a Su voz",
           "chords": [
             {
-              "time": 42.02,
+              "time": 39.0,
               "chord": "C2",
               "char_offset": 15
             },
             {
-              "time": 46.046,
+              "time": 47.684,
               "chord": "D",
               "char_offset": 35
             }
@@ -141,7 +141,7 @@
               "char_offset": 5
             },
             {
-              "time": 54.679,
+              "time": 55.895,
               "chord": "Em7",
               "char_offset": 35
             }
@@ -153,17 +153,17 @@
           "lyrics": "Y todos lo verán, cuán grande es Dios",
           "chords": [
             {
-              "time": 62.285,
+              "time": 59.0,
               "chord": "C",
               "char_offset": 13
             },
             {
-              "time": 64.812,
+              "time": 66.105,
               "chord": "D",
               "char_offset": 23
             },
             {
-              "time": 67.339,
+              "time": 68.474,
               "chord": "G",
               "char_offset": 33
             }
@@ -187,7 +187,7 @@
               "char_offset": 6
             },
             {
-              "time": 76.157,
+              "time": 77.105,
               "chord": "Em7",
               "char_offset": 33
             }
@@ -199,12 +199,12 @@
           "lyrics": "Principio y el fin, principio y el fin",
           "chords": [
             {
-              "time": 82.02,
+              "time": 79.0,
               "chord": "C2",
               "char_offset": 15
             },
             {
-              "time": 86.046,
+              "time": 86.895,
               "chord": "D",
               "char_offset": 35
             }
@@ -216,12 +216,12 @@
           "lyrics": "La Trinidad en Dios, el Padre, Hijo, Espíritu",
           "chords": [
             {
-              "time": 90.04,
+              "time": 88.0,
               "chord": "G",
               "char_offset": 12
             },
             {
-              "time": 93.27,
+              "time": 94.316,
               "chord": "Em7",
               "char_offset": 31
             }
@@ -233,12 +233,12 @@
           "lyrics": "Cordero y el León, Cordero y el León",
           "chords": [
             {
-              "time": 99.763,
+              "time": 97.0,
               "chord": "C2",
               "char_offset": 13
             },
             {
-              "time": 103.8,
+              "time": 104.895,
               "chord": "D",
               "char_offset": 32
             }
@@ -262,7 +262,7 @@
               "char_offset": 5
             },
             {
-              "time": 112.679,
+              "time": 113.895,
               "chord": "Em7",
               "char_offset": 35
             }
@@ -274,17 +274,17 @@
           "lyrics": "Y todos lo verán, cuán grande es Dios",
           "chords": [
             {
-              "time": 120.882,
+              "time": 117.0,
               "chord": "C",
               "char_offset": 13
             },
             {
-              "time": 123.869,
+              "time": 124.895,
               "chord": "D",
               "char_offset": 23
             },
             {
-              "time": 126.855,
+              "time": 128.842,
               "chord": "G",
               "char_offset": 33
             }
@@ -308,7 +308,7 @@
               "char_offset": 3
             },
             {
-              "time": 136.375,
+              "time": 137.895,
               "chord": "Em7",
               "char_offset": 25
             }
@@ -325,12 +325,12 @@
               "char_offset": 5
             },
             {
-              "time": 148.869,
+              "time": 149.895,
               "chord": "D",
               "char_offset": 23
             },
             {
-              "time": 151.855,
+              "time": 153.842,
               "chord": "G",
               "char_offset": 33
             }
@@ -354,7 +354,7 @@
               "char_offset": 0
             },
             {
-              "time": 159.5,
+              "time": 159.737,
               "chord": "Em7",
               "char_offset": 0
             }
@@ -371,7 +371,7 @@
               "char_offset": 5
             },
             {
-              "time": 169.368,
+              "time": 170.316,
               "chord": "G",
               "char_offset": 15
             }
@@ -380,5 +380,5 @@
       ]
     }
   ],
-  "schema_version": 2
+  "schema_version": 3
 }

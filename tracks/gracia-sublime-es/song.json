@@ -25,7 +25,7 @@
               "char_offset": 0
             },
             {
-              "time": 5.0,
+              "time": 5.192,
               "chord": "Eb",
               "char_offset": 0
             }
@@ -44,12 +44,12 @@
           "lyrics": "¿Quién rompe el poder del pecado y la oscuridad?",
           "chords": [
             {
-              "time": 13.347,
+              "time": 10.0,
               "chord": "Bb",
               "char_offset": 18
             },
             {
-              "time": 17.809,
+              "time": 19.231,
               "chord": "Eb",
               "char_offset": 42
             }
@@ -61,12 +61,12 @@
           "lyrics": "Su amor es tan fuerte, y es tan poderoso",
           "chords": [
             {
-              "time": 23.528,
+              "time": 20.5,
               "chord": "Gm",
               "char_offset": 15
             },
             {
-              "time": 27.767,
+              "time": 29.154,
               "chord": "F",
               "char_offset": 36
             }
@@ -83,7 +83,7 @@
               "char_offset": 10
             },
             {
-              "time": 37.792,
+              "time": 39.231,
               "chord": "F",
               "char_offset": 33
             }
@@ -107,7 +107,7 @@
               "char_offset": 10
             },
             {
-              "time": 49.395,
+              "time": 50.962,
               "chord": "Eb",
               "char_offset": 35
             }
@@ -119,12 +119,12 @@
           "lyrics": "Tomaste mi lugar, cargaste tú mi cruz",
           "chords": [
             {
-              "time": 54.389,
+              "time": 52.0,
               "chord": "Gm",
               "char_offset": 13
             },
             {
-              "time": 58.065,
+              "time": 58.923,
               "chord": "F",
               "char_offset": 33
             }
@@ -133,5 +133,5 @@
       ]
     }
   ],
-  "schema_version": 2
+  "schema_version": 3
 }

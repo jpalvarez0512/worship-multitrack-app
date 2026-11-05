@@ -26,6 +26,7 @@ def slugify(text: str) -> str:
 # Expresiones regulares para directivas y marcado
 DIRECTIVE_REGEX = re.compile(r"^\{([a-zA-Z0-9_\-]+)\s*:\s*(.*?)\}$")
 TIMESTAMP_REGEX = re.compile(r"^\[(?:(\d{1,2}):)?(\d{1,2}(?:\.\d+)?)\]\s*(.*)$")
+INLINE_TIMESTAMP_REGEX = re.compile(r"\[(?:(\d{1,2}):)?(\d{1,2}(?:\.\d+)?)\]")
 CHORD_TAG_REGEX = re.compile(r"\[([A-G][b#]?(?:m|maj|min|sus|add|dim|aug|[0-9])*(?:\/[A-G][b#]?)?)\]")
 SECTION_HEADER_REGEX = re.compile(r"^\[([a-zA-Z0-9_\-\s]+)\]$")
 
@@ -161,7 +162,17 @@ class ChordProParser:
                 et = st + 8.0  # Duración por defecto para la última línea
             item["end_time"] = et
 
-        # Agrupar en SongSections calculando tiempos exactos de acordes según la duración real del compás
+        # Parámetros musicales para alineación rítmica
+        bpm = float(meta.get("bpm") or 120.0)
+        if bpm <= 0:
+            bpm = 120.0
+        beat_sec = 60.0 / bpm
+        try:
+            beats_per_bar = float(str(meta.get("time_signature", "4/4")).split("/")[0])
+        except Exception:
+            beats_per_bar = 4.0
+
+        # Agrupar en SongSections calculando tiempos exactos de acordes con alineación musical (downbeats)
         for sec_name, s_lines in raw_sections:
             if not s_lines:
                 continue
@@ -178,22 +189,45 @@ class ChordProParser:
                 chord_markers: List[ChordMarker] = []
 
                 if not lyrics and raw_chords:
-                    # Compás instrumental: repartir los acordes equitativamente en la duración del compás
+                    # Compás instrumental: repartir los acordes en compases/beats musicales exactos
                     lyrics = "[ Instrumental ]"
                     n_chords = len(raw_chords)
                     for c_idx, c in enumerate(raw_chords):
-                        c_time = round(line_start + (c_idx / float(n_chords)) * line_dur, 3)
-                        chord_markers.append(ChordMarker(time=c_time, chord=c["chord"], char_offset=0))
+                        if c.get("explicit_time") is not None:
+                            c_time = c["explicit_time"]
+                        elif c_idx == 0:
+                            c_time = line_start
+                        else:
+                            approx_t = line_start + (c_idx / float(n_chords)) * line_dur
+                            # Cuantizar al beat musical más cercano
+                            beats = round((approx_t - line_start) / beat_sec)
+                            c_time = line_start + beats * beat_sec
+                            if chord_markers and c_time <= chord_markers[-1].time:
+                                c_time = chord_markers[-1].time + min(beat_sec, (line_end - chord_markers[-1].time) / 2.0)
+                            if c_time >= line_end:
+                                c_time = round(line_start + (c_idx / float(n_chords)) * line_dur, 3)
+                        chord_markers.append(ChordMarker(time=round(c_time, 3), chord=c["chord"], char_offset=0))
                 else:
                     total_len = max(len(lyrics), 1)
+                    n_chords = len(raw_chords)
                     for c_idx, c in enumerate(raw_chords):
                         char_pos = min(max(0, c["char_offset"]), len(lyrics))
-                        # El primer acorde entra al inicio del compás si está en las primeras sílabas
-                        if c_idx == 0 and char_pos <= 10:
-                            c_time = round(line_start, 3)
+                        if c.get("explicit_time") is not None:
+                            c_time = c["explicit_time"]
+                        elif c_idx == 0:
+                            # REGLA DE ORO: El primer acorde de cualquier compás SIEMPRE entra en el tiempo 1 (downbeat)
+                            c_time = line_start
                         else:
-                            c_time = round(line_start + (char_pos / float(total_len)) * (line_dur * 0.85), 3)
-                        chord_markers.append(ChordMarker(time=c_time, chord=c["chord"], char_offset=char_pos))
+                            # Posición proporcional en el compás cuantizada al beat musical
+                            fraction = char_pos / float(total_len)
+                            approx_t = line_start + fraction * line_dur
+                            beats = round((approx_t - line_start) / beat_sec)
+                            c_time = line_start + beats * beat_sec
+                            if chord_markers and c_time <= chord_markers[-1].time:
+                                c_time = chord_markers[-1].time + min(beat_sec, (line_end - chord_markers[-1].time) / max(1, n_chords - c_idx))
+                            if c_time >= line_end:
+                                c_time = round(line_start + (c_idx / float(n_chords)) * line_dur, 3)
+                        chord_markers.append(ChordMarker(time=round(c_time, 3), chord=c["chord"], char_offset=char_pos))
 
                 line_obj = SongLine(
                     start_time=line_start,
@@ -210,7 +244,8 @@ class ChordProParser:
     @classmethod
     def _extract_chords_and_lyrics(cls, text_with_chords: str, line_start_time: float) -> Tuple[List[dict], str]:
         """
-        Separa los acordes [C] de la letra limpia y conserva el índice exacto de sílaba (char_offset).
+        Separa los acordes [C] de la letra limpia, capturando si hay marcas de tiempo explícitas
+        y conservando el índice exacto de sílaba (char_offset).
         """
         chords = []
         clean_chars = []
@@ -220,17 +255,31 @@ class ChordProParser:
         last_idx = 0
         for m in matches:
             prefix = text_with_chords[last_idx:m.start()]
-            clean_chars.append(prefix)
-            cursor_in_clean += len(prefix)
+            # Detectar si hay una marca de tiempo explícita inmediatamente antes de este acorde
+            explicit_time = None
+            ts_matches = list(INLINE_TIMESTAMP_REGEX.finditer(prefix))
+            if ts_matches:
+                last_ts = ts_matches[-1]
+                explicit_time = parse_timestamp(last_ts.group(2), last_ts.group(1))
+                prefix_clean = INLINE_TIMESTAMP_REGEX.sub("", prefix)
+            else:
+                prefix_clean = prefix
+
+            clean_chars.append(prefix_clean)
+            cursor_in_clean += len(prefix_clean)
 
             chords.append({
                 "chord": m.group(1),
                 "char_offset": cursor_in_clean,
-                "time": line_start_time,
+                "explicit_time": explicit_time,
+                "time": explicit_time if explicit_time is not None else line_start_time,
             })
             last_idx = m.end()
 
-        clean_chars.append(text_with_chords[last_idx:])
+        tail = text_with_chords[last_idx:]
+        tail_clean = INLINE_TIMESTAMP_REGEX.sub("", tail)
+        clean_chars.append(tail_clean)
+
         raw_clean = "".join(clean_chars)
         leading_spaces = len(raw_clean) - len(raw_clean.lstrip())
         clean_lyric = raw_clean.strip()
@@ -248,7 +297,7 @@ class ChordProParser:
         default_id = os.path.splitext(os.path.basename(file_path))[0]
         return cls.parse_string(content, default_id=default_id)
 
-    SCHEMA_VERSION = 2
+    SCHEMA_VERSION = 3
 
     @classmethod
     def export_to_json(cls, song: Song, output_path: str) -> None:

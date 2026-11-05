@@ -191,17 +191,18 @@ class StemTrack:
         right_ch = np.interp(target_indices, orig_indices, data[:, 1]).astype(np.float32)
         return np.column_stack((left_ch, right_ch))
 
-    def get_slice(self, start_frame: int, num_frames: int) -> np.ndarray:
+    def add_slice_to(self, out_buffer: np.ndarray, start_frame: int, num_frames: int) -> None:
         """
-        Extrae un bloque de audio de longitud `num_frames` a partir de `start_frame`.
-        Si el rango solicitado sobrepasa la duración, rellena con ceros (silencio).
-        Aplica volumen y paneo.
+        Acumula directamente el slice de audio en out_buffer sin crear arrays intermedios en el heap (Zero-Allocation).
+        Aplica volumen y paneo con operaciones vectorizadas de alta velocidad.
         """
         total_len = len(self.audio_data)
-        out = np.zeros((num_frames, 2), dtype=np.float32)
-
         if self.mute or start_frame >= total_len or start_frame + num_frames <= 0:
-            return out
+            return
+
+        gain = self.volume
+        if gain <= 0.0001:
+            return
 
         src_start = max(0, start_frame)
         src_end = min(total_len, start_frame + num_frames)
@@ -210,20 +211,30 @@ class StemTrack:
 
         chunk = self.audio_data[src_start:src_end]
 
-        # Aplicación de ganancia y paneo
-        gain = self.volume
         if self.pan == 0.0:
-            gain_l = gain
-            gain_r = gain
-        elif self.pan < 0.0:  # Inclinado a la izquierda
-            gain_l = gain
-            gain_r = gain * (1.0 + self.pan)
-        else:  # Inclinado a la derecha
-            gain_l = gain * (1.0 - self.pan)
-            gain_r = gain
+            if gain == 1.0:
+                out_buffer[dst_start:dst_end, :2] += chunk
+            else:
+                out_buffer[dst_start:dst_end, 0] += chunk[:, 0] * gain
+                out_buffer[dst_start:dst_end, 1] += chunk[:, 1] * gain
+        else:
+            if self.pan < 0.0:
+                gain_l = gain
+                gain_r = gain * (1.0 + self.pan)
+            else:
+                gain_l = gain * (1.0 - self.pan)
+                gain_r = gain
+            out_buffer[dst_start:dst_end, 0] += chunk[:, 0] * gain_l
+            out_buffer[dst_start:dst_end, 1] += chunk[:, 1] * gain_r
 
-        out[dst_start:dst_end, 0] = chunk[:, 0] * gain_l
-        out[dst_start:dst_end, 1] = chunk[:, 1] * gain_r
+    def get_slice(self, start_frame: int, num_frames: int) -> np.ndarray:
+        """
+        Extrae un bloque de audio de longitud `num_frames` a partir de `start_frame`.
+        Si el rango solicitado sobrepasa la duración, rellena con ceros (silencio).
+        Aplica volumen y paneo.
+        """
+        out = np.zeros((num_frames, 2), dtype=np.float32)
+        self.add_slice_to(out, start_frame, num_frames)
         return out
 
     @property

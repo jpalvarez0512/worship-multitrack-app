@@ -29,7 +29,7 @@
       "lines": [
         {
           "start_time": 13.52,
-          "end_time": 27.04,
+          "end_time": 20.28,
           "lyrics": "[ Instrumental ]",
           "chords": [
             {
@@ -38,7 +38,24 @@
               "char_offset": 0
             },
             {
-              "time": 20.281,
+              "time": 16.9,
+              "chord": "Asus2",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 20.28,
+          "end_time": 27.04,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 20.28,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 23.66,
               "chord": "Asus2",
               "char_offset": 0
             }
@@ -46,7 +63,7 @@
         },
         {
           "start_time": 27.04,
-          "end_time": 40.56,
+          "end_time": 33.8,
           "lyrics": "[ Instrumental ]",
           "chords": [
             {
@@ -55,7 +72,24 @@
               "char_offset": 0
             },
             {
-              "time": 33.801,
+              "time": 30.42,
+              "chord": "Asus2",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 33.8,
+          "end_time": 40.56,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 33.8,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 37.18,
               "chord": "Asus2",
               "char_offset": 0
             }
@@ -66,11 +100,11 @@
     {
       "name": "Verso 1",
       "start_time": 40.56,
-      "end_time": 67.18,
+      "end_time": 67.61,
       "lines": [
         {
           "start_time": 40.56,
-          "end_time": 46.9,
+          "end_time": 47.32,
           "lyrics": "Tú eres el principio",
           "chords": [
             {
@@ -81,43 +115,43 @@
           ]
         },
         {
-          "start_time": 46.9,
-          "end_time": 53.66,
+          "start_time": 47.32,
+          "end_time": 54.08,
           "lyrics": "Tuya es la eternidad",
           "chords": [
             {
-              "time": 46.9,
+              "time": 47.32,
               "chord": "D2",
-              "char_offset": 2
+              "char_offset": 0
             }
           ]
         },
         {
-          "start_time": 53.66,
-          "end_time": 58.73,
+          "start_time": 54.08,
+          "end_time": 60.85,
           "lyrics": "Llamaste el mundo a existencia",
           "chords": [
             {
-              "time": 53.66,
+              "time": 54.08,
               "chord": "A/C#",
-              "char_offset": 3
+              "char_offset": 0
             },
             {
-              "time": 57.885,
+              "time": 59.15,
               "chord": "F#m7",
               "char_offset": 24
             }
           ]
         },
         {
-          "start_time": 58.73,
-          "end_time": 67.18,
+          "start_time": 60.85,
+          "end_time": 67.61,
           "lyrics": "Me acerco a Ti",
           "chords": [
             {
-              "time": 58.73,
+              "time": 60.85,
               "chord": "D2",
-              "char_offset": 12
+              "char_offset": 0
             }
           ]
         }
@@ -125,59 +159,59 @@
     },
     {
       "name": "Verso 2",
-      "start_time": 67.18,
+      "start_time": 67.61,
       "end_time": 92.96,
       "lines": [
         {
-          "start_time": 67.18,
-          "end_time": 73.94,
+          "start_time": 67.61,
+          "end_time": 74.37,
           "lyrics": "Moriste por mis fracasos",
           "chords": [
             {
-              "time": 67.18,
+              "time": 67.61,
               "chord": "A",
-              "char_offset": 2
+              "char_offset": 0
             }
           ]
         },
         {
-          "start_time": 73.94,
-          "end_time": 80.7,
+          "start_time": 74.37,
+          "end_time": 81.13,
           "lyrics": "Llevaste mi culpa en la cruz",
           "chords": [
             {
-              "time": 73.94,
+              "time": 74.37,
               "chord": "D2",
-              "char_offset": 3
+              "char_offset": 0
             }
           ]
         },
         {
-          "start_time": 80.7,
-          "end_time": 85.78,
+          "start_time": 81.13,
+          "end_time": 87.89,
           "lyrics": "Cargaste en tus hombros mi carga",
           "chords": [
             {
-              "time": 80.7,
+              "time": 81.13,
               "chord": "A/C#",
-              "char_offset": 3
+              "char_offset": 0
             },
             {
-              "time": 84.925,
+              "time": 87.045,
               "chord": "F#m7",
               "char_offset": 27
             }
           ]
         },
         {
-          "start_time": 85.78,
+          "start_time": 87.89,
           "end_time": 92.96,
           "lyrics": "Me acerco a Ti",
           "chords": [
             {
-              "time": 85.78,
+              "time": 87.89,
               "chord": "D2",
-              "char_offset": 12
+              "char_offset": 0
             }
           ]
         }
@@ -186,49 +220,63 @@
     {
       "name": "Pre-Coro 1",
       "start_time": 92.96,
-      "end_time": 121.27,
+      "end_time": 121.69,
       "lines": [
         {
           "start_time": 92.96,
-          "end_time": 106.48,
-          "lyrics": "¿Qué puedo hacer? ¿Qué puedo decir?",
+          "end_time": 99.72,
+          "lyrics": "¿Qué puedo hacer?",
           "chords": [
             {
               "time": 92.96,
               "chord": "D2",
-              "char_offset": 13
-            },
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 99.72,
+          "end_time": 106.48,
+          "lyrics": "¿Qué puedo decir?",
+          "chords": [
             {
-              "time": 99.721,
+              "time": 99.72,
               "chord": "Bm7",
-              "char_offset": 18
-            },
-            {
-              "time": 104.791,
-              "chord": "F#m7",
-              "char_offset": 31
+              "char_offset": 0
             }
           ]
         },
         {
           "start_time": 106.48,
-          "end_time": 121.27,
-          "lyrics": "Te ofrezco mi corazón, completamente a Ti",
+          "end_time": 113.24,
+          "lyrics": "Te ofrezco mi corazón",
           "chords": [
             {
               "time": 106.48,
+              "chord": "F#m7",
+              "char_offset": 0
+            },
+            {
+              "time": 110.705,
               "chord": "D2",
               "char_offset": 14
-            },
+            }
+          ]
+        },
+        {
+          "start_time": 113.24,
+          "end_time": 121.69,
+          "lyrics": "Completamente a Ti",
+          "chords": [
             {
-              "time": 114.931,
+              "time": 113.24,
               "chord": "E",
-              "char_offset": 23
+              "char_offset": 8
             },
             {
-              "time": 117.466,
+              "time": 120.846,
               "chord": "F#m7",
-              "char_offset": 31
+              "char_offset": 16
             }
           ]
         }
@@ -236,59 +284,59 @@
     },
     {
       "name": "Verso 3",
-      "start_time": 121.27,
+      "start_time": 121.69,
       "end_time": 147.04,
       "lines": [
         {
-          "start_time": 121.27,
-          "end_time": 128.03,
+          "start_time": 121.69,
+          "end_time": 128.45,
           "lyrics": "En tu salvación camino",
           "chords": [
             {
-              "time": 121.27,
+              "time": 121.69,
               "chord": "A",
-              "char_offset": 3
+              "char_offset": 0
             }
           ]
         },
         {
-          "start_time": 128.03,
-          "end_time": 134.79,
+          "start_time": 128.45,
+          "end_time": 135.21,
           "lyrics": "Tu Espíritu vive en mí",
           "chords": [
             {
-              "time": 128.03,
+              "time": 128.45,
               "chord": "D2",
-              "char_offset": 5
+              "char_offset": 0
             }
           ]
         },
         {
-          "start_time": 134.79,
-          "end_time": 139.86,
+          "start_time": 135.21,
+          "end_time": 141.97,
           "lyrics": "Declararé tus promesas",
           "chords": [
             {
-              "time": 134.79,
+              "time": 135.21,
               "chord": "A/C#",
-              "char_offset": 2
+              "char_offset": 0
             },
             {
-              "time": 139.015,
+              "time": 140.28,
               "chord": "F#m7",
               "char_offset": 17
             }
           ]
         },
         {
-          "start_time": 139.86,
+          "start_time": 141.97,
           "end_time": 147.04,
           "lyrics": "Me acerco a Ti",
           "chords": [
             {
-              "time": 139.86,
+              "time": 141.97,
               "chord": "D2",
-              "char_offset": 12
+              "char_offset": 0
             }
           ]
         }
@@ -297,49 +345,63 @@
     {
       "name": "Pre-Coro 2",
       "start_time": 147.04,
-      "end_time": 174.09,
+      "end_time": 174.08,
       "lines": [
         {
           "start_time": 147.04,
-          "end_time": 160.56,
-          "lyrics": "¿Qué puedo hacer? ¿Qué puedo decir?",
+          "end_time": 153.8,
+          "lyrics": "¿Qué puedo hacer?",
           "chords": [
             {
               "time": 147.04,
               "chord": "D2",
-              "char_offset": 13
-            },
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 153.8,
+          "end_time": 160.56,
+          "lyrics": "¿Qué puedo decir?",
+          "chords": [
             {
-              "time": 153.801,
+              "time": 153.8,
               "chord": "Bm7",
-              "char_offset": 18
-            },
-            {
-              "time": 158.871,
-              "chord": "F#m7",
-              "char_offset": 31
+              "char_offset": 0
             }
           ]
         },
         {
           "start_time": 160.56,
-          "end_time": 174.09,
-          "lyrics": "Te ofrezco mi corazón, completamente a Ti",
+          "end_time": 167.32,
+          "lyrics": "Te ofrezco mi corazón",
           "chords": [
             {
               "time": 160.56,
+              "chord": "F#m7",
+              "char_offset": 0
+            },
+            {
+              "time": 164.785,
               "chord": "D2",
               "char_offset": 14
-            },
+            }
+          ]
+        },
+        {
+          "start_time": 167.32,
+          "end_time": 174.08,
+          "lyrics": "Completamente a Ti",
+          "chords": [
             {
-              "time": 168.166,
+              "time": 167.32,
               "chord": "E",
-              "char_offset": 23
+              "char_offset": 8
             },
             {
-              "time": 170.701,
+              "time": 173.235,
               "chord": "F#m7",
-              "char_offset": 31
+              "char_offset": 16
             }
           ]
         }
@@ -347,50 +409,64 @@
     },
     {
       "name": "Pre-Coro 3 (Subida)",
-      "start_time": 174.09,
+      "start_time": 174.08,
       "end_time": 196.06,
       "lines": [
         {
-          "start_time": 174.09,
-          "end_time": 187.61,
-          "lyrics": "¿Qué puedo hacer? ¿Qué puedo decir?",
+          "start_time": 174.08,
+          "end_time": 180.85,
+          "lyrics": "¿Qué puedo hacer?",
           "chords": [
             {
-              "time": 174.09,
+              "time": 174.08,
               "chord": "D2",
-              "char_offset": 13
-            },
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 180.85,
+          "end_time": 187.61,
+          "lyrics": "¿Qué puedo decir?",
+          "chords": [
             {
-              "time": 180.851,
+              "time": 180.85,
               "chord": "Bm7",
-              "char_offset": 18
-            },
-            {
-              "time": 185.921,
-              "chord": "F#m7",
-              "char_offset": 31
+              "char_offset": 0
             },
             {
               "time": 184.23,
-              "chord": "A",
-              "char_offset": 35
+              "chord": "F#m7",
+              "char_offset": 17
             }
           ]
         },
         {
           "start_time": 187.61,
-          "end_time": 196.06,
-          "lyrics": "Te ofrezco mi corazón, completamente a Ti",
+          "end_time": 192.68,
+          "lyrics": "Te ofrezco mi corazón",
           "chords": [
             {
               "time": 187.61,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 190.99,
               "chord": "Bm7",
               "char_offset": 14
-            },
+            }
+          ]
+        },
+        {
+          "start_time": 192.68,
+          "end_time": 196.06,
+          "lyrics": "Completamente a Ti",
+          "chords": [
             {
               "time": 192.68,
               "chord": "E",
-              "char_offset": 23
+              "char_offset": 0
             }
           ]
         }
@@ -1089,7 +1165,7 @@
     {
       "name": "Coro 5 (Suave - Voces y Pad)",
       "start_time": 358.31,
-      "end_time": 390.43,
+      "end_time": 390.42,
       "lines": [
         {
           "start_time": 358.31,
@@ -1174,7 +1250,7 @@
         },
         {
           "start_time": 378.59,
-          "end_time": 390.43,
+          "end_time": 385.35,
           "lyrics": "Tuyo soy, Señor",
           "chords": [
             {
@@ -1183,14 +1259,26 @@
               "char_offset": 0
             },
             {
-              "time": 382.815,
+              "time": 381.125,
               "chord": "A",
               "char_offset": 5
             },
             {
-              "time": 387.886,
+              "time": 383.66,
               "chord": "E",
               "char_offset": 12
+            }
+          ]
+        },
+        {
+          "start_time": 385.35,
+          "end_time": 390.42,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 385.35,
+              "chord": "E",
+              "char_offset": 0
             }
           ]
         }
@@ -1198,55 +1286,69 @@
     },
     {
       "name": "Pre-Coro Final (Ritardando)",
-      "start_time": 390.43,
+      "start_time": 390.42,
       "end_time": 419.9,
       "lines": [
         {
-          "start_time": 390.43,
-          "end_time": 404.35,
-          "lyrics": "¿Qué puedo hacer? ¿Qué puedo decir?",
+          "start_time": 390.42,
+          "end_time": 397.6,
+          "lyrics": "¿Qué puedo hacer?",
           "chords": [
             {
-              "time": 390.43,
+              "time": 390.42,
               "chord": "D2",
-              "char_offset": 13
-            },
-            {
-              "time": 397.191,
-              "chord": "Bm7",
-              "char_offset": 18
-            },
-            {
-              "time": 403.106,
-              "chord": "F#m7",
-              "char_offset": 31
-            },
-            {
-              "time": 403.951,
-              "chord": "A",
-              "char_offset": 35
+              "char_offset": 0
             }
           ]
         },
         {
-          "start_time": 404.35,
-          "end_time": 419.9,
-          "lyrics": "Te ofrezco mi corazón, completamente a Ti",
+          "start_time": 397.6,
+          "end_time": 404.8,
+          "lyrics": "¿Qué puedo decir?",
           "chords": [
             {
-              "time": 404.35,
+              "time": 397.6,
+              "chord": "Bm7",
+              "char_offset": 0
+            },
+            {
+              "time": 401.2,
+              "chord": "F#m7",
+              "char_offset": 17
+            }
+          ]
+        },
+        {
+          "start_time": 404.8,
+          "end_time": 411.6,
+          "lyrics": "Te ofrezco mi corazón",
+          "chords": [
+            {
+              "time": 404.8,
+              "chord": "A",
+              "char_offset": 0
+            },
+            {
+              "time": 409.025,
               "chord": "Bm7",
               "char_offset": 14
-            },
+            }
+          ]
+        },
+        {
+          "start_time": 411.6,
+          "end_time": 419.9,
+          "lyrics": "Completamente a Ti",
+          "chords": [
             {
-              "time": 412.801,
+              "time": 411.6,
               "chord": "Esus4",
-              "char_offset": 23
+              "char_offset": 0
             },
             {
-              "time": 419.561,
+              "time": 414.98,
               "chord": "E",
-              "char_offset": 39
+              "char_offset": 8
             }
           ]
         }

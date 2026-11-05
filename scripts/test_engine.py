@@ -34,7 +34,7 @@ def run_audio_diagnostics():
     # 1. Instanciación del motor
     engine = MultitrackEngine(
         sample_rate=44100,
-        buffer_size=256,
+        buffer_size=1024,
         routing_mode=RoutingMode.SPLIT_STEREO,
     )
     print("✓ Motor instanciado correctamente en modo SPLIT_STEREO.")

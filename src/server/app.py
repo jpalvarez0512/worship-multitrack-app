@@ -73,6 +73,8 @@ def on_engine_tick(pos_seconds: float, is_playing: bool) -> None:
     global main_event_loop, ws_manager, current_song
     if main_event_loop is None or not main_event_loop.is_running():
         return
+    if ws_manager.total_clients == 0:
+        return
 
     # Extraer metadatos exactos de la canción para músicos
     sec = current_song.get_section_at(pos_seconds)
@@ -112,10 +114,10 @@ async def lifespan(app: FastAPI):
     global engine, main_event_loop, current_song
     main_event_loop = asyncio.get_running_loop()
 
-    # Inicializar motor de audio en modo SPLIT_STEREO por defecto
+    # Inicializar motor de audio en modo SPLIT_STEREO por defecto con buffer optimizado (1024 frames)
     engine = MultitrackEngine(
         sample_rate=44100,
-        buffer_size=256,
+        buffer_size=1024,
         routing_mode=RoutingMode.SPLIT_STEREO,
     )
     

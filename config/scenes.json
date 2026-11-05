@@ -1,0 +1,15 @@
+[
+  {
+    "id": "2026-11-08-domingo",
+    "name": "Domingo",
+    "date": "2026-11-08",
+    "notes": "Dirección Patty",
+    "songs": [
+      {
+        "song_id": "aqui-estoy",
+        "transpose": 0
+      }
+    ],
+    "created_at": "2026-11-05T12:24:18"
+  }
+]

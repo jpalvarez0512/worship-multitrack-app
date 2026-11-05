@@ -37,7 +37,7 @@ class MultitrackEngine:
     def __init__(
         self,
         sample_rate: int = 44100,
-        buffer_size: int = 256,
+        buffer_size: int = 1024,
         routing_mode: RoutingMode = RoutingMode.SPLIT_STEREO,
         output_device: Optional[int] = None,
     ):
@@ -56,6 +56,10 @@ class MultitrackEngine:
         self._stems: Dict[str, StemTrack] = {}
         self._lock = threading.RLock()
         self._stream: Optional[object] = None
+
+        # Buffers preasignados de mezcla en memoria contigua (Zero-Allocation en el callback de audio)
+        self._master_mix_buf = np.zeros((self.buffer_size, 2), dtype=np.float32)
+        self._cue_mix_buf = np.zeros((self.buffer_size, 2), dtype=np.float32)
 
         # Suscriptores del reloj de tiempo (servidor WebSocket / pantallas)
         self._tick_callbacks: List[Callable[[float, bool], None]] = []
@@ -209,7 +213,8 @@ class MultitrackEngine:
     def _audio_callback(self, outdata: np.ndarray, frames: int, time_info, status) -> None:
         """
         Callback de tiempo real invocado por el hardware de audio.
-        Mezcla los stems activos según su volumen, mute, solo y asignación de ruteo.
+        Mezcla los stems activos según su volumen, mute, solo y asignación de ruteo
+        utilizando acumulación in-place sin asignaciones de memoria (Zero-Allocation).
         """
         outdata.fill(0.0)
 
@@ -225,12 +230,18 @@ class MultitrackEngine:
                 self._is_playing = False
                 return
 
+            # Reutilizar buffers preasignados evitando allocs de NumPy por cada bloque
+            if len(self._master_mix_buf) < frames:
+                self._master_mix_buf = np.zeros((frames, 2), dtype=np.float32)
+                self._cue_mix_buf = np.zeros((frames, 2), dtype=np.float32)
+
+            master_mix = self._master_mix_buf[:frames]
+            cue_mix = self._cue_mix_buf[:frames]
+            master_mix.fill(0.0)
+            cue_mix.fill(0.0)
+
             # Detectar si hay algún stem en modo SOLO
             has_solo = any(stem.solo for stem in self._stems.values())
-
-            # Buffers independientes para mezcla de Sala (Master) y Auriculares (Cue)
-            master_mix = np.zeros((frames, 2), dtype=np.float32)
-            cue_mix = np.zeros((frames, 2), dtype=np.float32)
 
             for stem in self._stems.values():
                 if has_solo and not stem.solo:
@@ -238,28 +249,27 @@ class MultitrackEngine:
                 if stem.mute:
                     continue
 
-                chunk = stem.get_slice(curr, frames)
                 route = stem.route
-
                 if route in ("master", "both"):
-                    master_mix += chunk
+                    stem.add_slice_to(master_mix, curr, frames)
                 if route in ("cue", "both"):
-                    cue_mix += chunk
+                    stem.add_slice_to(cue_mix, curr, frames)
 
-            # Aplicación de modo de ruteo
+            # Aplicación de modo de ruteo con aceleración vectorizada
             if self.routing_mode == RoutingMode.SPLIT_STEREO:
                 # Canal 0 (Izquierdo / L) = Monitores In-Ears (Click + Guía + banda)
-                cue_mono = (cue_mix[:, 0] + cue_mix[:, 1]) * 0.5 * self._cue_volume
+                cue_mono = (cue_mix[:, 0] + cue_mix[:, 1]) * (0.5 * self._cue_volume)
                 # Canal 1 (Derecho / R) = Consola FOH (Solo instrumentos, JAMÁS click ni guía)
-                master_mono = (master_mix[:, 0] + master_mix[:, 1]) * 0.5 * self._master_volume
+                master_mono = (master_mix[:, 0] + master_mix[:, 1]) * (0.5 * self._master_volume)
 
                 outdata[:, 0] = np.clip(cue_mono, -1.0, 1.0)
                 outdata[:, 1] = np.clip(master_mono, -1.0, 1.0)
             else:
                 # Modo Estéreo Normal: Mezcla completa en ambos canales
-                full_mix = (master_mix * self._master_volume) + (cue_mix * self._cue_volume)
-                outdata[:, 0] = np.clip(full_mix[:, 0], -1.0, 1.0)
-                outdata[:, 1] = np.clip(full_mix[:, 1], -1.0, 1.0)
+                full_l = (master_mix[:, 0] * self._master_volume) + (cue_mix[:, 0] * self._cue_volume)
+                full_r = (master_mix[:, 1] * self._master_volume) + (cue_mix[:, 1] * self._cue_volume)
+                outdata[:, 0] = np.clip(full_l, -1.0, 1.0)
+                outdata[:, 1] = np.clip(full_r, -1.0, 1.0)
 
             self._current_frame += frames
 
@@ -284,10 +294,10 @@ class MultitrackEngine:
         self._stop_ticker_event.set()
 
     def _ticker_loop(self) -> None:
-        """Bucle periódico a ~33 Hz (cada 30 ms) para notificar la posición actual sin latencia perceptible."""
+        """Bucle periódico a ~22 Hz (cada 45 ms) para sincronizar red sin sobrecargar el CPU."""
         while not self._stop_ticker_event.is_set() and self._is_playing:
             self._notify_tick()
-            time.sleep(0.03)
+            time.sleep(0.045)
 
     def _notify_tick(self) -> None:
         """Emite el evento con la posición actual a todos los suscriptores."""

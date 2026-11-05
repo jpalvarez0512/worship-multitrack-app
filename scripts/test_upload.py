@@ -101,26 +101,60 @@ def run_upload_tests():
 
         updated_chart = chart_text + "\n{section: Coro}\n[00:10.00] Santo es el Se[D]ñor\n"
         r_put = client.put(f"/api/songs/{song_id}/chart", json={"content": updated_chart})
-        assert r_put.status_code == 200
+        assert r_put.status_code == 200, f"Error {r_put.status_code}: {r_put.text}"
         song_full = client.get("/api/song").json()
         assert len(song_full["sections"]) == 2
         print("   ✓ Letra actualizada en vivo manteniendo los 3 stems intactos")
 
-        # 5. Eliminar un stem individual
-        print("\n5. Probando DELETE /api/songs/{id}/stems/Pad.wav...")
+        # 5. Reemplazar documento subiendo archivo directamente
+        print("\n5. Probando POST /api/songs/{id}/chart-file (reemplazo por archivo)...")
+        new_chart_file = "{title: Canción Reemplazada}\n{key: A}\n{c: Coro}\n[00:00.00] Gloria a [A]Dios\n"
+        r_file = client.post(
+            f"/api/songs/{song_id}/chart-file",
+            files={"chart_file": ("nueva_letra.pro", new_chart_file.encode("utf-8"), "text/plain")},
+        )
+        assert r_file.status_code == 200, r_file.text
+        r_chart_after = client.get(f"/api/songs/{song_id}/chart")
+        assert "Gloria a [A]Dios" in r_chart_after.json()["content"]
+        print("   ✓ Documento de letras reemplazado exitosamente mediante subida de archivo")
+
+        # 6. Eliminar un stem individual
+        print("\n6. Probando DELETE /api/songs/{id}/stems/Pad.wav...")
         r_del_stem = client.delete(f"/api/songs/{song_id}/stems/Pad.wav")
         assert r_del_stem.status_code == 200
         stems_remaining = [s["name"] for s in client.get("/api/stems").json()]
         assert "Pad" not in stems_remaining and "Click" in stems_remaining
         print(f"   ✓ Stem eliminado; restantes: {stems_remaining}")
 
-        # 6. Eliminar la canción de prueba para dejar tracks/ limpio
-        print("\n6. Limpiando canción de prueba (DELETE /api/songs/{id})...")
+        # 7. Eliminar la canción de prueba para dejar tracks/ limpio
+        print("\n7. Limpiando canción de prueba (DELETE /api/songs/{id})...")
         r_del_song = client.delete(f"/api/songs/{song_id}")
         assert r_del_song.status_code == 200
         ids = [s["id"] for s in client.get("/api/songs").json()]
         assert song_id not in ids
         print("   ✓ Canción de prueba eliminada limpiamente")
+
+        # 8. Subida rápida por lotes de documentos (Batch / Fast Docs)
+        print("\n8. Probando POST /api/songs/upload-documents (lote de múltiples documentos)...")
+        doc1 = "{title: Al que está en el Trono}\n{key: E}\n{c: Coro}\nSanto, Santo\n"
+        doc2 = "{title: Digno y Santo}\n{key: C}\n{c: Verso 1}\nTe adoramos\n"
+        r_batch = client.post(
+            "/api/songs/upload-documents",
+            files=[
+                ("files", ("al-trono.pro", doc1.encode("utf-8"), "text/plain")),
+                ("files", ("digno.txt", doc2.encode("utf-8"), "text/plain")),
+            ],
+            data={"load_immediately": "false"},
+        )
+        assert r_batch.status_code == 200, r_batch.text
+        batch_res = r_batch.json()
+        assert batch_res["imported_count"] == 2
+        print(f"   ✓ {batch_res['imported_count']} documentos importados en milisegundos: {batch_res['imported_ids']}")
+
+        # Limpiar las 2 canciones importadas por lote
+        for b_id in batch_res["imported_ids"]:
+            client.delete(f"/api/songs/{b_id}")
+        print("   ✓ Canciones de prueba por lote eliminadas limpiamente")
 
     print("\n" + "=" * 60)
     print("✅ TODAS LAS PRUEBAS DE SUBIDA WEB PASARON EXITOSAMENTE")

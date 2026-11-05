@@ -516,14 +516,76 @@ def update_chart_endpoint(song_id: str, payload: dict):
         folder = song_loader._song_folder(song_id)
         if not os.path.exists(folder):
             raise FileNotFoundError(f"Canción no encontrada: {song_id}")
-        song_loader.import_chordpro_text(content, custom_id=song_id)
+        song = song_loader.import_chordpro_text(content, custom_id=song_id)
         if current_song.id == song_id:
-            _activate_song(song_id)
-        return {"status": "chart_updated", "song_id": song_id}
+            # Actualización en caliente sin detener el audio ni recargar stems pesados
+            current_song.title = song.title
+            current_song.artist = song.artist
+            current_song.key = song.key
+            current_song.bpm = song.bpm
+            current_song.time_signature = song.time_signature
+            current_song.sections = song.sections
+            _notify_song_changed()
+        return {"status": "chart_updated", "song_id": song_id, "song": song.to_summary_dict()}
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/songs/{song_id}/chart-file")
+def upload_chart_file_endpoint(song_id: str, chart_file: UploadFile = File(...)):
+    """Reemplaza el documento de letra/acordes subiendo un archivo .pro, .chordpro, .txt o .cho."""
+    ext = os.path.splitext(chart_file.filename or "")[1].lower()
+    if ext not in CHART_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Formato no admitido. Debe ser: {', '.join(sorted(CHART_EXTENSIONS))}",
+        )
+    content = _read_text_upload(chart_file).strip()
+    if not content:
+        raise HTTPException(status_code=400, detail="El archivo está vacío.")
+    return update_chart_endpoint(song_id, {"content": content})
+
+
+@app.post("/api/songs/upload-documents")
+def upload_documents_endpoint(
+    files: List[UploadFile] = File(...),
+    load_immediately: bool = Form(False),
+):
+    """
+    Importa múltiples documentos ChordPro (.pro, .txt) a ultra-alta velocidad
+    creando sus respectivas canciones en la biblioteca sin bloquear el motor.
+    """
+    imported = []
+    errors = []
+    for f in files:
+        if not f.filename:
+            continue
+        ext = os.path.splitext(f.filename)[1].lower()
+        if ext not in CHART_EXTENSIONS:
+            errors.append(f"{f.filename}: formato no admitido ({ext})")
+            continue
+        try:
+            content = _read_text_upload(f).strip()
+            if not content:
+                errors.append(f"{f.filename}: archivo vacío")
+                continue
+            base_title = os.path.splitext(f.filename)[0].replace("-", " ").replace("_", " ").title()
+            song_id = song_loader.create_song(title=base_title, chordpro_content=content)
+            imported.append(song_id)
+        except Exception as e:
+            errors.append(f"{f.filename}: {e}")
+
+    result = {
+        "status": "ok",
+        "imported_count": len(imported),
+        "imported_ids": imported,
+        "errors": errors,
+    }
+    if load_immediately and imported:
+        _activate_song(imported[0])
+    return result
 
 
 @app.delete("/api/songs/{song_id}")

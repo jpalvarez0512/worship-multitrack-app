@@ -61,6 +61,8 @@
     .btn-success { background: var(--success); }
     .btn-danger { background: #7f1d1d; }
     .btn-warning { background: var(--warning); color: #000; }
+    .btn-info { background: #0284c7; color: #fff; }
+    .btn-primary { background: #2563eb; color: #fff; }
     .btn-sm { padding: 5px 9px; font-size: 0.76rem; }
 
     .lan-badge {
@@ -399,6 +401,59 @@
     }
     .dropzone:hover { border-color: var(--accent); color: #fff; }
 
+    .fast-doc-dropzone {
+      border: 2px dashed #334155;
+      border-radius: 8px;
+      padding: 10px 14px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: #0b1120;
+      margin-bottom: 12px;
+      transition: all 0.2s ease;
+    }
+    .fast-doc-dropzone:hover, .fast-doc-dropzone.dragover {
+      border-color: #38bdf8;
+      background: #0f1e38;
+      color: #38bdf8;
+    }
+    .chord-chip {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #facc15;
+      font-weight: 700;
+      font-family: monospace;
+      font-size: 0.82rem;
+      padding: 4px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+    .chord-chip:hover {
+      background: #facc15;
+      color: #000;
+      border-color: #facc15;
+    }
+    .section-chip {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #60a5fa;
+      font-weight: 600;
+      font-size: 0.76rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+    .section-chip:hover {
+      background: #3b82f6;
+      color: #fff;
+      border-color: #3b82f6;
+    }
+
     /* Notificaciones */
     #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; max-width: 440px; }
     .toast {
@@ -425,6 +480,7 @@
     </div>
     <div class="header-actions">
       <button class="btn btn-warning" onclick="openScenesModal()">📅 Listas Dominicales</button>
+      <button class="btn btn-primary" onclick="openFastDocModal()">⚡ + Subir Letras / Docs</button>
       <button class="btn btn-success" onclick="openCreateModal()">⬆ Nueva Canción</button>
       <div class="lan-badge" id="lan-ip">Conectando...</div>
     </div>
@@ -437,7 +493,10 @@
       <div class="panel">
         <h2>
           <span>Transporte Multitrack</span>
-          <span style="font-size:0.88rem; color:#38bdf8;" id="current-song-title">--</span>
+          <span style="display:inline-flex; align-items:center; gap:8px;">
+            <span style="font-size:0.88rem; color:#38bdf8;" id="current-song-title">--</span>
+            <button class="btn btn-secondary btn-sm" id="btn-edit-active-chart" onclick="openEditActiveChart()" title="Editar letra y acordes de la canción activa">📝 Editar Letra</button>
+          </span>
         </h2>
 
         <!-- Barra de Navegación de Escena Dominical (si hay una activa) -->
@@ -536,8 +595,16 @@
       <div class="panel">
         <h2>
           <span>📚 Biblioteca de Canciones</span>
-          <button class="btn btn-secondary btn-sm" onclick="refreshLibrary()">⟳</button>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-primary btn-sm" onclick="openFastDocModal()">⚡ + Subir Letras</button>
+            <button class="btn btn-secondary btn-sm" onclick="refreshLibrary()">⟳</button>
+          </div>
         </h2>
+        <!-- Zona Dropzone Rápida de Documentos -->
+        <div class="fast-doc-dropzone" id="lib-dropzone" ondragover="handleLibDragOver(event)" ondragleave="handleLibDragLeave(event)" ondrop="handleLibDrop(event)" onclick="document.getElementById('lib-file-input').click()">
+          <span>📄 <strong>Arrastra documentos (.pro, .txt) aquí</strong> para agregarlos al instante a la biblioteca</span>
+          <input type="file" id="lib-file-input" multiple accept=".pro,.txt,.cho,.chordpro" style="display:none;" onchange="handleLibFilesSelected(this.files)">
+        </div>
         <div id="library-list">Cargando...</div>
       </div>
 
@@ -669,6 +736,111 @@
     </div>
   </div>
 
+  <!-- Modal 4: Editar Letra y Acordes (ChordPro) -->
+  <div class="modal-overlay" id="chart-edit-modal">
+    <div class="modal-card" style="max-width:920px;">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-size:1.15rem; color:#fff;" id="chart-edit-title">📝 Editar Letra y Acordes</h3>
+          <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;" id="chart-edit-subtitle">Sincronización en tiempo real con músicos, proyector y OBS</p>
+        </div>
+        <button onclick="closeModal('chart-edit-modal')" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
+      </div>
+
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:10px;">
+        <!-- Barra de Acciones del Documento -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; background:#0b1120; border:1px solid #1e293b; border-radius:8px; padding:8px 12px;">
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('replace-chart-file-input').click()">📄 Reemplazar con Archivo (.pro, .txt)</button>
+            <input type="file" id="replace-chart-file-input" accept=".pro,.txt,.cho,.chordpro" style="display:none;" onchange="handleReplaceChartFile(this.files[0])">
+            <button class="btn btn-secondary btn-sm" onclick="downloadCurrentChart()">⬇ Descargar (.pro)</button>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button class="btn btn-sm" id="btn-toggle-chart-preview" onclick="toggleChartPreview()" style="background:#1e293b; color:#cbd5e1; border:1px solid #334155;">👁 Vista Previa</button>
+          </div>
+        </div>
+
+        <!-- Paleta de Acordes y Secciones Rápidas -->
+        <div style="background:#090d16; border:1px solid #1e293b; border-radius:8px; padding:8px 12px;">
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:4px; font-weight:700;">INSERTAR ACORDE EN LA POSICIÓN DEL CURSOR:</div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px;">
+            <button class="chord-chip" onclick="insertAtCursor('[C]')">[C]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[D]')">[D]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[E]')">[E]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[F]')">[F]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[G]')">[G]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[A]')">[A]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[B]')">[B]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[m]')">[m]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[7]')">[7]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[sus4]')">[sus4]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[2]')">[2]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[#]')">[#]</button>
+            <button class="chord-chip" onclick="insertAtCursor('[b]')">[b]</button>
+          </div>
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:4px; font-weight:700;">INSERTAR SECCIÓN CHORDPRO:</div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            <button class="section-chip" onclick="insertAtCursor('\n{c: Intro}\n')">{c: Intro}</button>
+            <button class="section-chip" onclick="insertAtCursor('\n{c: Verso 1}\n')">{c: Verso 1}</button>
+            <button class="section-chip" onclick="insertAtCursor('\n{c: Verso 2}\n')">{c: Verso 2}</button>
+            <button class="section-chip" onclick="insertAtCursor('\n{c: Pre-Coro}\n')">{c: Pre-Coro}</button>
+            <button class="section-chip" onclick="insertAtCursor('\n{c: Coro}\n')">{c: Coro}</button>
+            <button class="section-chip" onclick="insertAtCursor('\n{c: Puente}\n')">{c: Puente}</button>
+            <button class="section-chip" onclick="insertAtCursor('\n{c: Instrumental}\n')">{c: Instrumental}</button>
+            <button class="section-chip" onclick="insertAtCursor('\n{c: Final}\n')">{c: Final}</button>
+          </div>
+        </div>
+
+        <!-- Contenedor Editor / Vista Previa -->
+        <div style="display:grid; grid-template-columns:1fr; gap:10px;" id="chart-editor-grid">
+          <div>
+            <textarea id="chart-edit-textarea" style="width:100%; height:320px; background:#070a12; border:1px solid #23344d; border-radius:8px; color:#f8fafc; font-family:'Courier New', monospace; font-size:0.92rem; line-height:1.45; padding:12px; resize:vertical; outline:none; white-space:pre;" oninput="updateChartStats()" placeholder="{title: Título}\n{artist: Artista}\n{key: G}\n{bpm: 76}\n\n{c: Verso 1}\n[G]Canta al Señor toda la [Em]tierra..."></textarea>
+          </div>
+          <div id="chart-preview-container" style="display:none; background:#070a12; border:1px solid #23344d; border-radius:8px; padding:14px; max-height:320px; overflow-y:auto;">
+            <div style="font-size:0.75rem; color:#60a5fa; font-weight:800; margin-bottom:8px;">VISTA PREVIA FORMATEADA:</div>
+            <div id="chart-preview-content" style="font-family:'Courier New', monospace; font-size:0.9rem; line-height:1.5;"></div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:var(--text-muted);">
+          <div id="chart-edit-stats">0 caracteres · 0 líneas</div>
+          <div style="color:#10b981;">⚡ Los cambios se actualizan al instante en el proyector, músicos y OBS</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('chart-edit-modal')">Cancelar</button>
+        <button class="btn btn-success" id="btn-save-chart" onclick="saveEditedChart()">💾 Guardar Cambios en la Letra</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Subida Rápida de Documentos (Batch) -->
+  <div class="modal-overlay" id="fast-doc-modal">
+    <div class="modal-card" style="max-width:680px;">
+      <div class="modal-header">
+        <h3 style="font-size:1.1rem; color:#fff;">⚡ Subida Rápida de Documentos de Letras</h3>
+        <button onclick="closeModal('fast-doc-modal')" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
+          Sube uno o varios archivos de acordes y letras (<strong>.pro, .chordpro, .txt, .cho</strong>). Se procesarán e integrarán en tu biblioteca en milisegundos.
+        </p>
+
+        <div class="dropzone" onclick="document.getElementById('fast-doc-file-input').click()">
+          Arrastra aquí tus archivos (.pro, .txt) o haz clic para seleccionarlos
+          <input type="file" id="fast-doc-file-input" multiple accept=".pro,.txt,.cho,.chordpro" style="display:none;" onchange="handleFastDocFiles(this.files)">
+        </div>
+
+        <div id="fast-doc-list" style="margin-top:14px; max-height:200px; overflow-y:auto;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('fast-doc-modal')">Cerrar</button>
+        <button class="btn btn-success" id="btn-submit-fast-docs" style="display:none;" onclick="submitFastDocs()">⚡ Importar Documentos Seleccionados</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast-container"></div>
 
   <script>
@@ -678,8 +850,14 @@
     let clearState = false;
     let ws = null;
     let activeSongId = null;
+    let activeSongTitle = '';
     let librarySongs = [];
     let currentStems = [];
+
+    // Estado de Edición de Letras y Acordes
+    let editingChartSongId = null;
+    let isChartPreviewVisible = false;
+    let pendingFastDocFiles = [];
 
     // Estado de Escenas
     let scenesList = [];
@@ -739,6 +917,7 @@
       try {
         const status = await api('/api/status');
         activeSongId = status.song.id;
+        activeSongTitle = status.song.title;
         document.getElementById('current-song-title').textContent = `${status.song.title} (${status.song.key})`;
 
         // Actualizar barra de escena activa si existe
@@ -764,7 +943,7 @@
       const c = document.getElementById('library-list');
       c.innerHTML = '';
       if (!librarySongs.length) {
-        c.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px;">No hay canciones aún. Usa "⬆ Nueva Canción".</div>';
+        c.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px;">No hay canciones aún. Usa "⚡ + Subir Letras" o "⬆ Nueva Canción".</div>';
         return;
       }
       librarySongs.forEach(s => {
@@ -778,6 +957,7 @@
           </div>
           <div style="display:flex; gap:6px;">
             ${s.id !== activeSongId ? `<button class="btn btn-sm btn-success" onclick="switchSong('${s.id}')">▶ Cargar</button>` : ''}
+            <button class="btn btn-sm btn-info" onclick="openEditChartModal('${s.id}', '${esc(s.title)}')" title="Ver, editar o cambiar documento de letra y acordes">📝 Letra</button>
             <button class="btn btn-sm btn-secondary" onclick="openStemsModal('${s.id}')">🎵 + Pistas</button>
             <button class="btn btn-sm btn-danger" onclick="deleteSong('${s.id}', '${s.title}')">🗑</button>
           </div>`;
@@ -1227,16 +1407,36 @@
       openModal('song-modal');
     }
 
-    function handleChartFile(file) {
+    async function handleChartFile(file) {
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        let text;
-        try { text = new TextDecoder('utf-8', { fatal: true }).decode(reader.result); }
-        catch (e) { text = new TextDecoder('windows-1252').decode(reader.result); }
-        document.getElementById('chordpro-input').value = text.replace(/^\uFEFF/, '');
-      };
-      reader.readAsArrayBuffer(file);
+      let text = '';
+      try {
+        text = await file.text();
+      } catch (e) {
+        const reader = new FileReader();
+        text = await new Promise(res => {
+          reader.onload = () => res(new TextDecoder('windows-1252').decode(reader.result));
+          reader.readAsArrayBuffer(file);
+        });
+      }
+      text = text.replace(/^\uFEFF/, '');
+      document.getElementById('chordpro-input').value = text;
+
+      // Autocompletado inteligente de metadatos en 0 ms
+      const titleMatch = text.match(/\{(?:title|t)\s*:\s*([^}]+)\}/i);
+      const artistMatch = text.match(/\{(?:artist|a)\s*:\s*([^}]+)\}/i);
+      const keyMatch = text.match(/\{(?:key|k)\s*:\s*([^}]+)\}/i);
+      const bpmMatch = text.match(/\{(?:bpm|tempo)\s*:\s*([^}]+)\}/i);
+
+      if (titleMatch) document.getElementById('f-title').value = titleMatch[1].trim();
+      else if (!document.getElementById('f-title').value) {
+        document.getElementById('f-title').value = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      }
+      if (artistMatch) document.getElementById('f-artist').value = artistMatch[1].trim();
+      if (keyMatch) document.getElementById('f-key').value = keyMatch[1].trim();
+      if (bpmMatch) document.getElementById('f-bpm').value = bpmMatch[1].trim();
+
+      toast(`✓ Documento "${file.name}" cargado y analizado`, 'success', 2200);
     }
 
     function handleAddStems(files) {
@@ -1269,14 +1469,14 @@
           if (text) fd.append('chart_text', text);
           pendingStemFiles.forEach(f => fd.append('stems', f, f.name));
 
-          toast('Subiendo y procesando canción...', 'info', 3000);
+          toast('Guardando canción en la biblioteca...', 'info', 1000);
           await api('/api/songs/upload', { method: 'POST', body: fd });
           toast('✓ Canción creada con éxito', 'success');
         } else if (modalMode === 'stems') {
           if (!pendingStemFiles.length) { toast('Selecciona al menos una pista.', 'error'); btn.disabled = false; return; }
           const fd = new FormData();
           pendingStemFiles.forEach(f => fd.append('stems', f, f.name));
-          toast('Subiendo pistas...', 'info', 3000);
+          toast('Subiendo pistas...', 'info', 2000);
           await api(`/api/songs/${encodeURIComponent(modalSongId)}/stems`, { method: 'POST', body: fd });
           toast('✓ Pistas agregadas con éxito', 'success');
         }
@@ -1286,6 +1486,274 @@
         toast(e.message, 'error');
       }
       btn.disabled = false;
+    }
+
+    // ------------------------------------------------ Edición de Letras y Acordes (ChordPro)
+    async function openEditChartModal(songId, songTitle) {
+      if (!songId) {
+        toast('No hay canción seleccionada', 'error');
+        return;
+      }
+      editingChartSongId = songId;
+      document.getElementById('chart-edit-title').textContent = `📝 Editar Letra y Acordes · ${songTitle || songId}`;
+      document.getElementById('chart-edit-subtitle').textContent = `ID: ${songId} · Guardado instantáneo y sincronizado`;
+      document.getElementById('chart-edit-textarea').value = 'Cargando documento...';
+      document.getElementById('chart-edit-stats').textContent = 'Cargando...';
+      openModal('chart-edit-modal');
+
+      try {
+        const res = await api(`/api/songs/${encodeURIComponent(songId)}/chart`);
+        document.getElementById('chart-edit-textarea').value = res.content || '';
+        updateChartStats();
+        if (isChartPreviewVisible) renderChartPreview();
+      } catch (e) {
+        toast(`Error cargando letra: ${e.message}`, 'error');
+        document.getElementById('chart-edit-textarea').value = '';
+      }
+    }
+
+    function openEditActiveChart() {
+      if (!activeSongId) {
+        toast('No hay ninguna canción activa para editar', 'error');
+        return;
+      }
+      openEditChartModal(activeSongId, activeSongTitle);
+    }
+
+    async function handleReplaceChartFile(file) {
+      if (!file) return;
+      let text = '';
+      try {
+        text = await file.text();
+      } catch (e) {
+        const reader = new FileReader();
+        text = await new Promise(res => {
+          reader.onload = () => res(new TextDecoder('windows-1252').decode(reader.result));
+          reader.readAsArrayBuffer(file);
+        });
+      }
+      text = text.replace(/^\uFEFF/, '');
+      document.getElementById('chart-edit-textarea').value = text;
+      updateChartStats();
+      if (isChartPreviewVisible) renderChartPreview();
+      toast(`✓ Archivo "${file.name}" cargado en el editor. Haz clic en "Guardar Cambios" para aplicarlo.`, 'success', 3500);
+      document.getElementById('replace-chart-file-input').value = '';
+    }
+
+    function downloadCurrentChart() {
+      const text = document.getElementById('chart-edit-textarea').value;
+      if (!text) {
+        toast('El editor está vacío', 'error');
+        return;
+      }
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${editingChartSongId || 'letra'}.pro`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast('✓ Documento descargado', 'success', 2000);
+    }
+
+    function insertAtCursor(textToInsert) {
+      const textarea = document.getElementById('chart-edit-textarea');
+      const start = textarea.selectionStart || 0;
+      const end = textarea.selectionEnd || 0;
+      const val = textarea.value;
+      textarea.value = val.substring(0, start) + textToInsert + val.substring(end);
+      const newPos = start + textToInsert.length;
+      textarea.focus();
+      textarea.setSelectionRange(newPos, newPos);
+      updateChartStats();
+      if (isChartPreviewVisible) renderChartPreview();
+    }
+
+    function updateChartStats() {
+      const val = document.getElementById('chart-edit-textarea').value || '';
+      const lines = val.split('\n').length;
+      const chars = val.length;
+      const chordsCount = (val.match(/\[([A-G][^\]]*)\]/g) || []).length;
+      const sectionsCount = (val.match(/\{(?:c|comment|section)\s*:\s*([^}]+)\}/gi) || []).length;
+      document.getElementById('chart-edit-stats').textContent = 
+        `${chars} caracteres · ${lines} líneas · ${sectionsCount} secciones · ${chordsCount} acordes detectados`;
+    }
+
+    function toggleChartPreview() {
+      isChartPreviewVisible = !isChartPreviewVisible;
+      const grid = document.getElementById('chart-editor-grid');
+      const prev = document.getElementById('chart-preview-container');
+      const btn = document.getElementById('btn-toggle-chart-preview');
+      if (isChartPreviewVisible) {
+        grid.style.gridTemplateColumns = '1.1fr 0.9fr';
+        prev.style.display = 'block';
+        btn.style.background = '#2563eb';
+        btn.style.color = '#fff';
+        renderChartPreview();
+      } else {
+        grid.style.gridTemplateColumns = '1fr';
+        prev.style.display = 'none';
+        btn.style.background = '#1e293b';
+        btn.style.color = '#cbd5e1';
+      }
+    }
+
+    function renderChartPreview() {
+      const val = document.getElementById('chart-edit-textarea').value || '';
+      const container = document.getElementById('chart-preview-content');
+      let html = '';
+      const lines = val.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+          const match = trimmed.match(/\{([^:}]+)(?::\s*([^}]*))?\}/);
+          if (match) {
+            const tag = match[1].toLowerCase().trim();
+            const valPart = (match[2] || '').trim();
+            if (['c', 'comment', 'section'].includes(tag)) {
+              html += `<div style="color:#38bdf8; font-weight:800; margin-top:8px; margin-bottom:2px; font-size:0.85rem; border-bottom:1px solid #1e293b; padding-bottom:2px;">[${esc(valPart)}]</div>`;
+              continue;
+            } else if (['title', 't'].includes(tag)) {
+              html += `<div style="color:#f8fafc; font-weight:800; font-size:1rem; margin-bottom:2px;">${esc(valPart)}</div>`;
+              continue;
+            } else if (['artist', 'key', 'bpm'].includes(tag)) {
+              html += `<div style="color:#94a3b8; font-size:0.75rem;">${tag.toUpperCase()}: ${esc(valPart)}</div>`;
+              continue;
+            }
+          }
+        }
+        const lineWithChords = esc(line).replace(/\[([A-G][^\]]*)\]/g, '<span style="color:#ffe600; font-weight:800; background:#292524; padding:0 3px; border-radius:3px;">[$1]</span>');
+        html += `<div style="min-height:1.2em; white-space:pre-wrap;">${lineWithChords || '&nbsp;'}</div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    async function saveEditedChart() {
+      const btn = document.getElementById('btn-save-chart');
+      btn.disabled = true;
+      const content = document.getElementById('chart-edit-textarea').value;
+      if (!content.trim()) {
+        toast('El contenido no puede estar vacío', 'error');
+        btn.disabled = false;
+        return;
+      }
+      toast('Guardando cambios en la letra...', 'info', 1000);
+      try {
+        await api(`/api/songs/${encodeURIComponent(editingChartSongId)}/chart`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content }),
+        });
+        toast('✓ Letra y acordes actualizados correctamente', 'success');
+        closeModal('chart-edit-modal');
+        await refreshAll();
+      } catch (e) {
+        toast(`Error al guardar letra: ${e.message}`, 'error');
+      }
+      btn.disabled = false;
+    }
+
+    // ------------------------------------------------ Subida Rápida de Documentos (Batch)
+    function openFastDocModal() {
+      pendingFastDocFiles = [];
+      document.getElementById('fast-doc-list').innerHTML = '';
+      document.getElementById('btn-submit-fast-docs').style.display = 'none';
+      openModal('fast-doc-modal');
+    }
+
+    function handleFastDocFiles(files) {
+      if (!files || !files.length) return;
+      Array.from(files).forEach(f => {
+        if (!pendingFastDocFiles.some(x => x.name === f.name)) {
+          pendingFastDocFiles.push(f);
+        }
+      });
+      renderFastDocList();
+    }
+
+    function renderFastDocList() {
+      const container = document.getElementById('fast-doc-list');
+      container.innerHTML = '';
+      if (!pendingFastDocFiles.length) {
+        document.getElementById('btn-submit-fast-docs').style.display = 'none';
+        return;
+      }
+      document.getElementById('btn-submit-fast-docs').style.display = 'inline-flex';
+      document.getElementById('btn-submit-fast-docs').textContent = `⚡ Importar ${pendingFastDocFiles.length} Documento(s)`;
+
+      pendingFastDocFiles.forEach((f, idx) => {
+        const item = document.createElement('div');
+        item.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#0f172a; border:1px solid #1e293b; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:0.82rem;';
+        item.innerHTML = `
+          <span>📄 <strong>${esc(f.name)}</strong> (${(f.size / 1024).toFixed(1)} KB)</span>
+          <button style="background:none; border:none; color:#ef4444; cursor:pointer;" onclick="pendingFastDocFiles.splice(${idx},1); renderFastDocList();">✕</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function submitFastDocs() {
+      if (!pendingFastDocFiles.length) return;
+      const btn = document.getElementById('btn-submit-fast-docs');
+      btn.disabled = true;
+      toast(`Importando ${pendingFastDocFiles.length} documentos...`, 'info', 1500);
+
+      const fd = new FormData();
+      pendingFastDocFiles.forEach(f => fd.append('files', f, f.name));
+      fd.append('load_immediately', 'false');
+
+      try {
+        const res = await api('/api/songs/upload-documents', {
+          method: 'POST',
+          body: fd,
+        });
+        toast(`✓ ${res.imported_count} documentos importados a la biblioteca al instante`, 'success');
+        if (res.errors && res.errors.length) {
+          toast(`Advertencias: ${res.errors.join(', ')}`, 'warning', 4000);
+        }
+        closeModal('fast-doc-modal');
+        await refreshLibrary();
+      } catch (e) {
+        toast(`Error al importar documentos: ${e.message}`, 'error');
+      }
+      btn.disabled = false;
+    }
+
+    // Drag and Drop directo en el panel de Biblioteca
+    function handleLibDragOver(e) {
+      e.preventDefault();
+      document.getElementById('lib-dropzone').classList.add('dragover');
+    }
+    function handleLibDragLeave(e) {
+      e.preventDefault();
+      document.getElementById('lib-dropzone').classList.remove('dragover');
+    }
+    function handleLibDrop(e) {
+      e.preventDefault();
+      document.getElementById('lib-dropzone').classList.remove('dragover');
+      if (e.dataTransfer && e.dataTransfer.files.length) {
+        handleLibFilesSelected(e.dataTransfer.files);
+      }
+    }
+    async function handleLibFilesSelected(files) {
+      if (!files || !files.length) return;
+      toast(`Procesando ${files.length} documento(s)...`, 'info', 1500);
+      const fd = new FormData();
+      Array.from(files).forEach(f => fd.append('files', f, f.name));
+      fd.append('load_immediately', 'false');
+      try {
+        const res = await api('/api/songs/upload-documents', {
+          method: 'POST',
+          body: fd,
+        });
+        toast(`✓ ${res.imported_count} canciones agregadas a la biblioteca al instante`, 'success');
+        await refreshLibrary();
+      } catch (e) {
+        toast(`Error al subir documentos: ${e.message}`, 'error');
+      }
+      document.getElementById('lib-file-input').value = '';
     }
 
     // ------------------------------------------------ WebSocket

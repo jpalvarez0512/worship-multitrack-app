@@ -2434,7 +2434,7 @@
 
     async function jumpToSection(secName) {
       try {
-        toast(`Programando salto en compás para: "${secName}"...`, 'info', 1500);
+        toast(`Programando salto a "${secName}" al finalizar sección...`, 'info', 2000);
         await api('/api/transport/jump-section', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2508,7 +2508,7 @@
       if (!badge) return;
       if (currentPendingJump) {
         badge.style.display = 'inline-block';
-        badge.textContent = `SALTANDO A ${currentPendingJump} EN SIGUIENTE COMPÁS [CANCELAR]`;
+        badge.textContent = `SALTANDO A ${currentPendingJump} AL FINALIZAR SECCIÓN [CANCELAR]`;
       } else {
         badge.style.display = 'none';
       }

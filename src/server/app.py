@@ -698,6 +698,8 @@ def transport_seek(pos: float):
 def transport_jump_section(payload: dict):
     """
     Programa un salto cuantizado al compás hacia una sección musical (Coro, Puente, etc.).
+    Garantiza que la transición se ejecute al finalizar la sección original en reproducción,
+    disparando la guía hablada con conteo rítmico en su compás final.
     """
     if engine is None:
         raise HTTPException(status_code=503, detail="Motor no disponible")
@@ -715,11 +717,29 @@ def transport_jump_section(payload: dict):
     if target_time is None:
         raise HTTPException(status_code=400, detail=f"Sección '{sec_name}' no encontrada en la canción.")
 
-    engine.schedule_jump(float(target_time), label=sec_name, quantize_to_bar=quantize)
+    # Localizar la sección original en curso para transicionar al final de la misma
+    curr_pos = engine.current_position_seconds
+    curr_sec = current_song.get_current_or_next_section(curr_pos)
+    
+    transition_at = None
+    from_sec_name = ""
+    if curr_sec is not None:
+        from_sec_name = curr_sec.name
+        if curr_pos < curr_sec.end_time:
+            transition_at = curr_sec.end_time
+
+    engine.schedule_jump(
+        float(target_time),
+        label=sec_name,
+        quantize_to_bar=quantize,
+        transition_at_seconds=transition_at,
+    )
     return {
         "status": "jump_scheduled",
         "target_time": float(target_time),
         "section": sec_name,
+        "from_section": from_sec_name,
+        "transition_at": transition_at,
         "quantize": quantize,
     }
 

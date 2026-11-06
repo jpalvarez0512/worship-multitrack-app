@@ -122,6 +122,21 @@ class Song:
                 return sec
         return None
 
+    def get_current_or_next_section(self, current_time: float) -> Optional[SongSection]:
+        """
+        Obtiene la sección activa en current_time o la sección inmediata posterior
+        si el cursor está en una introducción previa o entre secciones.
+        """
+        sec = self.get_section_at(current_time)
+        if sec is not None:
+            return sec
+        for s in self.sections:
+            if s.start_time > current_time:
+                return s
+        if self.sections:
+            return self.sections[-1]
+        return None
+
     def get_active_line_at(self, current_time: float) -> Optional[SongLine]:
         """Obtiene la línea actual de letra y acordes."""
         sec = self.get_section_at(current_time)

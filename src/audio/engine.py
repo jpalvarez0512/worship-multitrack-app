@@ -249,13 +249,20 @@ class MultitrackEngine:
         with self._lock:
             return (60.0 / max(10.0, self._bpm)) * self._beats_per_bar
 
-    def schedule_jump(self, target_seconds: float, label: str = "", quantize_to_bar: bool = True) -> None:
+    def schedule_jump(
+        self,
+        target_seconds: float,
+        label: str = "",
+        quantize_to_bar: bool = True,
+        transition_at_seconds: Optional[float] = None,
+    ) -> None:
         """
         Programa un salto cuantizado a una sección musical (ej. Coro, Puente).
-        Garantiza un compás completo de aviso para la banda antes de ejecutar el salto:
-        El compás de aviso comienza en el siguiente compás completo y cuenta:
-        "[Sección] ... 2 ... 3 ... 4", dando tiempo holgado al sistema y evitando
-        saltos abruptos o tropezados aún si el cambio se envía en el último click.
+        Si se especifica transition_at_seconds (final de la sección original),
+        el motor continuará reproduciendo la sección original hasta completarla,
+        disparando el compás de aviso con conteo rítmico ("[Sección] ... 2 ... 3 ... 4")
+        en el último compás de dicha sección, y ejecutando la transición exactamente
+        al inicio de la nueva sección seleccionada.
         """
         target_f = int(max(0.0, target_seconds) * self.sample_rate)
         with self._lock:
@@ -265,19 +272,37 @@ class MultitrackEngine:
                 self._pending_jump_label = ""
                 self._jump_lead_bar_frame = None
                 self._jump_target_bar_frame = None
+                self._loop_enabled = False
+                self._loop_label = ""
             else:
                 self._pending_jump_frame = target_f
                 self._pending_jump_label = label or "Sección"
+                # Desactivar bucle infinito previo si estaba activo para ceder el control al salto
+                self._loop_enabled = False
+                self._loop_label = ""
 
                 samples_per_beat = max(1, int((60.0 / max(10.0, self._bpm)) * self.sample_rate))
                 samples_per_bar = max(1, samples_per_beat * self._beats_per_bar)
                 curr = self._current_frame
                 next_bar = ((curr // samples_per_bar) + 1) * samples_per_bar
 
-                # El compás de conteo y aviso comenzará en next_bar
-                self._jump_lead_bar_frame = next_bar
-                # La transición definitiva a la nueva sección ocurrirá 1 compás completo después
-                self._jump_target_bar_frame = next_bar + samples_per_bar
+                if transition_at_seconds is not None:
+                    target_trans_f = int(max(0.0, transition_at_seconds) * self.sample_rate)
+                    # Alinear el final de sección con el compás musical más cercano
+                    trans_bar = max(next_bar, round(target_trans_f / samples_per_bar) * samples_per_bar)
+                    lead_bar = trans_bar - samples_per_bar
+
+                    # Si el cursor ya está dentro del último compás o muy cerca del final,
+                    # otorgamos 1 compás completo a partir de next_bar para asegurar el conteo rítmico
+                    if lead_bar <= curr:
+                        lead_bar = next_bar
+                        trans_bar = next_bar + samples_per_bar
+
+                    self._jump_lead_bar_frame = lead_bar
+                    self._jump_target_bar_frame = trans_bar
+                else:
+                    self._jump_lead_bar_frame = next_bar
+                    self._jump_target_bar_frame = next_bar + samples_per_bar
         self._notify_tick()
 
     def trigger_cue(self, cue_name: str) -> bool:
@@ -340,6 +365,7 @@ class MultitrackEngine:
         """Retorna el estado actual de bucle y saltos programados."""
         with self._lock:
             jump_sec = round(self._pending_jump_frame / self.sample_rate, 2) if self._pending_jump_frame is not None else None
+            trans_sec = round(self._jump_target_bar_frame / self.sample_rate, 2) if self._jump_target_bar_frame is not None else None
             return {
                 "loop_enabled": self._loop_enabled,
                 "loop_active": self._loop_enabled,
@@ -350,6 +376,7 @@ class MultitrackEngine:
                 "pending_jump": self._pending_jump_label or (str(jump_sec) if jump_sec is not None else None),
                 "pending_jump_label": self._pending_jump_label,
                 "jump_target": jump_sec,
+                "jump_transition_at": trans_sec,
             }
 
     def register_track_finished_listener(self, callback: Callable[[], None]) -> None:

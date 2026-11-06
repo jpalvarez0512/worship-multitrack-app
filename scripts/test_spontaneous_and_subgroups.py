@@ -109,7 +109,31 @@ def test_engine_spontaneous_loop_and_jump():
     assert eng.get_loop_state()["pending_jump"] is None
     print(f"  ✓ Salto cuantizado ejecutado al inicio de compás exacto (pos={eng.current_position_seconds:.2f}s)")
 
-    # 2.3 Activar bucle de sección (ej. Coro entre 10.0s y 12.0s)
+    # 2.4 Probar transición al final de la sección original (Verso -> Coro)
+    eng.seek(2.0)
+    with eng._lock:
+        eng._is_playing = True
+    # Sección original termina en 8.0s (compás 4 a 120 BPM)
+    eng.schedule_jump(target_seconds=20.0, label="Coro 3", quantize_to_bar=True, transition_at_seconds=8.0)
+    # Avanzar callback ~3.5s (llegará a ~5.5s, antes de finalizar la sección original)
+    for _ in range(300):
+        out_buf = np.zeros((512, 2), dtype=np.float32)
+        eng._audio_callback(out_buf, 512, None, None)
+        if eng.current_position_seconds >= 20.0:
+            break
+    assert eng.current_position_seconds < 8.0, "La canción saltó prematuramente antes de terminar la sección original"
+    assert eng.get_loop_state()["pending_jump"] == "Coro 3"
+
+    # Ahora avanzamos hasta cruzar 8.0s (fin de sección original)
+    for _ in range(350):
+        out_buf = np.zeros((512, 2), dtype=np.float32)
+        eng._audio_callback(out_buf, 512, None, None)
+        if eng.current_position_seconds >= 20.0:
+            break
+    assert eng.current_position_seconds >= 20.0, f"Salto a 20.0s no ejecutado tras finalizar la sección original en 8.0s (pos={eng.current_position_seconds})"
+    print(f"  ✓ Transición al final de la sección original verificada con éxito (saltó a {eng.current_position_seconds:.2f}s)")
+
+    # 2.5 Activar bucle de sección (ej. Coro entre 10.0s y 12.0s)
     eng.set_section_loop(start_seconds=10.0, end_seconds=12.0, label="Coro Espontáneo", enabled=True)
     st = eng.get_loop_state()
     assert st["loop_active"] is True
@@ -160,6 +184,8 @@ def test_transport_endpoints(client: TestClient):
     data = res.json()
     assert data["status"] == "jump_scheduled"
     assert data["section"] == target_sec
+    assert "from_section" in data
+    assert "transition_at" in data
 
     # Verificar que el status reporta el salto pendiente
     res = client.get("/api/transport/loop-status")

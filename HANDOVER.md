@@ -1,87 +1,51 @@
 # 🔄 Último Handover (Relevo)
-- **Fecha:** 2026-11-05 15:10
+- **Fecha:** 2026-11-06 11:15
 - **Desarrollador / Cuenta:** jpalvarez0512
 - **Rama activa:** main (Sincronizado con origin/main en GitHub)
 
 ### ✅ Completado en esta sesión:
-1. **Subida Ultra-Rápida de Documentos de Letras (`/api/songs/upload-documents`, `control.html`):**
-   - **Importación por lotes en milisegundos:** Nuevo endpoint `POST /api/songs/upload-documents` que permite subir múltiples documentos ChordPro (`.pro`, `.txt`, `.cho`, `.chordpro`) en un solo paso, creando las carpetas y estructuras en `tracks/` en menos de 50 ms sin bloquear el hilo principal.
-   - **Zona Dropzone directa en Biblioteca:** Arrastrar y soltar documentos directamente sobre el panel de biblioteca de canciones en `control.html` para añadirlos instantáneamente.
-   - **Autocompletado instantáneo en el cliente (0 ms):** Al seleccionar un archivo de letra en "Nueva Canción", los metadatos `{title}`, `{artist}`, `{key}`, `{bpm}` se extraen en el navegador inmediatamente con regex y se rellenan los campos sin obligar al usuario a tipear.
-   - **Generación sintética vectorizada ultra-rápida (`src/audio/synthetic.py`):** Generación de click y colchones armónicos mediante repetición directa en C (*tiling* con `np.tile`), reduciendo el tiempo de síntesis de 180 ms a menos de 0.5 ms.
+1. **Modo Espontáneo / Bucle de Sección en Vivo (Loop On-The-Fly sin Cortes de Audio):**
+   - **Saltos Cuantizados al Compás (*Bar-Quantized Section Jumps*):** Implementados en `src/audio/engine.py` mediante `schedule_jump()` y `set_song_timing()`. Al presionar un botón de sección (ej. Coro, Puente, Instrumental), el salto no corta abruptamente el audio ni tropieza el tiempo del metrónomo/batería, sino que se sincroniza exactamente en el tiempo 1 del siguiente compás musical. Si el motor está en pausa o detenido, el salto se posiciona de inmediato.
+   - **Bucle Infinito de Sección (*Loop On-The-Fly*):** El operador puede presionar **`🔁 Repetir Sección (Loop)`** en cualquier momento del culto para repetir indefinidamente la sección en la que el líder esté ministrando.
+   - **Micro-Crossfade Isopotente Cero-Clics (512 muestras ~ 11.6 ms):** Implementado en `MultitrackEngine._audio_callback` utilizando modulación de coseno elevado ($f_{\text{out}} = 0.5 \cdot (1 + \cos(\pi t))$, $f_{\text{in}} = 0.5 \cdot (1 - \cos(\pi t))$) conservando la energía acústica (0 dB) y eliminando completamente clics, pops o discontinuidades de voltaje al recircular o saltar pistas pregrabadas.
+   - **Endpoints REST y WebSockets en Vivo:**
+     - `POST /api/transport/jump-section`: programa salto cuantizado.
+     - `POST /api/transport/cancel-jump`: cancela un salto programado antes de que termine el compás.
+     - `POST /api/transport/loop-section`: activa o conmuta el bucle de la sección actual o una sección específica.
+     - `GET /api/transport/loop-status`: estado en tiempo real.
+     - WebSockets emiten periódicamente `loop_active`, `loop_sec` y `jump_pending` tanto al panel de operador como a los músicos.
+   - **Interfaz en Panel de Control (`control.html`):** Barra dedicada de "🔁 Adoración Espontánea & Secciones" con chips dinámicos de cada sección (`Intro`, `Verso`, `Coro`, etc.) que se iluminan al pasar por ellas, botón para activar/desactivar bucle y badge animado para cancelar saltos pendientes.
+   - **HUD en Terminal de Músicos (`musicians.html`):** Insignias dinámicas `🔁 BUCLE: CORO` y `⏳ SALTO A: PUENTE` en la barra superior para que toda la banda sepa con anticipación qué sección repetirá o a dónde irá el director.
 
-2. **Sistema Completo de Edición y Reemplazo de Letras y Acordes (`/api/songs/{id}/chart`, `control.html`):**
-   - **Botón `📝 Letra` en cada tarjeta de la biblioteca:** Permite inspeccionar y editar cualquier canción en cualquier momento.
-   - **Botón `📝 Editar Letra` en el Transporte Activo:** Acceso inmediato a la letra y acordes de la canción que está sonando.
-   - **Modal de Edición Avanzado (`#chart-edit-modal`):**
-     - **Paleta de acordes rápidos:** Chips con 1 clic para insertar `[C]`, `[D]`, `[E]`, `[F]`, `[G]`, `[A]`, `[B]`, `[m]`, `[7]`, `[sus4]`, `[2]`, `[#]`, `[b]`.
-     - **Chips de secciones musicales:** `{c: Intro}`, `{c: Verso 1}`, `{c: Coro}`, `{c: Puente}`, `{c: Final}`, etc.
-     - **Reemplazo con Archivo:** Botón para cargar directamente un archivo `.pro` o `.txt` nuevo desde el PC sustituyendo el contenido en el editor con validación.
-     - **Descargar Documento (.pro):** Descarga directa del archivo de letra editado a la computadora.
-     - **Vista Previa en Vivo:** Pestaña lateral que formatea el texto en tiempo real con acordes en amarillo y encabezados de sección.
-     - **Contador dinámico:** Métricas en tiempo real de caracteres, líneas, secciones y acordes detectados.
-   - **Actualización en Caliente (*Hot-Reload*):** Al guardar los cambios de una canción activa (`current_song`), las secciones, letras y acordes se actualizan en memoria y se notifican por WebSocket en tiempo real a `/projection`, `/musicians` y `/obs` **sin detener el motor de audio ni recargar stems**.
+2. **Subgrupos y Medleys Continuos vs Pausas de Ministración en Listas Dominicales:**
+   - **Agrupación por Bloques Musicales (`subgroup`):** Ahora las canciones dentro de una lista dominical pueden organizarse en subgrupos como `Alabanza`, `Adoración`, `Ministración`, `Ofrenda`, etc.
+   - **Auto-Play Continuo (*Medleys* sin intervención humana):** Cada canción en la lista cuenta con un selector `auto_next: true / false`. Al terminar una canción con `auto_next = true`, el servidor avanza automáticamente a la siguiente canción del subgrupo y reanuda la reproducción sin que el operador tenga que tocar nada.
+   - **Pausa de Ministración Automática:** Cuando una canción tiene `auto_next = false` (o al final del bloque), el motor detiene la reproducción y se mantiene en espera para permitir al pastor o líder orar o ministrar libremente sin que la siguiente pista entre de imprevisto.
+   - **Constructor de Listas Renovado:** Interfaz en `control.html` con inputs directos de subgrupo, checkboxes visuales `🔗 Auto-Play` vs `⏸ Pausa`, y resumen con insignias de bloques en las listas guardadas y en la barra de transporte activa.
 
-3. **Endpoint de Reemplazo por Archivo (`POST /api/songs/{id}/chart-file`):**
-   - Permite subir un archivo `.pro` o `.txt` directamente mediante `multipart/form-data` para reemplazar la letra de cualquier canción programáticamente o desde interfaces externas.
+3. **Modo PWA (Progressive Web App) para iPads, Tablets Android y Celulares:**
+   - **Manifiesto PWA Completo (`static/manifest.json`):** Configurado con modo `display: standalone`, tema oscuro `#070b14`, orientación adaptable y nombres claros.
+   - **Iconos Generados PWA:** Creados en `static/icons/icon-192.png`, `icon-512.png` y `icon.svg` mediante script nativo Python `scripts/create_icons.py`.
+   - **Service Worker con Caché Offline (`static/sw.js`):** Intercepta peticiones con estrategia *Network-First* con reserva local en caché para que los clientes funcionen incluso si el Wi-Fi de la iglesia experimenta micro-cortes.
+   - **Instalación con 1 Clic:** Botón **`📲 Instalar App`** en la cabecera de `control.html` y **`📲 Instalar`** en `musicians.html` que captura el evento `beforeinstallprompt` y permite añadir la app a la pantalla de inicio del iPad, tablet o teléfono sin barra de direcciones del navegador.
+   - **Screen Wake Lock API:** Previene activamente que la pantalla de tablets y atriles se apague o bloquee durante el culto o ensayo.
 
-4. **Optimización Extrema del Motor de Audio (Eliminación de Trabamiento / Audio Dropouts):**
-   - **Búfer a 1024 frames (23.22 ms):** Incremento de seguridad contra micro-pausas en Windows WASAPI (callback en 3.6 ms, 1.7% CPU).
-   - **Mezcla Zero-Heap-Allocation (`add_slice_to`):** Búferes pre-reservados estáticamente; cero asignaciones de arrays por segundo durante la reproducción.
-   - **Frecuencia del reloj maestro desacoplada (22 Hz):** Desaturación de WebSockets mientras los clientes renderizan a 60 FPS fluidos.
+4. **Pruebas Automatizadas y Verificación:**
+   - Creado `scripts/test_spontaneous_and_subgroups.py`: verifica la entrega de `/manifest.json`, `/sw.js`, iconos, saltos cuantizados, bucles sin clics, endpoints de transporte y auto-avance de subgrupos con pausas de ministración (100% OK).
+   - Verificados `scripts/test_scenes_and_views.py` y `scripts/test_upload.py`: 100% de pruebas aprobadas sin regresiones.
+   - Servidor en vivo reiniciado y ejecutándose en segundo plano en el puerto 8000 con los nuevos endpoints y vistas activas.
 
-5. **Pruebas Automatizadas y Verificación:**
-   - Ampliado `scripts/test_upload.py`: prueba la subida de stems, edición de letra por JSON, reemplazo por archivo directo y subida por lote de múltiples documentos (100% aprobado).
-   - Ejecutados `scripts/test_scenes_and_views.py`, `scripts/test_engine.py`, `scripts/test_chordpro.py`: 100% de éxito.
-   - Servidor activo y corriendo en vivo en segundo plano en el puerto 8000.
+---
 
-2. **Perfeccionamiento de Sincronización de Acordes (Downbeat Quantization):**
-   - Corrección en `ChordProParser` (`src/core/chordpro.py`, Schema v3): el primer acorde de cada línea de letra (`c_idx == 0`) ahora queda anclado obligatoria y exactamente al tiempo de inicio del verso (`line_start`), y los acordes subsecuentes se cuantizan por compás/pulso musical (`60 / bpm`), eliminando el desfase que ocurría al calcular tiempos relativos por cantidad de caracteres.
+### 🌐 Direcciones de Acceso en Vivo (Red Local & Localhost):
+- **Panel de Control:** `http://localhost:8000/control` (o `http://192.168.0.7:8000/control`)
+- **Terminal de Músicos:** `http://192.168.0.7:8000/musicians`
+- **Pantalla de Proyección & Loops:** `http://192.168.0.7:8000/projection`
+- **Letras Transparentes para OBS Studio:** `http://192.168.0.7:8000/obs`
+- **Manifiesto PWA:** `http://localhost:8000/manifest.json`
 
-3. **Video Loops y Fondos en Pantalla de Proyección (`/projection`, `src/core/projection_config.py`):**
-   - Soporte para bucles de video en reproducción continua (`.mp4`, `.webm`, `.mov`, `.m4v`) y fondos de imagen (`.jpg`, `.png`, `.webp`, `.gif`).
-   - Fondos predeterminados y loops animados incluidos: `🎬 Loop: Aurora Celestial`, `🎬 Loop: Destellos Dorados` (partículas dinámicas por canvas), `Azul Noche`, `Púrpura Adoración`, `Luz de Altar`, `Agua Viva`, `Negro Puro`.
-   - Soporte para subir video loops propios directamente desde el panel de control (`POST /api/projection/backgrounds`).
-   - Letras en amarillo intenso de alto contraste (`#FFE600`) con trazo oscuro detrás de las letras (`paint-order: stroke fill; -webkit-text-stroke: 3.2px rgba(0,0,0,0.95)`) y sombra profunda multicapa para máxima legibilidad sobre cualquier video o imagen.
-
-4. **Dirección Independiente Exclusiva para OBS Studio (`/obs`, `src/clients/web/obs.html`):**
-   - Ruta dedicada con fondo 100% transparente para usar como *Browser Source* en OBS Studio sin necesidad de filtros de color.
-   - Modo tercio inferior (*Lower-Thirds*) automático para transmisión en vivo.
-   - Parámetros URL opcionales: `/obs?pos=center` (centrado) o `/obs?box=1` (con franja oscura translúcida).
-   - Ocultamiento instantáneo mediante *Blackout* u *Ocultar Texto* desde el operador sin oscurecer la cámara en vivo.
-
-5. **Anticipación Temporal de Letra para la Congregación (Lead Time):**
-   - Eliminación del lag de entrada de letras: transiciones limpias e inmediatas sin retrasos acumulativos.
-   - Anticipación configurable en vivo desde el operador (por defecto `1.5s` antes) mediante `Song.get_projection_lyric_at()`, permitiendo a la congregación leer la frase un momento antes de cantarla para no trabarse.
-
-6. **Escenas y Listas para el Servicio Dominical (`src/core/scene_manager.py`, `config/scenes.json`):**
-   - Sistema de listas dominicales (*Setlists*) con nombre, fecha (selector de calendario), notas pastorales y orden secuencial de canciones de la biblioteca con transposición personalizable por tema.
-   - Navegación secuencial rápida en el transporte durante el culto: botones **`⏮ Anterior`** y **`⏭ Siguiente`** para pasar de canción con un solo clic.
-   - Endpoints REST completos: `GET/POST/PUT/DELETE /api/scenes`, `/api/scenes/{id}/activate`, `/api/scenes/navigate`.
-
-7. **Mezclador con Nombres Completos de Pistas (`src/clients/web/control.html`):**
-   - Corrección de corte y elipsis: los nombres de todas las pistas de audio (`Click`, `Guía`, `Pad`, `Bajo` y pistas con nombres largos) ahora se muestran completos con ajuste de línea fluido.
-   - Etiqueta de ruteo interactiva con 1 clic (`CUE / IN-EAR` ↔ `SALA / FOH` ↔ `AMBOS`) y porcentaje de volumen numérico visible junto al fader.
-
-8. **Terminal de Músicos: Modo Compás Actual y Acorde Gigante (`/musicians`, `src/clients/web/musicians.html`):**
-   - Vista por defecto **🎯 Compás Actual**: muestra únicamente el compás y frase que toca en ese instante sin muro de texto innecesario.
-   - Acorde Hero Gigante (`clamp(4.2rem, 15vw, 8.2rem)`) con indicación del acorde siguiente (`Siguiente: [Acorde]`).
-   - Flujo de acordes del compás con el acorde activo resaltado en amarillo brillante.
-   - Pulso visual de compás (1-2-3-4) sincronizado con los BPM de la canción.
-   - Tarjeta previa sutil del próximo compás para anticipar cambios.
-   - Selector para alternar a **📄 Hoja Completa** en cualquier momento si el músico desea revisar toda la partitura.
-
-9. **Pruebas Automatizadas y Verificación:**
-   - Creado `scripts/test_scenes_and_views.py`: prueba al 100% el CRUD de escenas, activación, navegación, configuración de proyección, subida/borrado de video loops, ruteo de stems, entrega HTML y anticipación de letras.
-   - Verificados `scripts/test_upload.py`, `scripts/test_chordpro.py`, `scripts/test_engine.py`, `scripts/test_server.py`: 100% de éxito en todas las suites.
-   - Servidor en vivo reiniciado y ejecutándose en segundo plano en el puerto 8000 con los nuevos endpoints y optimizaciones activas.
-
-### 🚧 Trabajo en progreso (WIP):
-- Empaquetado instalador Windows y APK Android.
+---
 
 ### ⚠️ Decisiones técnicas o bloqueos:
-- Para OBS Studio, siempre usar la URL `http://<IP_LOCAL>:8000/obs` como fuente de navegador.
-- Los video loops y fotos subidos en `config/backgrounds/` y los audios en `tracks/**/stems/` están excluidos en `.gitignore` para mantener el repositorio liviano y seguro en GitHub.
-
-### 🎯 Siguiente paso prioritario:
-- Probar en vivo el flujo completo desde `http://localhost:8000/control` probando la creación de una Lista Dominical, probando un video loop en `http://localhost:8000/projection` y la fuente de navegador en OBS Studio `http://localhost:8000/obs`.
+- Para saltos y bucles en pistas pregrabadas, el micro-crossfade de 11.6 ms garantiza continuidad matemática $C^1$ en la onda de sonido, evitando ruidos de corriente directa (DC-offset clicks) independientemente de en qué muestra caiga la frontera.
+- Para OBS Studio, utilizar la dirección `/obs` directamente como fuente de navegador en resolución 1920x1080 con fondo transparente.

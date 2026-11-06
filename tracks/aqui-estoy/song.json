@@ -1,5 +1,5 @@
 {
-  "id": "aqui-estoy",
+  "id": "aqui-estoy-the-stand",
   "title": "Aquí Estoy (The Stand)",
   "artist": "Hillsong UNITED",
   "key": "A",
@@ -7,7 +7,7 @@
   "transpose_semitones": 0,
   "bpm": 71.0,
   "time_signature": "4/4",
-  "duration": 435.43,
+  "duration": 442.99,
   "sections": [
     {
       "name": "Cuenta Inicial (4 Compases)",
@@ -111,6 +111,11 @@
               "time": 40.56,
               "chord": "A",
               "char_offset": 0
+            },
+            {
+              "time": 43.94,
+              "chord": "A",
+              "char_offset": 20
             }
           ]
         },
@@ -123,6 +128,11 @@
               "time": 47.32,
               "chord": "D2",
               "char_offset": 0
+            },
+            {
+              "time": 50.7,
+              "chord": "D2",
+              "char_offset": 20
             }
           ]
         },
@@ -137,7 +147,7 @@
               "char_offset": 0
             },
             {
-              "time": 59.15,
+              "time": 57.46,
               "chord": "F#m7",
               "char_offset": 24
             }
@@ -152,6 +162,11 @@
               "time": 60.85,
               "chord": "D2",
               "char_offset": 0
+            },
+            {
+              "time": 64.23,
+              "chord": "D2",
+              "char_offset": 14
             }
           ]
         }
@@ -171,6 +186,11 @@
               "time": 67.61,
               "chord": "A",
               "char_offset": 0
+            },
+            {
+              "time": 70.99,
+              "chord": "A",
+              "char_offset": 24
             }
           ]
         },
@@ -183,6 +203,11 @@
               "time": 74.37,
               "chord": "D2",
               "char_offset": 0
+            },
+            {
+              "time": 77.75,
+              "chord": "D2",
+              "char_offset": 28
             }
           ]
         },
@@ -197,7 +222,7 @@
               "char_offset": 0
             },
             {
-              "time": 87.045,
+              "time": 84.51,
               "chord": "F#m7",
               "char_offset": 27
             }
@@ -212,6 +237,11 @@
               "time": 87.89,
               "chord": "D2",
               "char_offset": 0
+            },
+            {
+              "time": 91.27,
+              "chord": "D2",
+              "char_offset": 14
             }
           ]
         }
@@ -224,59 +254,69 @@
       "lines": [
         {
           "start_time": 92.96,
-          "end_time": 99.72,
+          "end_time": 98.03,
           "lyrics": "¿Qué puedo hacer?",
           "chords": [
             {
-              "time": 92.96,
+              "time": 94.65,
               "chord": "D2",
-              "char_offset": 0
+              "char_offset": 11
             }
           ]
         },
         {
-          "start_time": 99.72,
-          "end_time": 106.48,
+          "start_time": 98.03,
+          "end_time": 108.17,
           "lyrics": "¿Qué puedo decir?",
           "chords": [
             {
-              "time": 99.72,
+              "time": 98.03,
               "chord": "Bm7",
-              "char_offset": 0
-            }
-          ]
-        },
-        {
-          "start_time": 106.48,
-          "end_time": 113.24,
-          "lyrics": "Te ofrezco mi corazón",
-          "chords": [
-            {
-              "time": 106.48,
-              "chord": "F#m7",
               "char_offset": 0
             },
             {
-              "time": 110.705,
-              "chord": "D2",
-              "char_offset": 14
+              "time": 101.41,
+              "chord": "F#m7",
+              "char_offset": 11
+            },
+            {
+              "time": 104.79,
+              "chord": "F#m7",
+              "char_offset": 17
             }
           ]
         },
         {
-          "start_time": 113.24,
+          "start_time": 108.17,
+          "end_time": 111.55,
+          "lyrics": "Te ofrezco mi corazón",
+          "chords": [
+            {
+              "time": 108.17,
+              "chord": "D2",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 111.55,
           "end_time": 121.69,
           "lyrics": "Completamente a Ti",
           "chords": [
             {
-              "time": 113.24,
+              "time": 111.55,
               "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 114.93,
+              "chord": "F#m7",
               "char_offset": 8
             },
             {
-              "time": 120.846,
+              "time": 118.31,
               "chord": "F#m7",
-              "char_offset": 16
+              "char_offset": 18
             }
           ]
         }
@@ -296,6 +336,11 @@
               "time": 121.69,
               "chord": "A",
               "char_offset": 0
+            },
+            {
+              "time": 125.07,
+              "chord": "A",
+              "char_offset": 22
             }
           ]
         },
@@ -308,6 +353,11 @@
               "time": 128.45,
               "chord": "D2",
               "char_offset": 0
+            },
+            {
+              "time": 131.83,
+              "chord": "D2",
+              "char_offset": 22
             }
           ]
         },
@@ -322,7 +372,7 @@
               "char_offset": 0
             },
             {
-              "time": 140.28,
+              "time": 138.59,
               "chord": "F#m7",
               "char_offset": 17
             }
@@ -337,6 +387,11 @@
               "time": 141.97,
               "chord": "D2",
               "char_offset": 0
+            },
+            {
+              "time": 145.35,
+              "chord": "D2",
+              "char_offset": 14
             }
           ]
         }
@@ -349,59 +404,69 @@
       "lines": [
         {
           "start_time": 147.04,
-          "end_time": 153.8,
+          "end_time": 152.11,
           "lyrics": "¿Qué puedo hacer?",
           "chords": [
             {
-              "time": 147.04,
+              "time": 148.73,
               "chord": "D2",
-              "char_offset": 0
+              "char_offset": 11
             }
           ]
         },
         {
-          "start_time": 153.8,
-          "end_time": 160.56,
+          "start_time": 152.11,
+          "end_time": 162.25,
           "lyrics": "¿Qué puedo decir?",
           "chords": [
             {
-              "time": 153.8,
+              "time": 152.11,
               "chord": "Bm7",
-              "char_offset": 0
-            }
-          ]
-        },
-        {
-          "start_time": 160.56,
-          "end_time": 167.32,
-          "lyrics": "Te ofrezco mi corazón",
-          "chords": [
-            {
-              "time": 160.56,
-              "chord": "F#m7",
               "char_offset": 0
             },
             {
-              "time": 164.785,
-              "chord": "D2",
-              "char_offset": 14
+              "time": 155.49,
+              "chord": "F#m7",
+              "char_offset": 11
+            },
+            {
+              "time": 158.87,
+              "chord": "F#m7",
+              "char_offset": 17
             }
           ]
         },
         {
-          "start_time": 167.32,
+          "start_time": 162.25,
+          "end_time": 165.63,
+          "lyrics": "Te ofrezco mi corazón",
+          "chords": [
+            {
+              "time": 162.25,
+              "chord": "D2",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 165.63,
           "end_time": 174.08,
           "lyrics": "Completamente a Ti",
           "chords": [
             {
-              "time": 167.32,
+              "time": 165.63,
               "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 169.01,
+              "chord": "F#m7",
               "char_offset": 8
             },
             {
-              "time": 173.235,
+              "time": 172.39,
               "chord": "F#m7",
-              "char_offset": 16
+              "char_offset": 18
             }
           ]
         }
@@ -414,45 +479,45 @@
       "lines": [
         {
           "start_time": 174.08,
-          "end_time": 180.85,
+          "end_time": 179.16,
           "lyrics": "¿Qué puedo hacer?",
           "chords": [
             {
-              "time": 174.08,
+              "time": 175.77,
               "chord": "D2",
-              "char_offset": 0
+              "char_offset": 11
             }
           ]
         },
         {
-          "start_time": 180.85,
-          "end_time": 187.61,
+          "start_time": 179.16,
+          "end_time": 185.92,
           "lyrics": "¿Qué puedo decir?",
           "chords": [
             {
-              "time": 180.85,
+              "time": 179.16,
               "chord": "Bm7",
               "char_offset": 0
             },
             {
-              "time": 184.23,
+              "time": 182.54,
               "chord": "F#m7",
-              "char_offset": 17
+              "char_offset": 11
             }
           ]
         },
         {
-          "start_time": 187.61,
+          "start_time": 185.92,
           "end_time": 192.68,
           "lyrics": "Te ofrezco mi corazón",
           "chords": [
             {
-              "time": 187.61,
+              "time": 185.92,
               "chord": "A",
               "char_offset": 0
             },
             {
-              "time": 190.99,
+              "time": 189.3,
               "chord": "Bm7",
               "char_offset": 14
             }
@@ -718,19 +783,9 @@
               "char_offset": 0
             },
             {
-              "time": 251.83,
-              "chord": "A",
-              "char_offset": 7
-            },
-            {
               "time": 253.52,
-              "chord": "E",
-              "char_offset": 16
-            },
-            {
-              "time": 254.365,
-              "chord": "F#m7",
-              "char_offset": 24
+              "chord": "A",
+              "char_offset": 12
             }
           ]
         },
@@ -741,23 +796,13 @@
           "chords": [
             {
               "time": 256.9,
-              "chord": "D2",
+              "chord": "E",
               "char_offset": 0
             },
             {
-              "time": 257.745,
-              "chord": "A",
-              "char_offset": 5
-            },
-            {
-              "time": 259.435,
-              "chord": "E",
-              "char_offset": 10
-            },
-            {
-              "time": 262.815,
+              "time": 260.28,
               "chord": "F#m7",
-              "char_offset": 26
+              "char_offset": 13
             }
           ]
         },
@@ -772,19 +817,9 @@
               "char_offset": 0
             },
             {
-              "time": 265.35,
-              "chord": "A",
-              "char_offset": 7
-            },
-            {
               "time": 267.04,
-              "chord": "E",
-              "char_offset": 15
-            },
-            {
-              "time": 269.575,
-              "chord": "F#m7",
-              "char_offset": 27
+              "chord": "A",
+              "char_offset": 12
             }
           ]
         },
@@ -795,23 +830,13 @@
           "chords": [
             {
               "time": 270.42,
-              "chord": "D2",
+              "chord": "E",
               "char_offset": 0
             },
             {
-              "time": 272.955,
-              "chord": "A",
-              "char_offset": 5
-            },
-            {
-              "time": 275.49,
-              "chord": "E",
-              "char_offset": 12
-            },
-            {
-              "time": 275.49,
+              "time": 273.8,
               "chord": "F#m7",
-              "char_offset": 15
+              "char_offset": 10
             }
           ]
         }
@@ -833,19 +858,9 @@
               "char_offset": 0
             },
             {
-              "time": 278.87,
-              "chord": "A",
-              "char_offset": 7
-            },
-            {
               "time": 280.56,
-              "chord": "E",
-              "char_offset": 16
-            },
-            {
-              "time": 281.405,
-              "chord": "F#m7",
-              "char_offset": 24
+              "chord": "A",
+              "char_offset": 12
             }
           ]
         },
@@ -856,23 +871,13 @@
           "chords": [
             {
               "time": 283.94,
-              "chord": "D2",
+              "chord": "E",
               "char_offset": 0
             },
             {
-              "time": 284.785,
-              "chord": "A",
-              "char_offset": 5
-            },
-            {
-              "time": 286.475,
-              "chord": "E",
-              "char_offset": 10
-            },
-            {
-              "time": 289.855,
+              "time": 287.32,
               "chord": "F#m7",
-              "char_offset": 26
+              "char_offset": 13
             }
           ]
         },
@@ -887,19 +892,9 @@
               "char_offset": 0
             },
             {
-              "time": 292.39,
-              "chord": "A",
-              "char_offset": 7
-            },
-            {
               "time": 294.08,
-              "chord": "E",
-              "char_offset": 15
-            },
-            {
-              "time": 296.615,
-              "chord": "F#m7",
-              "char_offset": 27
+              "chord": "A",
+              "char_offset": 12
             }
           ]
         },
@@ -910,23 +905,13 @@
           "chords": [
             {
               "time": 297.46,
-              "chord": "D2",
+              "chord": "E",
               "char_offset": 0
             },
             {
-              "time": 299.995,
-              "chord": "A",
-              "char_offset": 5
-            },
-            {
-              "time": 302.53,
-              "chord": "E",
-              "char_offset": 12
-            },
-            {
-              "time": 304.221,
+              "time": 300.85,
               "chord": "F#m7",
-              "char_offset": 15
+              "char_offset": 10
             }
           ]
         }
@@ -948,19 +933,9 @@
               "char_offset": 0
             },
             {
-              "time": 305.92,
-              "chord": "A",
-              "char_offset": 7
-            },
-            {
               "time": 307.61,
-              "chord": "E",
-              "char_offset": 16
-            },
-            {
-              "time": 308.455,
-              "chord": "F#m7",
-              "char_offset": 24
+              "chord": "A",
+              "char_offset": 12
             }
           ]
         },
@@ -971,23 +946,13 @@
           "chords": [
             {
               "time": 310.99,
-              "chord": "D2",
+              "chord": "E",
               "char_offset": 0
             },
             {
-              "time": 311.835,
-              "chord": "A",
-              "char_offset": 5
-            },
-            {
-              "time": 313.525,
-              "chord": "E",
-              "char_offset": 10
-            },
-            {
-              "time": 316.905,
+              "time": 314.37,
               "chord": "F#m7",
-              "char_offset": 26
+              "char_offset": 13
             }
           ]
         },
@@ -1002,19 +967,9 @@
               "char_offset": 0
             },
             {
-              "time": 319.44,
-              "chord": "A",
-              "char_offset": 7
-            },
-            {
               "time": 321.13,
-              "chord": "E",
-              "char_offset": 15
-            },
-            {
-              "time": 323.665,
-              "chord": "F#m7",
-              "char_offset": 27
+              "chord": "A",
+              "char_offset": 12
             }
           ]
         },
@@ -1025,23 +980,13 @@
           "chords": [
             {
               "time": 324.51,
-              "chord": "D2",
+              "chord": "E",
               "char_offset": 0
             },
             {
-              "time": 327.045,
-              "chord": "A",
-              "char_offset": 5
-            },
-            {
-              "time": 329.58,
-              "chord": "E",
-              "char_offset": 12
-            },
-            {
-              "time": 329.58,
+              "time": 327.89,
               "chord": "F#m7",
-              "char_offset": 15
+              "char_offset": 10
             }
           ]
         }
@@ -1063,19 +1008,9 @@
               "char_offset": 0
             },
             {
-              "time": 332.96,
-              "chord": "A",
-              "char_offset": 7
-            },
-            {
               "time": 334.65,
-              "chord": "E",
-              "char_offset": 16
-            },
-            {
-              "time": 335.495,
-              "chord": "F#m7",
-              "char_offset": 24
+              "chord": "A",
+              "char_offset": 12
             }
           ]
         },
@@ -1086,23 +1021,13 @@
           "chords": [
             {
               "time": 338.03,
-              "chord": "D2",
+              "chord": "E",
               "char_offset": 0
             },
             {
-              "time": 338.875,
-              "chord": "A",
-              "char_offset": 5
-            },
-            {
-              "time": 340.565,
-              "chord": "E",
-              "char_offset": 10
-            },
-            {
-              "time": 343.945,
+              "time": 341.41,
               "chord": "F#m7",
-              "char_offset": 26
+              "char_offset": 13
             }
           ]
         },
@@ -1117,19 +1042,9 @@
               "char_offset": 0
             },
             {
-              "time": 346.48,
-              "chord": "A",
-              "char_offset": 7
-            },
-            {
               "time": 348.17,
-              "chord": "E",
-              "char_offset": 15
-            },
-            {
-              "time": 350.705,
-              "chord": "F#m7",
-              "char_offset": 27
+              "chord": "A",
+              "char_offset": 12
             }
           ]
         },
@@ -1140,23 +1055,13 @@
           "chords": [
             {
               "time": 351.55,
-              "chord": "D2",
+              "chord": "E",
               "char_offset": 0
             },
             {
-              "time": 354.085,
-              "chord": "A",
-              "char_offset": 5
-            },
-            {
-              "time": 356.62,
-              "chord": "E",
-              "char_offset": 12
-            },
-            {
-              "time": 356.62,
+              "time": 354.93,
               "chord": "F#m7",
-              "char_offset": 15
+              "char_offset": 10
             }
           ]
         }
@@ -1178,19 +1083,9 @@
               "char_offset": 0
             },
             {
-              "time": 360.0,
-              "chord": "A",
-              "char_offset": 7
-            },
-            {
               "time": 361.69,
-              "chord": "E",
-              "char_offset": 16
-            },
-            {
-              "time": 362.535,
-              "chord": "F#m7",
-              "char_offset": 24
+              "chord": "A",
+              "char_offset": 12
             }
           ]
         },
@@ -1201,23 +1096,13 @@
           "chords": [
             {
               "time": 365.07,
-              "chord": "D2",
+              "chord": "E",
               "char_offset": 0
             },
             {
-              "time": 365.915,
-              "chord": "A",
-              "char_offset": 5
-            },
-            {
-              "time": 367.605,
-              "chord": "E",
-              "char_offset": 10
-            },
-            {
-              "time": 370.985,
+              "time": 368.45,
               "chord": "F#m7",
-              "char_offset": 26
+              "char_offset": 13
             }
           ]
         },
@@ -1232,19 +1117,9 @@
               "char_offset": 0
             },
             {
-              "time": 373.52,
-              "chord": "A",
-              "char_offset": 7
-            },
-            {
               "time": 375.21,
-              "chord": "E",
-              "char_offset": 15
-            },
-            {
-              "time": 377.745,
-              "chord": "F#m7",
-              "char_offset": 27
+              "chord": "A",
+              "char_offset": 12
             }
           ]
         },
@@ -1255,18 +1130,13 @@
           "chords": [
             {
               "time": 378.59,
-              "chord": "D2",
+              "chord": "E",
               "char_offset": 0
             },
             {
-              "time": 381.125,
-              "chord": "A",
-              "char_offset": 5
-            },
-            {
-              "time": 383.66,
+              "time": 381.97,
               "chord": "E",
-              "char_offset": 12
+              "char_offset": 15
             }
           ]
         },
@@ -1277,6 +1147,11 @@
           "chords": [
             {
               "time": 385.35,
+              "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 388.73,
               "chord": "E",
               "char_offset": 0
             }
@@ -1291,62 +1166,67 @@
       "lines": [
         {
           "start_time": 390.42,
-          "end_time": 397.6,
+          "end_time": 397.28,
           "lyrics": "¿Qué puedo hacer?",
           "chords": [
             {
-              "time": 390.42,
+              "time": 392.11,
               "chord": "D2",
-              "char_offset": 0
+              "char_offset": 11
+            },
+            {
+              "time": 395.54,
+              "chord": "D2",
+              "char_offset": 17
             }
           ]
         },
         {
-          "start_time": 397.6,
-          "end_time": 404.8,
+          "start_time": 397.28,
+          "end_time": 406.15,
           "lyrics": "¿Qué puedo decir?",
           "chords": [
             {
-              "time": 397.6,
+              "time": 399.02,
               "chord": "Bm7",
-              "char_offset": 0
+              "char_offset": 11
             },
             {
-              "time": 401.2,
+              "time": 402.55,
               "chord": "F#m7",
               "char_offset": 17
             }
           ]
         },
         {
-          "start_time": 404.8,
-          "end_time": 411.6,
+          "start_time": 406.15,
+          "end_time": 412.8,
           "lyrics": "Te ofrezco mi corazón",
           "chords": [
             {
-              "time": 404.8,
+              "time": 406.15,
               "chord": "A",
               "char_offset": 0
             },
             {
-              "time": 409.025,
+              "time": 409.4,
               "chord": "Bm7",
               "char_offset": 14
             }
           ]
         },
         {
-          "start_time": 411.6,
+          "start_time": 412.8,
           "end_time": 419.9,
           "lyrics": "Completamente a Ti",
           "chords": [
             {
-              "time": 411.6,
+              "time": 412.8,
               "chord": "Esus4",
               "char_offset": 0
             },
             {
-              "time": 414.98,
+              "time": 416.25,
               "chord": "E",
               "char_offset": 8
             }
@@ -1357,7 +1237,7 @@
     {
       "name": "Final",
       "start_time": 419.9,
-      "end_time": 435.43,
+      "end_time": 442.99,
       "lines": [
         {
           "start_time": 419.9,
@@ -1368,14 +1248,42 @@
               "time": 419.9,
               "chord": "E",
               "char_offset": 0
+            },
+            {
+              "time": 423.65,
+              "chord": "E",
+              "char_offset": 0
             }
           ]
         },
         {
           "start_time": 427.43,
-          "end_time": 435.43,
-          "lyrics": "",
-          "chords": []
+          "end_time": 434.99,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 427.43,
+              "chord": "E",
+              "char_offset": 0
+            },
+            {
+              "time": 431.21,
+              "chord": "A",
+              "char_offset": 0
+            }
+          ]
+        },
+        {
+          "start_time": 434.99,
+          "end_time": 442.99,
+          "lyrics": "[ Instrumental ]",
+          "chords": [
+            {
+              "time": 434.99,
+              "chord": "A",
+              "char_offset": 0
+            }
+          ]
         }
       ]
     }

@@ -87,6 +87,9 @@ class ConnectionManager:
         current_chord: str = "",
         projection_lyric: Optional[str] = None,
         projection_section: Optional[str] = None,
+        loop_active: bool = False,
+        loop_section: str = "",
+        pending_jump: str = "",
     ) -> None:
         """
         Emite la actualización periódica del reloj a todos los canales
@@ -94,7 +97,7 @@ class ConnectionManager:
         """
         now = time.time()
 
-        # 1. Canal de Músicos: tiempo exacto, compás, acordes y letra
+        # 1. Canal de Músicos: tiempo exacto, compás, acordes, letra y bucle espontáneo
         if self._channels[ChannelType.MUSICIANS]:
             musician_payload = {
                 "type": "tick",
@@ -104,6 +107,9 @@ class ConnectionManager:
                 "next": next_section,
                 "chord": current_chord,
                 "lyric": current_lyric,
+                "loop_active": loop_active,
+                "loop_sec": loop_section,
+                "jump_pending": pending_jump,
                 "server_time": now,
             }
             await self.broadcast_to_channel(ChannelType.MUSICIANS, musician_payload)
@@ -130,6 +136,9 @@ class ConnectionManager:
                 "pos": round(position_seconds, 3),
                 "playing": is_playing,
                 "sec": current_section,
+                "loop_active": loop_active,
+                "loop_sec": loop_section,
+                "jump_pending": pending_jump,
             }
             await self.broadcast_to_channel(ChannelType.CONTROL, control_payload)
 

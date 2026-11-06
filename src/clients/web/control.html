@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consola Central de Control | Worship Multitrack</title>
+  <meta name="theme-color" content="#070b14">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/static/icons/icon.svg">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
   <style>
     :root {
       --bg: #0b0f19;
@@ -469,6 +476,29 @@
     .toast-error { background: #7f1d1d; color: #fee2e2; }
     .toast-info { background: #1e3a8a; color: #dbeafe; }
     @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .section-jump-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .section-jump-btn:hover {
+      background: #38bdf8;
+      color: #000;
+      border-color: #38bdf8;
+    }
+    .section-jump-btn.active-sec {
+      background: #0284c7;
+      color: #fff;
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -482,6 +512,7 @@
       <button class="btn btn-warning" onclick="openScenesModal()">📅 Listas Dominicales</button>
       <button class="btn btn-primary" onclick="openFastDocModal()">⚡ + Subir Letras / Docs</button>
       <button class="btn btn-success" onclick="openCreateModal()">⬆ Nueva Canción</button>
+      <button class="btn btn-secondary btn-sm" id="btn-pwa-install" style="display:none;" onclick="triggerPWAInstall()">📲 Instalar App</button>
       <div class="lan-badge" id="lan-ip">Conectando...</div>
     </div>
   </header>
@@ -521,6 +552,20 @@
         <div class="time-labels">
           <span id="current-time">00:00</span>
           <span id="total-time">00:00</span>
+        </div>
+
+        <!-- Barra de Secciones y Adoración Espontánea (Saltos Cuantizados y Bucle) -->
+        <div style="margin-top:14px; background:#0b1120; border:1px solid #1e293b; border-radius:8px; padding:10px 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+            <span style="font-size:0.75rem; color:#94a3b8; font-weight:800; text-transform:uppercase;">🔁 Adoración Espontánea & Secciones</span>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <span id="jump-pending-badge" style="display:none; background:#854d0e; color:#fef08a; padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; animation:pulse 1s infinite; cursor:pointer;" onclick="cancelPendingJump()" title="Clic para cancelar salto">⏳ Saltando en siguiente compás... ✕</span>
+              <button class="btn btn-sm" id="btn-loop-toggle" onclick="toggleActiveSectionLoop()" style="background:#1e293b; color:#cbd5e1; border:1px solid #334155;">🔁 Repetir Sección (Loop)</button>
+            </div>
+          </div>
+          <div id="transport-sections-chips" style="display:flex; flex-wrap:wrap; gap:6px;">
+            <span style="font-size:0.76rem; color:var(--text-muted);">Cargando secciones...</span>
+          </div>
         </div>
       </div>
 
@@ -697,9 +742,14 @@
           <div style="font-size:0.8rem; font-weight:800; color:#94a3b8; margin-bottom:8px;">CANCIONES DE ESTA LISTA (ORDEN SECUENCIAL):</div>
           <div id="scene-songs-builder" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;"></div>
 
-          <div style="display:flex; gap:8px;">
+          <div style="display:grid; grid-template-columns:1.8fr 1.2fr auto; gap:8px; align-items:center;">
             <select class="proj-select" id="scene-add-song-select"></select>
+            <input id="scene-add-subgroup" placeholder="Subgrupo / Bloque (ej. Alabanza)" style="background:#0e1524; border:1px solid var(--border); color:#38bdf8; border-radius:6px; padding:7px 10px; font-size:0.8rem;">
             <button class="btn btn-secondary btn-sm" onclick="addSongToSceneBuilder()">+ Agregar a la lista</button>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:0.8rem; color:#94a3b8;">
+            <input type="checkbox" id="scene-add-autonext" style="cursor:pointer;">
+            <label for="scene-add-autonext" style="cursor:pointer;">🔗 Tocar seguida sin parar (Auto-Play / Medley continuo)</label>
           </div>
 
           <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
@@ -864,6 +914,14 @@
     let editingSceneId = null;
     let builderSongs = [];
 
+    // Estado de Adoración Espontánea (Loops y Saltos Cuantizados)
+    let currentSongSections = [];
+    let activeSectionName = '';
+    let isLoopActive = false;
+    let currentLoopSec = '';
+    let currentPendingJump = '';
+    let deferredPwaPrompt = null;
+
     // Estado del modal de canción
     let modalMode = 'create'; // 'create' | 'stems'
     let modalSongId = null;
@@ -924,7 +982,10 @@
         const scBar = document.getElementById('active-scene-bar');
         if (status.active_scene) {
           scBar.style.display = 'flex';
-          document.getElementById('scene-active-name').textContent = `${status.active_scene.name} (${status.active_scene.date})`;
+          const curItem = status.active_scene.items && status.active_scene.items[status.active_scene.index];
+          const curSubgroup = curItem && curItem.subgroup ? ` · [${curItem.subgroup}]` : '';
+          const autoNextBadge = curItem && curItem.auto_next ? ' · 🔗 Continuo' : ' · ⏸ Pausa de Ministración';
+          document.getElementById('scene-active-name').textContent = `${status.active_scene.name} (${status.active_scene.date})${curSubgroup}${autoNextBadge}`;
           document.getElementById('scene-active-pos').textContent = `Canción ${status.active_scene.index + 1} de ${status.active_scene.total}`;
         } else {
           scBar.style.display = 'none';
@@ -1218,10 +1279,13 @@
       scenesList.forEach(sc => {
         const box = document.createElement('div');
         box.className = 'scene-header-box';
+        const subgroups = [...new Set((sc.songs || []).map(s => s.subgroup || 'General'))];
+        const subgBadges = subgroups.map(sg => `<span style="background:#1e293b; color:#38bdf8; border:1px solid #334155; padding:2px 6px; border-radius:4px; font-size:0.72rem; font-weight:700; margin-right:4px;">${esc(sg)}</span>`).join('');
         box.innerHTML = `
           <div>
             <div class="scene-meta-title">📅 ${esc(sc.name)}</div>
             <div class="scene-meta-date">${esc(sc.date)}${sc.notes ? ` · <em>${esc(sc.notes)}</em>` : ''} · ${sc.songs_count} canciones</div>
+            <div style="margin-top:6px;">${subgBadges}</div>
           </div>
           <div style="display:flex; gap:6px;">
             <button class="btn btn-sm btn-success" onclick="activateScene('${sc.id}')">▶ Activar Lista</button>
@@ -1238,6 +1302,8 @@
       document.getElementById('sc-name').value = 'Servicio Dominical';
       document.getElementById('sc-date').value = new Date().toISOString().split('T')[0];
       document.getElementById('sc-notes').value = '';
+      document.getElementById('scene-add-subgroup').value = '';
+      document.getElementById('scene-add-autonext').checked = false;
       builderSongs = [];
       renderBuilderSongs();
       populateSceneSongPicker();
@@ -1252,7 +1318,12 @@
       document.getElementById('sc-name').value = sc.name;
       document.getElementById('sc-date').value = sc.date;
       document.getElementById('sc-notes').value = sc.notes || '';
-      builderSongs = (sc.songs || []).map(s => ({ song_id: s.song_id, transpose: s.transpose || 0 }));
+      builderSongs = (sc.songs || []).map(s => ({
+        song_id: s.song_id,
+        transpose: s.transpose || 0,
+        subgroup: s.subgroup || 'General',
+        auto_next: Boolean(s.auto_next)
+      }));
       renderBuilderSongs();
       populateSceneSongPicker();
       document.getElementById('scene-form').style.display = 'block';
@@ -1272,7 +1343,14 @@
     function addSongToSceneBuilder() {
       const sid = document.getElementById('scene-add-song-select').value;
       if (!sid) return;
-      builderSongs.push({ song_id: sid, transpose: 0 });
+      const subgroup = document.getElementById('scene-add-subgroup').value.trim() || 'General';
+      const autoNext = document.getElementById('scene-add-autonext').checked;
+      builderSongs.push({
+        song_id: sid,
+        transpose: 0,
+        subgroup: subgroup,
+        auto_next: autoNext
+      });
       renderBuilderSongs();
     }
 
@@ -1290,11 +1368,21 @@
 
         const row = document.createElement('div');
         row.className = 'scene-song-item';
+        row.style.cssText = 'background:#0f172a; border:1px solid #1e293b; padding:8px 12px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;';
+
         row.innerHTML = `
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span class="scene-song-num">${idx + 1}.</span>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span class="scene-song-num" style="font-weight:800; color:#60a5fa;">${idx + 1}.</span>
             <strong>${esc(title)}</strong>
             <span style="font-size:0.75rem; color:var(--text-muted);">(${key})</span>
+            <input type="text" value="${esc(item.subgroup || 'General')}" placeholder="Subgrupo"
+                   style="width:110px; background:#1e293b; color:#38bdf8; border:1px solid #334155; border-radius:4px; padding:2px 6px; font-size:0.75rem; font-weight:700;"
+                   title="Subgrupo / Bloque (ej. Alabanza, Adoración)"
+                   onchange="builderSongs[${idx}].subgroup = this.value.trim() || 'General';">
+            <label style="display:inline-flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;" title="Reproducir siguiente canción automáticamente">
+              <input type="checkbox" ${item.auto_next ? 'checked' : ''} onchange="builderSongs[${idx}].auto_next = this.checked; renderBuilderSongs();">
+              <span style="${item.auto_next ? 'color:#10b981; font-weight:700;' : 'color:#94a3b8;'}">${item.auto_next ? '🔗 Auto-Play' : '⏸ Pausa'}</span>
+            </label>
           </div>
           <div style="display:flex; align-items:center; gap:6px;">
             <label style="font-size:0.75rem; color:var(--text-muted);">Tono:</label>
@@ -1767,6 +1855,19 @@
           if (data.type === 'control_tick' && !isSeeking) {
             if (songDuration > 0) timeline.value = (data.pos / songDuration) * 100;
             document.getElementById('current-time').innerText = formatTime(data.pos);
+            if (data.sec && data.sec !== activeSectionName) {
+              activeSectionName = data.sec;
+              highlightActiveSection(activeSectionName);
+            }
+            if (data.loop_active !== undefined) {
+              isLoopActive = Boolean(data.loop_active);
+              currentLoopSec = data.loop_sec || '';
+              updateLoopButton();
+            }
+            if (data.jump_pending !== undefined) {
+              currentPendingJump = data.jump_pending || '';
+              updateJumpBadge();
+            }
           } else if (data.type === 'song_changed') {
             refreshAll();
           }
@@ -1774,6 +1875,159 @@
       };
       ws.onclose = () => setTimeout(connectWS, 1500);
       ws.onerror = () => ws.close();
+    }
+
+    // ------------------------------------------------ Adoración Espontánea & Bucle en Vivo
+    async function loadSongSections() {
+      try {
+        const songData = await api('/api/song');
+        currentSongSections = songData.sections || [];
+        renderSectionChips(activeSectionName);
+        await updateLoopStatus();
+      } catch (e) {
+        currentSongSections = [];
+        renderSectionChips();
+      }
+    }
+
+    function renderSectionChips(activeSec = '') {
+      const c = document.getElementById('transport-sections-chips');
+      if (!c) return;
+      c.innerHTML = '';
+      if (!currentSongSections.length) {
+        c.innerHTML = '<span style="font-size:0.76rem; color:var(--text-muted);">Sin secciones definidas en el documento ChordPro.</span>';
+        return;
+      }
+      currentSongSections.forEach(sec => {
+        const btn = document.createElement('button');
+        btn.className = 'section-jump-btn' + (sec.name === activeSec ? ' active-sec' : '');
+        btn.textContent = `⚡ ${sec.name}`;
+        btn.title = `Saltar a sección "${sec.name}" en el próximo compás`;
+        btn.onclick = () => jumpToSection(sec.name);
+        c.appendChild(btn);
+      });
+    }
+
+    function highlightActiveSection(secName) {
+      const btns = document.querySelectorAll('#transport-sections-chips .section-jump-btn');
+      btns.forEach(b => {
+        if (b.textContent.includes(secName)) {
+          b.classList.add('active-sec');
+        } else {
+          b.classList.remove('active-sec');
+        }
+      });
+    }
+
+    async function jumpToSection(secName) {
+      try {
+        toast(`⏳ Programando salto al compás para: "${secName}"...`, 'info', 1500);
+        await api('/api/transport/jump-section', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ section_name: secName, quantize: true })
+        });
+        currentPendingJump = secName;
+        updateJumpBadge();
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    }
+
+    async function cancelPendingJump() {
+      try {
+        await api('/api/transport/cancel-jump', { method: 'POST' });
+        currentPendingJump = '';
+        updateJumpBadge();
+        toast('Salto cancelado', 'info', 1500);
+      } catch (e) {}
+    }
+
+    async function toggleActiveSectionLoop() {
+      try {
+        const res = await api('/api/transport/loop-section', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        isLoopActive = Boolean(res.loop_enabled);
+        currentLoopSec = res.section || '';
+        updateLoopButton();
+        if (isLoopActive) {
+          toast(`🔁 Bucle activado en sección: "${currentLoopSec}"`, 'success', 2500);
+        } else {
+          toast('Bucle desactivado', 'info', 1500);
+        }
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    }
+
+    async function updateLoopStatus() {
+      try {
+        const st = await api('/api/transport/loop-status');
+        isLoopActive = Boolean(st.loop_active);
+        currentLoopSec = st.loop_section || '';
+        currentPendingJump = st.pending_jump || '';
+        updateLoopButton();
+        updateJumpBadge();
+      } catch (e) {}
+    }
+
+    function updateLoopButton() {
+      const btn = document.getElementById('btn-loop-toggle');
+      if (!btn) return;
+      if (isLoopActive) {
+        btn.style.background = '#047857';
+        btn.style.borderColor = '#10b981';
+        btn.style.color = '#fff';
+        btn.textContent = `🔁 BUCLE ACTIVO (${currentLoopSec || 'Sección'}) ✕`;
+      } else {
+        btn.style.background = '#1e293b';
+        btn.style.borderColor = '#334155';
+        btn.style.color = '#cbd5e1';
+        btn.textContent = '🔁 Repetir Sección (Loop)';
+      }
+    }
+
+    function updateJumpBadge() {
+      const badge = document.getElementById('jump-pending-badge');
+      if (!badge) return;
+      if (currentPendingJump) {
+        badge.style.display = 'inline-block';
+        badge.textContent = `⏳ Saltando a ${currentPendingJump} en siguiente compás... ✕`;
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    // ------------------------------------------------ Modo PWA e Instalación
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      const btn = document.getElementById('btn-pwa-install');
+      if (btn) btn.style.display = 'inline-flex';
+    });
+
+    async function triggerPWAInstall() {
+      if (!deferredPwaPrompt) {
+        toast('Para instalar en iPad o iPhone: Pulsa Compartir -> "Añadir a pantalla de inicio"', 'info', 5000);
+        return;
+      }
+      deferredPwaPrompt.prompt();
+      const choice = await deferredPwaPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        toast('✓ ¡App instalada en tu dispositivo!', 'success');
+      }
+      deferredPwaPrompt = null;
+      const btn = document.getElementById('btn-pwa-install');
+      if (btn) btn.style.display = 'none';
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
     }
 
     async function refreshPlayerState() {
@@ -1789,6 +2043,7 @@
     async function refreshAll() {
       await refreshLibrary();
       await refreshPlayerState();
+      await loadSongSections();
       await loadStems();
       await loadProjectionSettings();
     }

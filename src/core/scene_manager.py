@@ -42,16 +42,25 @@ class SceneManager:
             if isinstance(item, str):
                 song_id = item.strip()
                 transpose = 0
+                subgroup = ""
+                auto_next = False
             elif isinstance(item, dict):
                 song_id = str(item.get("song_id") or item.get("id") or "").strip()
                 try:
                     transpose = int(item.get("transpose", 0))
                 except (TypeError, ValueError):
                     transpose = 0
+                subgroup = str(item.get("subgroup") or "").strip()
+                auto_next = bool(item.get("auto_next", False))
             else:
                 continue
             if song_id:
-                normalized.append({"song_id": song_id, "transpose": transpose})
+                normalized.append({
+                    "song_id": song_id,
+                    "transpose": transpose,
+                    "subgroup": subgroup,
+                    "auto_next": auto_next,
+                })
         return normalized
 
     @staticmethod
@@ -61,12 +70,16 @@ class SceneManager:
         for idx, entry in enumerate(scene.get("songs", [])):
             sid = entry.get("song_id", "")
             transpose = int(entry.get("transpose", 0))
+            subgroup = entry.get("subgroup", "")
+            auto_next = bool(entry.get("auto_next", False))
             info = (library_map or {}).get(sid)
             if info:
                 items.append({
                     "index": idx,
                     "song_id": sid,
                     "transpose": transpose,
+                    "subgroup": subgroup,
+                    "auto_next": auto_next,
                     "title": info.get("title", sid),
                     "artist": info.get("artist", ""),
                     "key": info.get("key", "C"),
@@ -80,6 +93,8 @@ class SceneManager:
                     "index": idx,
                     "song_id": sid,
                     "transpose": transpose,
+                    "subgroup": subgroup,
+                    "auto_next": auto_next,
                     "title": sid.replace("-", " ").title(),
                     "artist": "",
                     "key": "-",

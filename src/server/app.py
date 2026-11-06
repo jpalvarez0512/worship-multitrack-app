@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from typing import List, Optional
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from src.audio.engine import MultitrackEngine, RoutingMode
@@ -35,6 +35,7 @@ from src.utils.network import get_connection_url, get_local_ip, print_ascii_qr
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 TRACKS_DIR = os.path.join(ROOT_DIR, "tracks")
 CONFIG_DIR = os.path.join(ROOT_DIR, "config")
+STATIC_DIR = os.path.join(ROOT_DIR, "static")
 
 song_loader = SongLoader(tracks_root=TRACKS_DIR)
 scene_manager = SceneManager(os.path.join(CONFIG_DIR, "scenes.json"))
@@ -95,6 +96,16 @@ def on_engine_tick(pos_seconds: float, is_playing: bool) -> None:
         pos_seconds, projection_config.lead_seconds
     )
 
+    # Estado de bucle de adoración espontánea y saltos programados
+    loop_active = False
+    loop_sec = ""
+    jump_pending = ""
+    if engine is not None:
+        st = engine.get_loop_state()
+        loop_active = bool(st.get("loop_enabled", False))
+        loop_sec = str(st.get("loop_label", ""))
+        jump_pending = str(st.get("pending_jump_label", ""))
+
     # Enviar al bucle asíncrono principal sin bloquear el hilo de audio
     coro = ws_manager.broadcast_tick(
         position_seconds=pos_seconds,
@@ -104,8 +115,39 @@ def on_engine_tick(pos_seconds: float, is_playing: bool) -> None:
         current_chord=active_chord,
         projection_lyric=proj_lyric,
         projection_section=proj_sec,
+        loop_active=loop_active,
+        loop_section=loop_sec,
+        pending_jump=jump_pending,
     )
     asyncio.run_coroutine_threadsafe(coro, main_event_loop)
+
+
+def on_track_finished() -> None:
+    """Invocado cuando la canción termina de reproducirse para encadenar subgrupos en escenas."""
+    global active_scene_id, active_scene_index, main_event_loop, engine
+    if not active_scene_id or main_event_loop is None or not main_event_loop.is_running():
+        return
+    try:
+        scene = scene_manager.get_scene(active_scene_id)
+        songs = scene.get("songs", [])
+        if active_scene_index < len(songs):
+            current_entry = songs[active_scene_index]
+            # Si tiene auto_next activo y hay una siguiente canción en la lista
+            if current_entry.get("auto_next", False) and active_scene_index < len(songs) - 1:
+                next_index = active_scene_index + 1
+                next_entry = songs[next_index]
+
+                async def do_advance():
+                    global active_scene_index
+                    active_scene_index = next_index
+                    print(f"🔗 [Auto-Play Subgrupo] Avanzando automáticamente a '{next_entry['song_id']}' (índice {next_index})...")
+                    _activate_song(next_entry["song_id"], next_entry.get("transpose", 0), from_scene=True)
+                    if engine is not None:
+                        engine.play()
+
+                asyncio.run_coroutine_threadsafe(do_advance(), main_event_loop)
+    except Exception as e:
+        print(f"⚠️ Error en auto-avance de escena: {e}")
 
 
 @asynccontextmanager
@@ -133,6 +175,8 @@ async def lifespan(app: FastAPI):
         setup_demo_audio(engine, current_song)
 
     engine.register_tick_listener(on_engine_tick)
+    engine.register_track_finished_listener(on_track_finished)
+    engine.set_song_timing(current_song.bpm, current_song.time_signature)
 
     local_ip = get_local_ip()
     port = 8000
@@ -324,6 +368,9 @@ def _activate_song(
                     break
         except KeyError:
             pass
+
+    if engine is not None:
+        engine.set_song_timing(current_song.bpm, current_song.time_signature)
 
     _notify_song_changed()
     return {
@@ -645,6 +692,99 @@ def transport_seek(pos: float):
         raise HTTPException(status_code=503, detail="Motor no disponible")
     engine.seek(pos)
     return {"status": "seeked", "pos": engine.current_position_seconds}
+
+
+@app.post("/api/transport/jump-section")
+def transport_jump_section(payload: dict):
+    """
+    Programa un salto cuantizado al compás hacia una sección musical (Coro, Puente, etc.).
+    """
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    
+    sec_name = payload.get("section_name", "").strip()
+    quantize = bool(payload.get("quantize", True))
+    target_time = payload.get("time")
+
+    if target_time is None and sec_name:
+        for s in current_song.sections:
+            if s.name.lower().strip() == sec_name.lower().strip():
+                target_time = s.start_time
+                break
+
+    if target_time is None:
+        raise HTTPException(status_code=400, detail=f"Sección '{sec_name}' no encontrada en la canción.")
+
+    engine.schedule_jump(float(target_time), label=sec_name, quantize_to_bar=quantize)
+    return {
+        "status": "jump_scheduled",
+        "target_time": float(target_time),
+        "section": sec_name,
+        "quantize": quantize,
+    }
+
+
+@app.post("/api/transport/cancel-jump")
+def transport_cancel_jump():
+    """Cancela un salto programado."""
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    engine.cancel_scheduled_jump()
+    return {"status": "jump_cancelled"}
+
+
+@app.post("/api/transport/loop-section")
+def transport_loop_section(payload: Optional[dict] = None):
+    """
+    Activa o alterna el bucle de adoración espontánea sobre una sección específica
+    o sobre la sección activa en el momento actual.
+    """
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    
+    payload = payload or {}
+    sec_name = payload.get("section_name")
+    enabled = payload.get("enabled")
+
+    target_sec = None
+    if sec_name:
+        for s in current_song.sections:
+            if s.name.lower().strip() == sec_name.lower().strip():
+                target_sec = s
+                break
+    else:
+        target_sec = current_song.get_section_at(engine.current_position_seconds)
+
+    if not target_sec:
+        sec_start = 0.0
+        sec_end = max(10.0, engine.duration_seconds)
+        sec_label = "Bucle"
+    else:
+        sec_start = target_sec.start_time
+        sec_end = target_sec.end_time
+        sec_label = target_sec.name
+
+    if enabled is not None:
+        engine.set_section_loop(sec_start, sec_end, label=sec_label, enabled=bool(enabled))
+        is_looping = bool(enabled)
+    else:
+        is_looping = engine.toggle_section_loop(sec_start, sec_end, label=sec_label)
+
+    return {
+        "status": "loop_toggled",
+        "loop_enabled": is_looping,
+        "section": sec_label,
+        "start": sec_start,
+        "end": sec_end,
+    }
+
+
+@app.get("/api/transport/loop-status")
+def transport_loop_status():
+    """Retorna el estado actual de bucle y saltos programados."""
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    return engine.get_loop_state()
 
 
 # -----------------------------------------------------------------------------
@@ -1106,3 +1246,31 @@ def serve_obs_page():
         with open(path, "r", encoding="utf-8") as f:
             return f.read()
     return "<h1>Salida OBS no encontrada</h1>"
+
+
+# -----------------------------------------------------------------------------
+# Soporte PWA (Progressive Web App para iPads, Tablets y Celulares)
+# -----------------------------------------------------------------------------
+
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/manifest.json")
+def serve_pwa_manifest():
+    """Entrega el manifiesto PWA para instalación en pantallas de inicio."""
+    manifest_path = os.path.join(STATIC_DIR, "manifest.json")
+    if os.path.exists(manifest_path):
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            return Response(content=f.read(), media_type="application/manifest+json")
+    raise HTTPException(status_code=404, detail="Manifest not found")
+
+
+@app.get("/sw.js")
+def serve_service_worker():
+    """Entrega el Service Worker PWA para caché y funcionamiento offline."""
+    sw_path = os.path.join(STATIC_DIR, "sw.js")
+    if os.path.exists(sw_path):
+        with open(sw_path, "r", encoding="utf-8") as f:
+            return Response(content=f.read(), media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="Service Worker not found")

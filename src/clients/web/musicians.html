@@ -4,7 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Terminal Músicos | Worship Multitrack</title>
+
+  <!-- PWA & Mobile Meta Tags -->
+  <meta name="theme-color" content="#070b14">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Worship Terminal">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="/static/icons/icon.svg">
+
   <style>
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     :root {
       --bg: #090c15;
       --card: #131a2a;
@@ -402,6 +414,7 @@
       <div class="header-tools">
         <button class="view-toggle-btn active" id="btn-mode-measure" onclick="setViewMode('measure')">🎯 Compás actual</button>
         <button class="view-toggle-btn" id="btn-mode-sheet" onclick="setViewMode('sheet')">📄 Hoja completa</button>
+        <button class="view-toggle-btn" id="btn-pwa-install" style="display:none;" onclick="triggerPWAInstall()">📲 Instalar</button>
 
         <div class="transpose-box">
           <button class="btn-tp" onclick="changeTranspose(-1)">-1</button>
@@ -416,7 +429,11 @@
     <!-- 1. VISTA DE COMPÁS ACTUAL (MODO PRINCIPAL) -->
     <div id="view-measure">
       <div class="measure-top-bar">
-        <div class="section-pill" id="m-section">INTRO</div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="section-pill" id="m-section">INTRO</div>
+          <span id="mus-loop-badge" style="display:none; background:#047857; color:#a7f3d0; border:1px solid #10b981; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:800; animation:pulse 1.2s infinite;">🔁 BUCLE: <strong id="mus-loop-name">--</strong></span>
+          <span id="mus-jump-badge" style="display:none; background:#854d0e; color:#fef08a; border:1px solid #facc15; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:800; animation:pulse 0.8s infinite;">⏳ SALTO A: <strong id="mus-jump-name">--</strong></span>
+        </div>
         <div class="beat-pulse-box" id="beat-box">
           <div class="beat-dot beat-one" id="dot-1"></div>
           <div class="beat-dot" id="dot-2"></div>
@@ -646,6 +663,7 @@
 
       // 2. Determinar acorde activo en este compás y el siguiente
       let currentActiveChord = "";
+      let activeChordIndex = -1;
       let nextChord = "";
       const line = st.line;
 
@@ -654,11 +672,13 @@
           const c = line.chords[i];
           if (pos >= c.time) {
             currentActiveChord = c.chord;
+            activeChordIndex = i;
             nextChord = (i + 1 < line.chords.length) ? line.chords[i + 1].chord : "";
           }
         }
         if (!currentActiveChord && line.chords.length) {
           currentActiveChord = line.chords[0].chord;
+          activeChordIndex = 0;
           nextChord = line.chords.length > 1 ? line.chords[1].chord : "";
         }
       }
@@ -676,9 +696,9 @@
       const chordsFlow = document.getElementById('m-chords-flow');
       chordsFlow.innerHTML = '';
       if (line.chords && line.chords.length) {
-        line.chords.forEach(c => {
+        line.chords.forEach((c, idx) => {
           const pill = document.createElement('span');
-          pill.className = 'measure-chord-pill' + (c.chord === currentActiveChord ? ' active-in-measure' : '');
+          pill.className = 'measure-chord-pill' + (idx === activeChordIndex ? ' active-in-measure' : '');
           pill.textContent = c.chord;
           chordsFlow.appendChild(pill);
         });
@@ -747,6 +767,26 @@
             stPill.textContent = isPlaying ? 'EN VIVO' : 'PAUSA';
             stPill.className = `live-status-pill ${isPlaying ? 'status-live' : 'status-paused'}`;
 
+            // Actualizar insignias de bucle y salto programado
+            const loopBadge = document.getElementById('mus-loop-badge');
+            const jumpBadge = document.getElementById('mus-jump-badge');
+            if (loopBadge) {
+              if (data.loop_active) {
+                loopBadge.style.display = 'inline-flex';
+                document.getElementById('mus-loop-name').textContent = data.loop_sec || 'ACTIVO';
+              } else {
+                loopBadge.style.display = 'none';
+              }
+            }
+            if (jumpBadge) {
+              if (data.jump_pending) {
+                jumpBadge.style.display = 'inline-flex';
+                document.getElementById('mus-jump-name').textContent = data.jump_pending;
+              } else {
+                jumpBadge.style.display = 'none';
+              }
+            }
+
           } else if (data.type === 'song_changed') {
             if (typeof data.default_transpose === 'number') {
               personalTranspose = data.default_transpose;
@@ -761,6 +801,33 @@
         setTimeout(connectWebSocket, 1200);
       };
       ws.onerror = () => ws.close();
+    }
+
+    // ------------------------------------------------ Modo PWA e Instalación
+    let deferredPwaPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      const btn = document.getElementById('btn-pwa-install');
+      if (btn) btn.style.display = 'inline-block';
+    });
+
+    async function triggerPWAInstall() {
+      if (!deferredPwaPrompt) {
+        alert('Para instalar en iPad o iPhone: Pulsa el botón Compartir y luego "Añadir a pantalla de inicio".');
+        return;
+      }
+      deferredPwaPrompt.prompt();
+      const choice = await deferredPwaPrompt.userChoice;
+      deferredPwaPrompt = null;
+      const btn = document.getElementById('btn-pwa-install');
+      if (btn) btn.style.display = 'none';
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
     }
 
     window.onload = () => {

@@ -63,8 +63,22 @@ class MultitrackEngine:
 
         # Suscriptores del reloj de tiempo (servidor WebSocket / pantallas)
         self._tick_callbacks: List[Callable[[float, bool], None]] = []
+        self._track_finished_callbacks: List[Callable[[], None]] = []
         self._ticker_thread: Optional[threading.Thread] = None
         self._stop_ticker_event = threading.Event()
+
+        # Métricas de tiempo y compás para saltos musicales cuantizados
+        self._bpm: float = 120.0
+        self._beats_per_bar: int = 4
+        self._pending_jump_frame: Optional[int] = None
+        self._pending_jump_label: str = ""
+
+        # Modo Bucle Espontáneo de Sección
+        self._loop_enabled: bool = False
+        self._loop_start_frame: int = 0
+        self._loop_end_frame: int = 0
+        self._loop_label: str = ""
+        self._fade_len: int = 512  # ~11.6 ms a 44.1 kHz (Micro-Crossfade Isopotente)
 
     # --------------------------------------------------------------------------
     # Gestión de Stems
@@ -133,6 +147,10 @@ class MultitrackEngine:
         with self._lock:
             self._is_playing = False
             self._current_frame = 0
+            self._pending_jump_frame = None
+            self._pending_jump_label = ""
+            self._loop_enabled = False
+            self._loop_label = ""
             stream_ref = self._stream
 
         if stream_ref is not None:
@@ -149,6 +167,8 @@ class MultitrackEngine:
         with self._lock:
             target_frame = int(max(0.0, position_seconds) * self.sample_rate)
             self._current_frame = target_frame
+            self._pending_jump_frame = None
+            self._pending_jump_label = ""
         self._notify_tick()
 
     @property
@@ -194,6 +214,125 @@ class MultitrackEngine:
             self.routing_mode = mode
 
     # --------------------------------------------------------------------------
+    # Sincronización Musical, Saltos Cuantizados y Modo Bucle Espontáneo
+    # --------------------------------------------------------------------------
+
+    def set_song_timing(self, bpm: float, time_signature: str = "4/4") -> None:
+        """Configura el tempo y la métrica de compás para cuantización musical."""
+        with self._lock:
+            self._bpm = max(30.0, min(float(bpm or 120.0), 300.0))
+            beats = 4
+            if time_signature and "/" in time_signature:
+                try:
+                    beats = int(time_signature.split("/")[0])
+                except Exception:
+                    beats = 4
+            self._beats_per_bar = max(1, min(beats, 16))
+
+    @property
+    def bar_duration_seconds(self) -> float:
+        """Duración en segundos de un compás completo según BPM y métrica."""
+        with self._lock:
+            return (60.0 / max(10.0, self._bpm)) * self._beats_per_bar
+
+    def schedule_jump(self, target_seconds: float, label: str = "", quantize_to_bar: bool = True) -> None:
+        """
+        Programa un salto a un punto específico de la canción (ej. Coro o Puente).
+        Si quantize_to_bar es True y está reproduciendo, el salto se sincroniza
+        exactamente con el tiempo 1 del siguiente compás para no cortar el ritmo.
+        """
+        target_f = int(max(0.0, target_seconds) * self.sample_rate)
+        with self._lock:
+            if not self._is_playing or not quantize_to_bar:
+                self._current_frame = target_f
+                self._pending_jump_frame = None
+                self._pending_jump_label = ""
+            else:
+                self._pending_jump_frame = target_f
+                self._pending_jump_label = label or "Sección"
+        self._notify_tick()
+
+    def cancel_scheduled_jump(self) -> None:
+        """Cancela un salto programado pendiente."""
+        with self._lock:
+            self._pending_jump_frame = None
+            self._pending_jump_label = ""
+        self._notify_tick()
+
+    def set_section_loop(self, start_seconds: float, end_seconds: float, label: str = "", enabled: bool = True) -> None:
+        """Activa o desactiva el bucle infinito sobre una sección específica."""
+        with self._lock:
+            self._loop_enabled = enabled
+            self._loop_start_frame = int(max(0.0, start_seconds) * self.sample_rate)
+            self._loop_end_frame = int(max(start_seconds + 0.1, end_seconds) * self.sample_rate)
+            self._loop_label = label if enabled else ""
+        self._notify_tick()
+
+    def toggle_section_loop(self, start_seconds: float = 0.0, end_seconds: float = 0.0, label: str = "") -> bool:
+        """Alterna el estado de bucle para una sección."""
+        with self._lock:
+            if self._loop_enabled and (not label or self._loop_label == label):
+                self._loop_enabled = False
+                self._loop_label = ""
+            else:
+                self._loop_enabled = True
+                self._loop_start_frame = int(max(0.0, start_seconds) * self.sample_rate)
+                self._loop_end_frame = int(max(start_seconds + 0.1, end_seconds) * self.sample_rate)
+                self._loop_label = label
+            current_state = self._loop_enabled
+        self._notify_tick()
+        return current_state
+
+    def get_loop_state(self) -> dict:
+        """Retorna el estado actual de bucle y saltos programados."""
+        with self._lock:
+            jump_sec = round(self._pending_jump_frame / self.sample_rate, 2) if self._pending_jump_frame is not None else None
+            return {
+                "loop_enabled": self._loop_enabled,
+                "loop_active": self._loop_enabled,
+                "loop_label": self._loop_label,
+                "loop_section": self._loop_label,
+                "loop_start": round(self._loop_start_frame / self.sample_rate, 2),
+                "loop_end": round(self._loop_end_frame / self.sample_rate, 2),
+                "pending_jump": self._pending_jump_label or (str(jump_sec) if jump_sec is not None else None),
+                "pending_jump_label": self._pending_jump_label,
+                "jump_target": jump_sec,
+            }
+
+    def register_track_finished_listener(self, callback: Callable[[], None]) -> None:
+        """Registra un callback invocado cuando la pista termina de reproducirse."""
+        if callback not in self._track_finished_callbacks:
+            self._track_finished_callbacks.append(callback)
+
+    def _notify_track_finished(self) -> None:
+        """Notifica a los suscriptores que la pista de audio finalizó."""
+        for cb in self._track_finished_callbacks:
+            try:
+                cb()
+            except Exception:
+                pass
+
+    def _mix_stems_range(
+        self,
+        master_out: np.ndarray,
+        cue_out: np.ndarray,
+        start_frame: int,
+        num_frames: int,
+        has_solo: bool,
+    ) -> None:
+        """Mezcla un rango de frames en los buffers especificados."""
+        for stem in self._stems.values():
+            if has_solo and not stem.solo:
+                continue
+            if stem.mute:
+                continue
+            route = stem.route
+            if route in ("master", "both"):
+                stem.add_slice_to(master_out, start_frame, num_frames)
+            if route in ("cue", "both"):
+                stem.add_slice_to(cue_out, start_frame, num_frames)
+
+    # --------------------------------------------------------------------------
     # Callback de Audio en Tiempo Real (Sounddevice)
     # --------------------------------------------------------------------------
 
@@ -225,9 +364,15 @@ class MultitrackEngine:
             curr = self._current_frame
             max_frames = self.total_frames
 
-            # Si llegamos al final de la canción
-            if curr >= max_frames:
+            # 1. Comprobar si llegamos al final de la canción
+            if curr >= max_frames and not self._loop_enabled:
                 self._is_playing = False
+                track_finished = True
+            else:
+                track_finished = False
+
+            if track_finished:
+                threading.Thread(target=self._notify_track_finished, daemon=True).start()
                 return
 
             # Reutilizar buffers preasignados evitando allocs de NumPy por cada bloque
@@ -240,20 +385,55 @@ class MultitrackEngine:
             master_mix.fill(0.0)
             cue_mix.fill(0.0)
 
-            # Detectar si hay algún stem en modo SOLO
             has_solo = any(stem.solo for stem in self._stems.values())
 
-            for stem in self._stems.values():
-                if has_solo and not stem.solo:
-                    continue
-                if stem.mute:
-                    continue
+            # 2. Detección de Transición Cuantizada al Compás o Bucle Activo
+            samples_per_beat = max(1, int((60.0 / max(10.0, self._bpm)) * self.sample_rate))
+            samples_per_bar = max(1, samples_per_beat * self._beats_per_bar)
 
-                route = stem.route
-                if route in ("master", "both"):
-                    stem.add_slice_to(master_mix, curr, frames)
-                if route in ("cue", "both"):
-                    stem.add_slice_to(cue_mix, curr, frames)
+            transition_frame = None
+            target_frame = None
+
+            # Caso A: Salto programado (Sección específica elegida por el operador)
+            if self._pending_jump_frame is not None:
+                bar_idx = curr // samples_per_bar
+                next_bar = (bar_idx + 1) * samples_per_bar
+                if curr <= next_bar < curr + frames:
+                    transition_frame = next_bar
+                    target_frame = self._pending_jump_frame
+                    self._pending_jump_frame = None
+                    self._pending_jump_label = ""
+            # Caso B: Bucle infinito de sección activo
+            elif self._loop_enabled and self._loop_end_frame > self._loop_start_frame:
+                if curr < self._loop_end_frame <= curr + frames:
+                    transition_frame = self._loop_end_frame
+                    target_frame = self._loop_start_frame
+
+            if transition_frame is not None and target_frame is not None:
+                split = max(0, min(frames, transition_frame - curr))
+                # Mezclar parte 1 (antes del límite de compás)
+                if split > 0:
+                    self._mix_stems_range(master_mix[:split], cue_mix[:split], curr, split, has_solo)
+                # Mezclar parte 2 (después del límite de compás en el nuevo punto)
+                rem = frames - split
+                if rem > 0:
+                    self._mix_stems_range(master_mix[split:frames], cue_mix[split:frames], target_frame, rem, has_solo)
+
+                # Micro-crossfade isopotente (15 ms) en la costura para evitar 'clics' o 'pops'
+                fade_k = min(self._fade_len, split, rem)
+                if fade_k > 8:
+                    t = np.linspace(0.0, 1.0, fade_k, dtype=np.float32)[:, np.newaxis]
+                    f_out = 0.5 * (1.0 + np.cos(np.pi * t))
+                    f_in = 0.5 * (1.0 - np.cos(np.pi * t))
+                    master_mix[split - fade_k : split] *= f_out
+                    cue_mix[split - fade_k : split] *= f_out
+                    master_mix[split : split + fade_k] *= f_in
+                    cue_mix[split : split + fade_k] *= f_in
+
+                self._current_frame = target_frame + rem
+            else:
+                self._mix_stems_range(master_mix, cue_mix, curr, frames, has_solo)
+                self._current_frame += frames
 
             # Aplicación de modo de ruteo con aceleración vectorizada
             if self.routing_mode == RoutingMode.SPLIT_STEREO:
@@ -270,8 +450,6 @@ class MultitrackEngine:
                 full_r = (master_mix[:, 1] * self._master_volume) + (cue_mix[:, 1] * self._cue_volume)
                 outdata[:, 0] = np.clip(full_l, -1.0, 1.0)
                 outdata[:, 1] = np.clip(full_r, -1.0, 1.0)
-
-            self._current_frame += frames
 
     # --------------------------------------------------------------------------
     # Hilo Ticker de Sincronización para Red y Pantallas

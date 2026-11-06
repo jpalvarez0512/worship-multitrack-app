@@ -100,6 +100,8 @@ class CueManager:
         """
         repite = self.get_cue("repite")
         sec_cue = self.get_cue_for_section(section_name)
+        if sec_cue is None:
+            sec_cue = self.get_cue(section_name)
 
         if repite is not None and sec_cue is not None:
             gap = np.zeros(int(self.sample_rate * 0.08), dtype=np.float32)
@@ -109,3 +111,49 @@ class CueManager:
         elif repite is not None:
             return repite
         return None
+
+    def build_transition_cue(
+        self, section_name: str, bpm: float = 120.0, beats_per_bar: int = 4
+    ) -> Optional[np.ndarray]:
+        """
+        Construye una guía rítmica de compás completo para aviso anticipado:
+        Tiempo 1: [Nombre de la Sección] (ej. "Coro")
+        Tiempo 2: "Dos"
+        Tiempo 3: "Tres"
+        Tiempo 4: "Cuatro"
+        Sincronizado exactamente con los tiempos del compás según el BPM.
+        """
+        sec_cue = self.get_cue_for_section(section_name)
+        if sec_cue is None:
+            sec_cue = self.get_cue(section_name)
+        if sec_cue is None:
+            sec_cue = self.get_cue("atentos")
+
+        bpm = max(40.0, min(float(bpm or 120.0), 240.0))
+        beats = max(2, min(int(beats_per_bar or 4), 8))
+        samples_per_beat = max(1, int((60.0 / bpm) * self.sample_rate))
+        total_samples = samples_per_beat * beats
+
+        buffer = np.zeros(total_samples, dtype=np.float32)
+
+        def _place_clip(clip: Optional[np.ndarray], start_idx: int):
+            if clip is None or start_idx >= total_samples:
+                return
+            end_idx = min(total_samples, start_idx + len(clip))
+            copy_len = end_idx - start_idx
+            buffer[start_idx:end_idx] += clip[:copy_len]
+
+        # Tiempo 1: Sección
+        _place_clip(sec_cue, 0)
+
+        # Tiempos siguientes: 2, 3, 4...
+        number_cues = {2: "dos", 3: "tres", 4: "cuatro"}
+        for b in range(2, beats + 1):
+            cue_word = number_cues.get(b)
+            if cue_word:
+                num_audio = self.get_cue(cue_word)
+                if num_audio is not None:
+                    start_pos = (b - 1) * samples_per_beat
+                    _place_clip(num_audio, start_pos)
+
+        return np.clip(buffer, -1.0, 1.0)

@@ -73,6 +73,8 @@ class MultitrackEngine:
         self._beats_per_bar: int = 4
         self._pending_jump_frame: Optional[int] = None
         self._pending_jump_label: str = ""
+        self._jump_lead_bar_frame: Optional[int] = None
+        self._jump_target_bar_frame: Optional[int] = None
 
         # Modo Bucle Espontáneo de Sección
         self._loop_enabled: bool = False
@@ -177,6 +179,10 @@ class MultitrackEngine:
             self._current_frame = target_frame
             self._pending_jump_frame = None
             self._pending_jump_label = ""
+            self._jump_lead_bar_frame = None
+            self._jump_target_bar_frame = None
+            self._active_overlay_cue = None
+            self._active_overlay_pos = 0
         self._notify_tick()
 
     @property
@@ -245,10 +251,11 @@ class MultitrackEngine:
 
     def schedule_jump(self, target_seconds: float, label: str = "", quantize_to_bar: bool = True) -> None:
         """
-        Programa un salto a un punto específico de la canción (ej. Coro o Puente).
-        Si quantize_to_bar es True y está reproduciendo, el salto se sincroniza
-        exactamente con el tiempo 1 del siguiente compás para no cortar el ritmo.
-        Además, inyecta la indicación hablada correspondiente en los in-ears de los músicos.
+        Programa un salto cuantizado a una sección musical (ej. Coro, Puente).
+        Garantiza un compás completo de aviso para la banda antes de ejecutar el salto:
+        El compás de aviso comienza en el siguiente compás completo y cuenta:
+        "[Sección] ... 2 ... 3 ... 4", dando tiempo holgado al sistema y evitando
+        saltos abruptos o tropezados aún si el cambio se envía en el último click.
         """
         target_f = int(max(0.0, target_seconds) * self.sample_rate)
         with self._lock:
@@ -256,15 +263,21 @@ class MultitrackEngine:
                 self._current_frame = target_f
                 self._pending_jump_frame = None
                 self._pending_jump_label = ""
+                self._jump_lead_bar_frame = None
+                self._jump_target_bar_frame = None
             else:
                 self._pending_jump_frame = target_f
                 self._pending_jump_label = label or "Sección"
-                # Avisar a la banda por in-ear en el compás previo al salto
-                if self._dynamic_cues_enabled and label:
-                    cue_audio = self._cue_manager.get_cue_for_section(label)
-                    if cue_audio is not None:
-                        self._active_overlay_cue = cue_audio
-                        self._active_overlay_pos = 0
+
+                samples_per_beat = max(1, int((60.0 / max(10.0, self._bpm)) * self.sample_rate))
+                samples_per_bar = max(1, samples_per_beat * self._beats_per_bar)
+                curr = self._current_frame
+                next_bar = ((curr // samples_per_bar) + 1) * samples_per_bar
+
+                # El compás de conteo y aviso comenzará en next_bar
+                self._jump_lead_bar_frame = next_bar
+                # La transición definitiva a la nueva sección ocurrirá 1 compás completo después
+                self._jump_target_bar_frame = next_bar + samples_per_bar
         self._notify_tick()
 
     def trigger_cue(self, cue_name: str) -> bool:
@@ -293,6 +306,10 @@ class MultitrackEngine:
         with self._lock:
             self._pending_jump_frame = None
             self._pending_jump_label = ""
+            self._jump_lead_bar_frame = None
+            self._jump_target_bar_frame = None
+            self._active_overlay_cue = None
+            self._active_overlay_pos = 0
         self._notify_tick()
 
     def set_section_loop(self, start_seconds: float, end_seconds: float, label: str = "", enabled: bool = True) -> None:
@@ -461,8 +478,26 @@ class MultitrackEngine:
             transition_frame = None
             target_frame = None
 
-            # Caso A: Salto programado (Sección específica elegida por el operador)
-            if self._pending_jump_frame is not None:
+            # Caso A: Salto programado con compás completo de espera y conteo rítmico ("Coro 2, 3, 4")
+            if self._jump_lead_bar_frame is not None:
+                if curr <= self._jump_lead_bar_frame < curr + frames:
+                    if self._dynamic_cues_enabled and self._pending_jump_label:
+                        lead_cue = self._cue_manager.build_transition_cue(
+                            self._pending_jump_label, bpm=self._bpm, beats_per_bar=self._beats_per_bar
+                        )
+                        if lead_cue is not None:
+                            self._active_overlay_cue = lead_cue
+                            self._active_overlay_pos = 0
+                    self._jump_lead_bar_frame = None
+
+            if self._jump_target_bar_frame is not None and self._pending_jump_frame is not None:
+                if curr <= self._jump_target_bar_frame < curr + frames:
+                    transition_frame = self._jump_target_bar_frame
+                    target_frame = self._pending_jump_frame
+                    self._jump_target_bar_frame = None
+                    self._pending_jump_frame = None
+                    self._pending_jump_label = ""
+            elif self._pending_jump_frame is not None and self._jump_target_bar_frame is None:
                 bar_idx = curr // samples_per_bar
                 next_bar = (bar_idx + 1) * samples_per_bar
                 if curr <= next_bar < curr + frames:

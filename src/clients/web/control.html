@@ -13,27 +13,29 @@
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
   <style>
     :root {
-      /* Paleta Pro Audio DAW / Rack Hardware */
-      --bg: #07090e;
-      --chassis: #0e121b;
-      --chassis-surface: #131824;
-      --chassis-inset: #06080d;
-      --border-rack: #1e2638;
-      --border-rack-highlight: #2c384e;
-      --border-rack-subtle: #151b27;
+      /* Paleta Minimalista Pro DAW (Inspirada en Ableton Live 12 / Pro Tools / Bitwig) */
+      --bg: #131417;
+      --panel-bg: #1b1c21;
+      --panel-bg-hover: #22242a;
+      --panel-inset: #0e0f12;
+      --border: #282a32;
+      --border-light: #353844;
       
-      /* LEDs e Indicadores de Consola */
-      --vfd-green: #10b981;
-      --vfd-cyan: #38bdf8;
-      --vfd-amber: #f59e0b;
-      --vfd-red: #ef4444;
-      --vfd-purple: #818cf8;
+      /* Colores Funcionales de Estado */
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --daw-green: #10b981;
+      --daw-amber: #f59e0b;
+      --daw-red: #ef4444;
+      --daw-cyan: #06b6d4;
+      --daw-solo: #eab308;
+      --daw-mute: #e11d48;
       
-      /* Tipografía y Serigrafía */
-      --text: #f1f5f9;
-      --text-muted: #8492a6;
-      --text-dim: #475569;
-      --text-engraved: #334155;
+      /* Tipografía Técnica */
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -44,145 +46,135 @@
       max-width: 1400px;
       margin: 0 auto;
       letter-spacing: -0.01em;
+      -webkit-font-smoothing: antialiased;
     }
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 18px;
-      padding: 12px 18px;
-      background: linear-gradient(180deg, #121722 0%, #0a0d14 100%);
-      border: 1px solid var(--border-rack);
-      border-radius: 8px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
       flex-wrap: wrap;
       gap: 12px;
     }
     .header-branding {
       display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .rack-bolt {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #475569 30%, #1e293b 80%);
-      box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.8);
-      display: inline-block;
+      flex-direction: column;
+      gap: 2px;
     }
     h1 {
-      font-size: 1.15rem;
-      font-weight: 800;
+      font-size: 1.05rem;
+      font-weight: 700;
       color: #fff;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .header-subtitle {
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
     .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-    /* Botones de Hardware General */
+    /* Botones Minimalistas de DAW */
     .btn {
-      border: 1px solid #2d3748;
-      padding: 7px 13px;
-      border-radius: 5px;
-      font-weight: 700;
-      font-size: 0.82rem;
+      border: 1px solid var(--border-light);
+      padding: 6px 12px;
+      border-radius: 3px;
+      font-weight: 600;
+      font-size: 0.8rem;
       cursor: pointer;
-      color: #e2e8f0;
-      background: linear-gradient(180deg, #1e2638 0%, #111622 100%);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+      color: #e5e7eb;
+      background: #23252c;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       white-space: nowrap;
-      transition: all 0.12s ease;
+      transition: background 0.12s ease, border-color 0.12s ease;
       user-select: none;
+      letter-spacing: 0.02em;
     }
     .btn:hover {
-      filter: brightness(1.15);
-      border-color: #3e4c63;
-      transform: translateY(-1px);
+      background: #2d3039;
+      border-color: #4b5162;
+      color: #fff;
     }
     .btn:active {
-      transform: translateY(1px);
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.7);
+      background: #1d1e24;
     }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-    .btn-secondary { background: linear-gradient(180deg, #1e2838 0%, #131924 100%); border-color: #2a374c; }
-    .btn-success { background: linear-gradient(180deg, #059669 0%, #047857 100%); border-color: #10b981; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
-    .btn-danger { background: linear-gradient(180deg, #991b1b 0%, #7f1d1d 100%); border-color: #ef4444; color: #fff; }
-    .btn-warning { background: linear-gradient(180deg, #d97706 0%, #b45309 100%); border-color: #f59e0b; color: #fff; }
-    .btn-info { background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%); border-color: #38bdf8; color: #fff; }
-    .btn-primary { background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%); border-color: #60a5fa; color: #fff; }
-    .btn-sm { padding: 5px 9px; font-size: 0.76rem; border-radius: 4px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-secondary { background: #23252c; border-color: var(--border-light); }
+    .btn-success { background: #065f46; border-color: #059669; color: #ecfdf5; }
+    .btn-success:hover { background: #047857; border-color: #10b981; }
+    .btn-danger { background: #7f1d1d; border-color: #991b1b; color: #fef2f2; }
+    .btn-danger:hover { background: #991b1b; border-color: #dc2626; }
+    .btn-warning { background: #78350f; border-color: #92400e; color: #fffbeb; }
+    .btn-warning:hover { background: #92400e; border-color: #d97706; }
+    .btn-info { background: #075985; border-color: #0284c7; color: #f0f9ff; }
+    .btn-info:hover { background: #0284c7; border-color: #38bdf8; }
+    .btn-primary { background: #1e40af; border-color: #2563eb; color: #eff6ff; }
+    .btn-primary:hover { background: #2563eb; border-color: #60a5fa; }
+    .btn-sm { padding: 4px 8px; font-size: 0.74rem; }
 
     .lan-badge {
-      background: #042f2e;
-      color: #5eead4;
-      border: 1px solid #115e59;
-      padding: 5px 11px;
-      border-radius: 5px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      letter-spacing: 0.5px;
+      background: #0f172a;
+      color: #38bdf8;
+      border: 1px solid #1e293b;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      letter-spacing: 0.05em;
     }
 
-    .grid-layout { display: grid; grid-template-columns: 1.48fr 1fr; gap: 18px; }
+    .grid-layout { display: grid; grid-template-columns: 1.45fr 1fr; gap: 16px; }
     @media (max-width: 980px) { .grid-layout { grid-template-columns: 1fr; } }
 
-    /* Rack Chassis Panels */
+    /* Paneles de Chasis */
     .panel {
-      background: linear-gradient(180deg, #10141e 0%, #0a0d14 100%);
-      border: 1px solid var(--border-rack);
-      border-radius: 8px;
-      padding: 16px 18px;
-      margin-bottom: 18px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
-      position: relative;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 16px;
+      margin-bottom: 16px;
     }
     .panel h2 {
-      font-size: 0.95rem;
-      font-weight: 800;
+      font-size: 0.84rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 14px;
-      color: #94a3b8;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      color: var(--text-muted);
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 10px;
-      border-bottom: 1px solid var(--border-rack-subtle);
+      border-bottom: 1px solid var(--border);
       padding-bottom: 8px;
     }
 
     /* -------------------------------------------------------------
-       DISPLAY MAESTRO DE TRANSPORTE (ESTILO OLED / VFD HARDWARE)
+       DISPLAY MAESTRO DE TRANSPORTE (MINIMALISTA DAW)
        ------------------------------------------------------------- */
     .master-display-bezel {
-      background: #05070c;
-      border: 1px solid #141c2a;
-      border-radius: 8px;
-      padding: 14px 18px;
-      margin-bottom: 14px;
-      box-shadow: inset 0 2px 10px rgba(0,0,0,0.95), 0 1px 0 rgba(255,255,255,0.05);
-      position: relative;
-      overflow: hidden;
-    }
-    .master-display-bezel::after {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0; height: 40%;
-      background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
-      pointer-events: none;
+      background: var(--panel-inset);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
     }
     .vfd-top-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       flex-wrap: wrap;
       gap: 8px;
     }
@@ -192,21 +184,20 @@
       gap: 8px;
     }
     .vfd-badge-live {
-      font-family: ui-monospace, SFMono-Regular, monospace;
-      font-size: 0.68rem;
-      font-weight: 900;
-      letter-spacing: 1px;
-      background: #450a0a;
-      color: #fca5a5;
-      border: 1px solid #991b1b;
-      padding: 2px 6px;
-      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      background: #262933;
+      color: var(--text-muted);
+      border: 1px solid var(--border-light);
+      padding: 2px 5px;
+      border-radius: 2px;
     }
     .vfd-song-title {
-      font-weight: 800;
-      font-size: 1.05rem;
-      color: #f8fafc;
-      letter-spacing: -0.01em;
+      font-weight: 700;
+      font-size: 0.98rem;
+      color: #fff;
     }
     .vfd-meta-chips {
       display: flex;
@@ -214,63 +205,60 @@
       gap: 6px;
     }
     .vfd-chip {
-      background: #0c121d;
-      border: 1px solid #1a2538;
-      color: var(--vfd-cyan);
-      font-family: ui-monospace, monospace;
-      font-size: 0.78rem;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 4px;
+      background: #17181c;
+      border: 1px solid var(--border);
+      color: var(--daw-cyan);
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 2px;
     }
     .vfd-cue-badge {
-      font-family: ui-monospace, monospace;
-      font-size: 0.74rem;
-      font-weight: 800;
-      padding: 3px 9px;
-      border-radius: 4px;
-      letter-spacing: 0.5px;
-      transition: all 0.2s ease;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 2px;
+      letter-spacing: 0.04em;
     }
     .vfd-cue-badge.cue-on {
       background: #064e3b;
-      border: 1px solid #10b981;
+      border: 1px solid #059669;
       color: #6ee7b7;
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
     }
     .vfd-cue-badge.cue-off {
-      background: #181c26;
-      border: 1px solid #2d3748;
-      color: #64748b;
+      background: #1f2128;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
     }
 
-    /* Reloj Digital OLED Grande */
+    /* Reloj Digital Minimalista */
     .vfd-time-digits {
       display: flex;
       align-items: baseline;
       justify-content: center;
-      gap: 12px;
-      margin: 8px 0 12px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      gap: 8px;
+      margin: 6px 0 10px;
+      font-family: var(--font-mono);
       font-variant-numeric: tabular-nums;
       user-select: none;
     }
     .vfd-time-now {
-      font-size: 2.3rem;
-      font-weight: 900;
-      color: var(--vfd-green);
-      letter-spacing: 2px;
-      text-shadow: 0 0 16px rgba(16, 185, 129, 0.5), 0 0 4px #10b981;
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 1px;
     }
     .vfd-time-sep {
-      font-size: 1.4rem;
-      color: #334155;
+      font-size: 1.3rem;
+      color: var(--text-dim);
     }
     .vfd-time-total {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: #64748b;
-      letter-spacing: 1px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
     }
 
     /* Barra de Navegación de Escena / Setlist */
@@ -278,138 +266,129 @@
       display: flex;
       gap: 8px;
       margin-bottom: 12px;
-      background: #0b1322;
-      border: 1px solid #1e3a5f;
-      border-radius: 6px;
-      padding: 8px 12px;
+      background: #171c26;
+      border: 1px solid #1e2e46;
+      border-radius: 3px;
+      padding: 6px 12px;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.84rem;
+      font-size: 0.8rem;
     }
     .scene-nav-bar strong { color: #38bdf8; }
     .scene-nav-btns { display: flex; gap: 6px; }
 
-    /* Botones de Transporte Tipo Hardware Push-Button */
+    /* Botones de Transporte DAW */
     .transport-controls-hw {
       display: flex;
-      gap: 10px;
-      margin-bottom: 14px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
     .btn-hw {
       flex: 1;
-      padding: 12px 14px;
-      border-radius: 6px;
-      font-size: 0.96rem;
-      font-weight: 900;
+      padding: 10px 14px;
+      border-radius: 3px;
+      font-size: 0.84rem;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      border: 1px solid transparent;
+      gap: 8px;
+      border: 1px solid var(--border-light);
+      background: #23252d;
+      color: #d1d5db;
       user-select: none;
+      letter-spacing: 0.06em;
       transition: all 0.1s ease;
-      position: relative;
-    }
-    .btn-hw-play {
-      background: linear-gradient(180deg, #059669 0%, #047857 50%, #064e3b 100%);
-      color: #fff;
-      border-color: #10b981;
-      box-shadow: 0 4px 12px rgba(4, 120, 87, 0.4), inset 0 1px 0 rgba(255,255,255,0.25);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-    }
-    .btn-hw-pause {
-      background: linear-gradient(180deg, #d97706 0%, #b45309 50%, #78350f 100%);
-      color: #fff;
-      border-color: #f59e0b;
-      box-shadow: 0 4px 12px rgba(180, 83, 9, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-    }
-    .btn-hw-stop {
-      background: linear-gradient(180deg, #dc2626 0%, #b91c1c 50%, #7f1d1d 100%);
-      color: #fff;
-      border-color: #ef4444;
-      box-shadow: 0 4px 12px rgba(185, 28, 28, 0.4), inset 0 1px 0 rgba(255,255,255,0.25);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
     }
     .btn-hw:hover {
-      filter: brightness(1.15);
-      transform: translateY(-1px);
+      background: #2d303a;
+      color: #fff;
     }
     .btn-hw:active {
-      transform: translateY(1px);
-      box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+      background: #18191e;
     }
-    .btn-hw-led {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 0 8px #fff;
-      display: inline-block;
+    .btn-hw-play:hover {
+      border-color: var(--daw-green);
+      color: #34d399;
     }
+    .btn-hw-pause:hover {
+      border-color: var(--daw-amber);
+      color: #fbbf24;
+    }
+    .btn-hw-stop:hover {
+      border-color: var(--daw-red);
+      color: #f87171;
+    }
+    .btn-hw-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 1px;
+      background: var(--text-dim);
+    }
+    .btn-hw-play .btn-hw-indicator { background: var(--daw-green); }
+    .btn-hw-pause .btn-hw-indicator { background: var(--daw-amber); }
+    .btn-hw-stop .btn-hw-indicator { background: var(--daw-red); }
 
-    /* Scrubber / Slider VFD Timeline */
+    /* Timeline Scrubber */
     .vfd-progress-well {
-      margin-top: 8px;
-      padding: 0 2px;
+      margin-top: 6px;
     }
     .slider {
       width: 100%;
-      height: 6px;
-      border-radius: 3px;
-      background: #0b111a;
-      border: 1px solid #1a2436;
+      height: 4px;
+      border-radius: 2px;
+      background: #262832;
       outline: none;
       -webkit-appearance: none;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
       cursor: pointer;
     }
     .slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 14px;
-      height: 20px;
+      width: 12px;
+      height: 14px;
       border-radius: 2px;
-      background: linear-gradient(180deg, #94a3b8 0%, #475569 50%, #334155 100%);
-      border: 1px solid #cbd5e1;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.4);
+      background: #9ca3af;
+      border: 1px solid #d1d5db;
       cursor: pointer;
+    }
+    .slider::-webkit-slider-thumb:hover {
+      background: #ffffff;
     }
 
     /* -------------------------------------------------------------
-       RACK DE ADORACIÓN ESPONTÁNEA & GUÍAS IN-EAR ON-THE-FLY
+       SECCIÓN DE ADORACIÓN ESPONTÁNEA & GUÍAS IN-EAR
        ------------------------------------------------------------- */
     .spontaneous-rack {
-      background: #090c13;
-      border: 1px solid #1c2536;
-      border-radius: 7px;
-      padding: 12px 14px;
-      margin-top: 14px;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+      background: var(--panel-inset);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 12px;
+      margin-top: 12px;
     }
     .spontaneous-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       flex-wrap: wrap;
       gap: 8px;
     }
     .spontaneous-title {
-      font-size: 0.72rem;
-      font-weight: 900;
-      color: #94a3b8;
-      letter-spacing: 1px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       display: flex;
       align-items: center;
       gap: 6px;
     }
     .rack-indicator-dot {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
-      background: var(--vfd-cyan);
-      box-shadow: 0 0 6px var(--vfd-cyan);
+      background: var(--daw-cyan);
     }
     .spontaneous-actions {
       display: flex;
@@ -418,300 +397,288 @@
       flex-wrap: wrap;
     }
     .btn-rack-action {
-      background: #121824;
-      border: 1px solid #243248;
-      color: #cbd5e1;
-      font-size: 0.76rem;
-      font-weight: 700;
-      padding: 5px 10px;
-      border-radius: 4px;
+      background: #1f2128;
+      border: 1px solid var(--border-light);
+      color: #d1d5db;
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 3px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      transition: all 0.12s ease;
+      gap: 5px;
+      transition: all 0.1s ease;
+      letter-spacing: 0.03em;
     }
     .btn-rack-action:hover {
-      background: #1a2334;
-      border-color: #3b4d6b;
+      background: #2a2c35;
       color: #fff;
     }
-    .btn-cue-toggle {
-      border-color: #065f46;
+    .btn-cue-toggle.active-on {
+      border-color: #059669;
       background: #064e3b;
       color: #a7f3d0;
     }
-    .btn-cue-toggle.active-on {
-      border-color: #10b981;
-      background: #064e3b;
-      color: #6ee7b7;
-      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
-    }
     .cue-led-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 6px #10b981;
+      width: 6px;
+      height: 6px;
+      border-radius: 1px;
+      background: var(--daw-green);
       display: inline-block;
     }
     .cue-led-dot.led-off {
-      background: #475569;
-      box-shadow: none;
+      background: var(--text-dim);
     }
 
-    /* Barra de Micro-Cues de Intercom / Avisos Rápidos */
+    /* Micro-Cues de Intercomunicador Rápido */
     .micro-cues-toolbar {
-      background: #06080d;
-      border: 1px solid #141b26;
-      border-radius: 5px;
+      background: #14151a;
+      border: 1px solid var(--border);
+      border-radius: 3px;
       padding: 8px 10px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     .micro-cues-label {
-      font-size: 0.65rem;
-      font-weight: 800;
-      color: #64748b;
-      letter-spacing: 0.8px;
-      margin-bottom: 6px;
+      font-size: 0.63rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
       display: block;
     }
     .micro-cues-btns {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
+      gap: 4px;
     }
     .btn-cue-trigger {
-      background: #111722;
-      border: 1px solid #202b3c;
-      color: #cbd5e1;
-      font-size: 0.73rem;
-      font-weight: 700;
+      background: #20222a;
+      border: 1px solid var(--border-light);
+      color: #d1d5db;
+      font-size: 0.72rem;
+      font-weight: 600;
       padding: 4px 8px;
-      border-radius: 4px;
+      border-radius: 2px;
       cursor: pointer;
       user-select: none;
+      letter-spacing: 0.04em;
       transition: all 0.1s ease;
     }
     .btn-cue-trigger:hover {
-      background: #1e293b;
-      border-color: #f59e0b;
+      background: #2b2e38;
+      border-color: var(--daw-amber);
       color: #fde68a;
-      box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
     }
     .btn-cue-trigger:active {
-      transform: scale(0.96);
-      background: #b45309;
+      background: #78350f;
       color: #fff;
     }
     .btn-cue-trigger.btn-cue-sec {
-      background: #0f1624;
-      border-color: #1e2e46;
+      background: #181a21;
+      border-color: #2e3342;
       color: #93c5fd;
     }
     .btn-cue-trigger.btn-cue-sec:hover {
       border-color: #38bdf8;
       color: #e0f2fe;
-      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
     }
 
-    /* Secciones de Canción para Salto Cuantizado */
+    /* Secciones de Canción */
     .section-chips-container {
-      margin-top: 6px;
+      margin-top: 4px;
     }
     .section-chips-label {
-      font-size: 0.65rem;
-      font-weight: 800;
-      color: #64748b;
-      letter-spacing: 0.8px;
+      font-size: 0.63rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       margin-bottom: 5px;
       display: block;
     }
     .section-chips-flow {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
+      gap: 4px;
     }
     .section-jump-btn {
-      background: #0f1522;
-      border: 1px solid #202c40;
+      background: #1b1c22;
+      border: 1px solid var(--border-light);
       color: #cbd5e1;
-      padding: 5px 9px;
-      border-radius: 4px;
-      font-size: 0.77rem;
-      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 2px;
+      font-size: 0.74rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.12s ease;
+      letter-spacing: 0.02em;
+      transition: all 0.1s ease;
     }
     .section-jump-btn:hover {
-      background: #1e293b;
-      border-color: #38bdf8;
-      color: #38bdf8;
+      background: #262832;
+      border-color: var(--daw-cyan);
+      color: var(--daw-cyan);
     }
     .section-jump-btn.active-sec {
-      background: #0284c7;
+      background: #0369a1;
       color: #fff;
-      border-color: #7dd3fc;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
-      font-weight: 800;
+      border-color: #38bdf8;
+      font-weight: 700;
     }
 
     /* -------------------------------------------------------------
-       MEZCLADOR DE STEMS: CONSOLA DE ESTUDIO CON ESCALA DB
+       MEZCLADOR DE STEMS: CONSOLA MINIMALISTA DE AUDIO
        ------------------------------------------------------------- */
     .stem-channel-strip {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 10px 12px;
-      background: linear-gradient(180deg, #111622 0%, #0a0d14 100%);
-      border: 1px solid #1a2436;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
-      transition: border-color 0.15s ease;
+      padding: 8px 12px;
+      background: #16181e;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      margin-bottom: 6px;
+      transition: border-color 0.12s ease;
     }
     .stem-channel-strip:hover {
-      border-color: #2b3952;
+      border-color: #3f4453;
     }
     .stem-header-info {
-      flex: 0 0 200px;
-      min-width: 150px;
+      flex: 0 0 190px;
+      min-width: 140px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
     .stem-name-tag {
-      font-weight: 700;
-      font-size: 0.88rem;
-      color: #f8fafc;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #f3f4f6;
       word-break: break-word;
       line-height: 1.25;
     }
     .route-tag {
       align-self: flex-start;
-      font-size: 0.66rem;
-      padding: 2px 7px;
-      border-radius: 3px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
+      font-size: 0.63rem;
+      padding: 2px 6px;
+      border-radius: 2px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
       cursor: pointer;
       user-select: none;
-      transition: transform 0.1s ease;
-      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-family: var(--font-mono);
     }
-    .route-tag:active { transform: scale(0.95); }
     .route-cue {
       background: #1e1b4b;
-      border: 1px solid #4338ca;
+      border: 1px solid #3730a3;
       color: #c7d2fe;
     }
     .route-master {
       background: #022c22;
-      border: 1px solid #059669;
+      border: 1px solid #065f46;
       color: #a7f3d0;
     }
     .route-both {
       background: #451a03;
-      border: 1px solid #d97706;
+      border: 1px solid #78350f;
       color: #fde68a;
     }
 
-    /* Canal Fader con Escala dB Serigrafiada */
+    /* Canal Fader con Escala dB */
     .fader-track-area {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
     }
     .db-scale-legend {
       display: flex;
       justify-content: space-between;
-      font-family: ui-monospace, SFMono-Regular, monospace;
-      font-size: 0.62rem;
-      color: #475569;
-      padding: 0 4px;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      padding: 0 2px;
       user-select: none;
     }
     .fader-control-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
     .fader-range-slider {
       flex: 1;
-      height: 8px;
-      background: #05070c;
-      border: 1px solid #141b26;
-      border-radius: 4px;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.9);
+      height: 4px;
+      background: #0e0f12;
+      border: 1px solid var(--border);
+      border-radius: 2px;
       outline: none;
       -webkit-appearance: none;
       cursor: pointer;
     }
     .fader-range-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 16px;
-      height: 24px;
+      width: 12px;
+      height: 20px;
       border-radius: 2px;
-      background: linear-gradient(180deg, #475569 0%, #1e293b 50%, #334155 100%);
-      border: 1px solid #94a3b8;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.4);
+      background: #9ca3af;
+      border: 1px solid #d1d5db;
       cursor: pointer;
     }
+    .fader-range-slider::-webkit-slider-thumb:hover {
+      background: #ffffff;
+    }
     .vol-db-display {
-      font-family: ui-monospace, monospace;
-      font-size: 0.78rem;
-      color: #94a3b8;
-      min-width: 40px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      min-width: 36px;
       text-align: right;
     }
 
-    /* Switches Mecánicos Mute y Solo con Retroiluminación LED */
+    /* Switches Mecánicos Mute y Solo */
     .stem-switches-group {
       display: flex;
-      gap: 5px;
+      gap: 4px;
     }
     .btn-hw-switch {
-      width: 32px;
-      height: 30px;
-      border-radius: 4px;
-      font-weight: 900;
-      font-size: 0.8rem;
+      width: 28px;
+      height: 26px;
+      border-radius: 2px;
+      font-weight: 700;
+      font-size: 0.76rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid #273346;
-      background: linear-gradient(180deg, #182030 0%, #0d121c 100%);
-      color: #64748b;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+      border: 1px solid var(--border-light);
+      background: #20222a;
+      color: #9ca3af;
       user-select: none;
-      transition: all 0.12s ease;
+      transition: all 0.1s ease;
     }
     .btn-hw-switch:hover {
-      filter: brightness(1.2);
+      background: #2a2c36;
+      color: #fff;
     }
     .btn-hw-switch.active-mute {
-      background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
-      border-color: #f87171;
+      background: var(--daw-mute);
+      border-color: #f43f5e;
       color: #fff;
-      box-shadow: 0 0 12px rgba(239, 68, 68, 0.75), inset 0 1px 0 rgba(255,255,255,0.4);
     }
     .btn-hw-switch.active-solo {
-      background: linear-gradient(180deg, #facc15 0%, #b45309 100%);
-      border-color: #fef08a;
+      background: var(--daw-solo);
+      border-color: #fde047;
       color: #000;
-      box-shadow: 0 0 12px rgba(250, 204, 21, 0.75), inset 0 1px 0 rgba(255,255,255,0.4);
     }
 
     .synthetic-note {
-      font-size: 0.8rem;
-      color: var(--vfd-amber);
-      background: rgba(245, 158, 11, 0.08);
-      border: 1px dashed rgba(245, 158, 11, 0.35);
-      border-radius: 6px;
-      padding: 10px 12px;
+      font-size: 0.76rem;
+      color: var(--daw-amber);
+      background: rgba(245, 158, 11, 0.06);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 3px;
+      padding: 8px 10px;
       margin-bottom: 10px;
     }
 
@@ -719,85 +686,87 @@
        ESCENAS / LISTAS DOMINICALES
        ------------------------------------------------------------- */
     .scene-header-box {
-      background: #090d16;
-      border: 1px solid #1a2538;
-      border-radius: 6px;
-      padding: 10px 14px;
-      margin-bottom: 10px;
+      background: #14151a;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 10px;
     }
-    .scene-meta-title { font-weight: 800; font-size: 0.92rem; color: #fff; }
-    .scene-meta-date { font-size: 0.76rem; color: var(--text-muted); }
-    .scene-songs-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .scene-meta-title { font-weight: 700; font-size: 0.88rem; color: #fff; }
+    .scene-meta-date { font-size: 0.74rem; color: var(--text-muted); }
+    .scene-songs-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
     .scene-song-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #0a0e18;
-      border: 1px solid #1b2638;
-      border-radius: 5px;
-      padding: 8px 12px;
-      font-size: 0.84rem;
+      background: #14161c;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
     }
     .scene-song-item.active {
-      border-color: #0284c7;
-      background: rgba(2, 132, 199, 0.12);
+      border-color: var(--accent);
+      background: rgba(37, 99, 235, 0.12);
     }
     .scene-song-num {
-      font-weight: 800;
+      font-weight: 700;
       color: #38bdf8;
-      width: 22px;
+      width: 20px;
+      font-family: var(--font-mono);
     }
 
     /* Proyección y Video Loops */
     .proj-control-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 10px;
     }
     .proj-select {
-      background: #080c14;
-      border: 1px solid #1e283d;
+      background: #14151a;
+      border: 1px solid var(--border-light);
       color: #fff;
-      padding: 7px 10px;
-      border-radius: 5px;
-      font-size: 0.83rem;
+      padding: 6px 8px;
+      border-radius: 3px;
+      font-size: 0.8rem;
       outline: none;
       width: 100%;
     }
     .range-control {
-      margin-bottom: 10px;
-      background: #080c14;
-      padding: 10px 12px;
-      border-radius: 6px;
-      border: 1px solid #161f30;
+      margin-bottom: 8px;
+      background: #14151a;
+      padding: 8px 10px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
     }
     .range-control label {
       display: flex;
       justify-content: space-between;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .range-control label strong { color: #fff; }
     .btn-proj-action {
       flex: 1;
-      padding: 9px;
-      border-radius: 5px;
-      border: 1px solid #202b3c;
-      background: #111723;
+      padding: 8px;
+      border-radius: 3px;
+      border: 1px solid var(--border-light);
+      background: #20222a;
       color: #fff;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
-      font-size: 0.82rem;
-      transition: all 0.12s ease;
+      font-size: 0.78rem;
+      transition: all 0.1s ease;
+      letter-spacing: 0.04em;
     }
     .btn-proj-action:hover {
-      border-color: #38bdf8;
+      background: #2c2f3b;
     }
     .btn-proj-action.active { background: #991b1b; border-color: #ef4444; }
 
@@ -806,37 +775,36 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #090d16;
-      padding: 8px 12px;
-      border-radius: 5px;
-      border: 1px solid #151d2c;
+      background: #14151a;
+      padding: 7px 10px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
       margin-bottom: 6px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
     }
     .link-row a {
       color: #38bdf8;
       text-decoration: none;
-      font-weight: 700;
-      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-weight: 600;
+      font-family: var(--font-mono);
     }
     .link-badge {
-      font-size: 0.68rem;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
+      font-size: 0.65rem;
+      padding: 2px 5px;
+      border-radius: 2px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
     }
-    .bg-pill-obs { background: #4a044e; color: #f5d0fe; border: 1px solid #86198f; }
-    .bg-pill-proj { background: #172554; color: #bfdbfe; border: 1px solid #1d4ed8; }
-    .bg-pill-mus { background: #042f2e; color: #a7f3d0; border: 1px solid #0f766e; }
+    .bg-pill-obs { background: #3b0764; color: #f5d0fe; border: 1px solid #701a75; }
+    .bg-pill-proj { background: #1e3a8a; color: #bfdbfe; border: 1px solid #1d4ed8; }
+    .bg-pill-mus { background: #064e3b; color: #a7f3d0; border: 1px solid #047857; }
 
     /* Modales */
     .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.86);
-      backdrop-filter: blur(5px);
+      background: rgba(0, 0, 0, 0.78);
       z-index: 1000;
       justify-content: center;
       align-items: center;
@@ -844,94 +812,92 @@
     }
     .modal-overlay.active { display: flex; }
     .modal-card {
-      background: #0c1018;
-      border: 1px solid #233044;
-      border-radius: 10px;
+      background: #18191f;
+      border: 1px solid var(--border-light);
+      border-radius: 4px;
       width: 100%;
-      max-width: 880px;
+      max-width: 860px;
       max-height: 92vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.85);
     }
     .modal-header {
-      padding: 14px 18px;
-      background: #080c14;
-      border-bottom: 1px solid #1a2538;
+      padding: 12px 16px;
+      background: #131418;
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .modal-body { padding: 18px; overflow-y: auto; flex: 1; }
+    .modal-body { padding: 16px; overflow-y: auto; flex: 1; }
     .modal-footer {
-      padding: 12px 18px;
-      background: #080c14;
-      border-top: 1px solid #1a2538;
+      padding: 10px 16px;
+      background: #131418;
+      border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
-    .field label { display: block; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+    .field label { display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
     .field input, .field select, .field textarea {
       width: 100%;
-      background: #060910;
-      border: 1px solid #1c273a;
-      border-radius: 5px;
+      background: #111216;
+      border: 1px solid var(--border-light);
+      border-radius: 3px;
       color: #fff;
-      padding: 7px 10px;
-      font-size: 0.88rem;
+      padding: 6px 8px;
+      font-size: 0.85rem;
       outline: none;
     }
     .field input:focus, .field select:focus, .field textarea:focus {
-      border-color: #0284c7;
-      box-shadow: 0 0 8px rgba(2, 132, 199, 0.4);
+      border-color: #38bdf8;
     }
-    .form-grid { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .form-grid { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 
     .dropzone {
-      border: 2px dashed #2d3b52;
-      border-radius: 8px;
-      padding: 18px;
+      border: 1px dashed var(--border-light);
+      border-radius: 4px;
+      padding: 16px;
       text-align: center;
       color: var(--text-muted);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       cursor: pointer;
-      background: #060910;
-      transition: all 0.15s ease;
+      background: #111216;
+      transition: border-color 0.12s ease;
     }
     .dropzone:hover { border-color: #38bdf8; color: #fff; }
 
     .fast-doc-dropzone {
-      border: 2px dashed #27354a;
-      border-radius: 6px;
-      padding: 10px 12px;
+      border: 1px dashed var(--border-light);
+      border-radius: 3px;
+      padding: 8px 10px;
       text-align: center;
-      color: #94a3b8;
-      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-size: 0.76rem;
       cursor: pointer;
-      background: #070b13;
-      margin-bottom: 12px;
-      transition: all 0.15s ease;
+      background: #131418;
+      margin-bottom: 10px;
+      transition: all 0.12s ease;
     }
     .fast-doc-dropzone:hover, .fast-doc-dropzone.dragover {
       border-color: #38bdf8;
-      background: #0b1526;
+      background: #161b24;
       color: #38bdf8;
     }
     .chord-chip {
-      background: #0f1522;
-      border: 1px solid #233044;
+      background: #1f2128;
+      border: 1px solid var(--border-light);
       color: #facc15;
-      font-weight: 800;
-      font-family: ui-monospace, SFMono-Regular, monospace;
-      font-size: 0.8rem;
-      padding: 3px 8px;
-      border-radius: 4px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      padding: 2px 6px;
+      border-radius: 2px;
       cursor: pointer;
       user-select: none;
-      transition: all 0.12s;
+      transition: all 0.1s;
     }
     .chord-chip:hover {
       background: #facc15;
@@ -939,16 +905,16 @@
       border-color: #facc15;
     }
     .section-chip {
-      background: #0f1522;
-      border: 1px solid #233044;
+      background: #1f2128;
+      border: 1px solid var(--border-light);
       color: #60a5fa;
-      font-weight: 700;
-      font-size: 0.74rem;
-      padding: 3px 7px;
-      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.72rem;
+      padding: 2px 6px;
+      border-radius: 2px;
       cursor: pointer;
       user-select: none;
-      transition: all 0.12s;
+      transition: all 0.1s;
     }
     .section-chip:hover {
       background: #2563eb;
@@ -957,21 +923,21 @@
     }
 
     /* Notificaciones Toast */
-    #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; max-width: 440px; }
+    #toast-container { position: fixed; bottom: 16px; right: 16px; z-index: 2000; display: flex; flex-direction: column; gap: 6px; max-width: 400px; }
     .toast {
-      padding: 11px 15px;
-      border-radius: 6px;
-      font-size: 0.85rem;
+      padding: 9px 13px;
+      border-radius: 3px;
+      font-size: 0.8rem;
       font-weight: 600;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
-      animation: slideIn 0.25s ease-out;
+      animation: slideIn 0.2s ease-out;
       white-space: pre-line;
       border: 1px solid transparent;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
     .toast-success { background: #064e3b; color: #a7f3d0; border-color: #10b981; }
     .toast-error { background: #7f1d1d; color: #fee2e2; border-color: #ef4444; }
     .toast-info { background: #0c2340; color: #bae6fd; border-color: #0284c7; }
-    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes slideIn { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
   </style>
 </head>
@@ -981,15 +947,15 @@
     <div class="header-branding">
       <span class="rack-bolt"></span>
       <div>
-        <h1>🎛 Panel de Control Central & Mezcla</h1>
+        <h1>CONSOLA DE CONTROL & MEZCLA</h1>
         <p style="color:var(--text-muted); font-size:0.78rem; font-family:ui-monospace, monospace; letter-spacing:0.5px;">WORSHIP LIVE MULTITRACK ENGINE · RACK MASTER CONSOLE</p>
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn btn-warning" onclick="openScenesModal()">📅 Listas Dominicales</button>
-      <button class="btn btn-primary" onclick="openFastDocModal()">⚡ + Subir Letras / Docs</button>
-      <button class="btn btn-success" onclick="openCreateModal()">⬆ Nueva Canción</button>
-      <button class="btn btn-secondary btn-sm" id="btn-pwa-install" style="display:none;" onclick="triggerPWAInstall()">📲 Instalar App</button>
+      <button class="btn btn-warning" onclick="openScenesModal()">SETLISTS</button>
+      <button class="btn btn-primary" onclick="openFastDocModal()">+ SUBIR LETRAS</button>
+      <button class="btn btn-success" onclick="openCreateModal()">+ NUEVA CANCIÓN</button>
+      <button class="btn btn-secondary btn-sm" id="btn-pwa-install" style="display:none;" onclick="triggerPWAInstall()">INSTALAR APP</button>
       <div class="lan-badge" id="lan-ip">Conectando...</div>
     </div>
   </header>
@@ -1003,7 +969,7 @@
           <span>Consola de Transporte Multitrack</span>
           <span style="display:inline-flex; align-items:center; gap:8px;">
             <span style="font-size:0.84rem; color:var(--vfd-cyan); font-family:ui-monospace, monospace; font-weight:700;" id="current-song-title">--</span>
-            <button class="btn btn-secondary btn-sm" id="btn-edit-active-chart" onclick="openEditActiveChart()" title="Editar letra y acordes de la canción activa">📝 Editar Letra</button>
+            <button class="btn btn-secondary btn-sm" id="btn-edit-active-chart" onclick="openEditActiveChart()" title="Editar letra y acordes de la canción activa">EDITAR LETRA</button>
           </span>
         </h2>
 
@@ -1014,9 +980,9 @@
             <span style="color:var(--text-muted); font-size:0.78rem; margin-left:8px;" id="scene-active-pos"></span>
           </div>
           <div class="scene-nav-btns">
-            <button class="btn btn-secondary btn-sm" onclick="navigateScene('prev')">⏮ Anterior</button>
-            <button class="btn btn-secondary btn-sm" onclick="navigateScene('next')">⏭ Siguiente</button>
-            <button class="btn btn-danger btn-sm" onclick="deactivateScene()" title="Salir del modo escena">✕</button>
+            <button class="btn btn-secondary btn-sm" onclick="navigateScene('prev')">ANTERIOR</button>
+            <button class="btn btn-secondary btn-sm" onclick="navigateScene('next')">SIGUIENTE</button>
+            <button class="btn btn-danger btn-sm" onclick="deactivateScene()" title="Salir del modo escena">SALIR</button>
           </div>
         </div>
 
@@ -1029,7 +995,7 @@
             </div>
             <div class="vfd-meta-chips">
               <span class="vfd-chip" id="display-bpm-key">-- BPM · --</span>
-              <span class="vfd-cue-badge cue-on" id="display-cue-status" title="Guías de voz inteligentes en audífonos In-Ear">🎙️ GUÍAS: ON</span>
+              <span class="vfd-cue-badge cue-on" id="display-cue-status" title="Guías de voz inteligentes en audífonos In-Ear">GUÍAS: ON</span>
             </div>
           </div>
 
@@ -1048,15 +1014,15 @@
         <div class="transport-controls-hw">
           <button class="btn-hw btn-hw-play" onclick="controlTransport('play')" title="Reproducir pistas">
             <span class="btn-hw-led"></span>
-            <span>▶ PLAY</span>
+            <span>PLAY</span>
           </button>
           <button class="btn-hw btn-hw-pause" onclick="controlTransport('pause')" title="Pausar">
             <span class="btn-hw-led"></span>
-            <span>⏸ PAUSA</span>
+            <span>PAUSE</span>
           </button>
           <button class="btn-hw btn-hw-stop" onclick="controlTransport('stop')" title="Detener y volver al inicio">
             <span class="btn-hw-led"></span>
-            <span>⏹ STOP</span>
+            <span>STOP</span>
           </button>
         </div>
 
@@ -1068,11 +1034,11 @@
               <span>ADORACIÓN ESPONTÁNEA & GUÍAS IN-EAR</span>
             </div>
             <div class="spontaneous-actions">
-              <span id="jump-pending-badge" style="display:none; background:#78350f; color:#fef08a; border:1px solid #d97706; padding:3px 8px; border-radius:4px; font-size:0.74rem; font-weight:700; animation:pulse 1s infinite; cursor:pointer;" onclick="cancelPendingJump()" title="Clic para cancelar salto cuantizado">⏳ Saltando en siguiente compás... ✕</span>
-              <button class="btn-rack-action" id="btn-loop-toggle" onclick="toggleActiveSectionLoop()">🔁 Repetir Sección (Loop)</button>
+              <span id="jump-pending-badge" style="display:none; background:#78350f; color:#fef08a; border:1px solid #d97706; padding:3px 8px; border-radius:4px; font-size:0.74rem; font-weight:700; animation:pulse 1s infinite; cursor:pointer;" onclick="cancelPendingJump()" title="Clic para cancelar salto cuantizado">SALTO PROGRAMADO [CANCELAR]</span>
+              <button class="btn-rack-action" id="btn-loop-toggle" onclick="toggleActiveSectionLoop()">LOOP SECCIÓN</button>
               <button class="btn-rack-action btn-cue-toggle active-on" id="btn-dynamic-cues-toggle" onclick="toggleDynamicCues()" title="Activar/Silenciar avisos automáticos en audífonos de músicos">
                 <span class="cue-led-dot" id="dynamic-cues-led"></span>
-                <span id="dynamic-cues-text">🎙️ Guías In-Ear: ON</span>
+                <span id="dynamic-cues-text">GUÍAS IN-EAR: ON</span>
               </button>
             </div>
           </div>
@@ -1081,9 +1047,9 @@
           <div class="micro-cues-toolbar">
             <span class="micro-cues-label">AVISOS HABLADOS EN VIVO A AUDÍFONOS (SOLO IN-EAR, 0 FUGA A SALA):</span>
             <div class="micro-cues-btns">
-              <button class="btn-cue-trigger" onclick="triggerManualCue('atentos')" title="Aviso hablado: 'Atentos'">⚠️ Atentos</button>
-              <button class="btn-cue-trigger" onclick="triggerManualCue('corte')" title="Aviso hablado: 'Corte'">🛑 Corte</button>
-              <button class="btn-cue-trigger" onclick="triggerManualCue('repite')" title="Aviso hablado: 'Repite'">🔁 Repite</button>
+              <button class="btn-cue-trigger" onclick="triggerManualCue('atentos')" title="Aviso hablado: 'Atentos'">ATENTOS</button>
+              <button class="btn-cue-trigger" onclick="triggerManualCue('corte')" title="Aviso hablado: 'Corte'">CORTE</button>
+              <button class="btn-cue-trigger" onclick="triggerManualCue('repite')" title="Aviso hablado: 'Repite'">REPITE</button>
               <button class="btn-cue-trigger btn-cue-sec" onclick="triggerManualCue('intro')" title="Aviso hablado: 'Intro'">Intro</button>
               <button class="btn-cue-trigger btn-cue-sec" onclick="triggerManualCue('verso')" title="Aviso hablado: 'Verso'">Verso</button>
               <button class="btn-cue-trigger btn-cue-sec" onclick="triggerManualCue('coro')" title="Aviso hablado: 'Coro'">Coro</button>
@@ -1106,7 +1072,7 @@
       <div class="panel">
         <h2>
           <span>Mezclador de Stems en Vivo</span>
-          <button class="btn btn-secondary btn-sm" id="btn-add-stems-active" onclick="openStemsModal(activeSongId)">🎵 + Pistas</button>
+          <button class="btn btn-secondary btn-sm" id="btn-add-stems-active" onclick="openStemsModal(activeSongId)">+ PISTAS</button>
         </h2>
         <div id="stems-list">Cargando pistas...</div>
       </div>
@@ -1117,16 +1083,16 @@
       <!-- Panel de Proyección y Video Loops -->
       <div class="panel">
         <h2>
-          <span>📽 Pantalla de Proyección & Video Loops</span>
-          <button class="btn btn-secondary btn-sm" onclick="openBgModal()">🖼 + Subir Fondo / Loop</button>
+          <span>PROYECCIÓN & FONDOS</span>
+          <button class="btn btn-secondary btn-sm" onclick="openBgModal()">+ SUBIR FONDO</button>
         </h2>
 
         <div class="proj-control-grid">
           <div>
             <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Fondo / Video Loop:</label>
             <select class="proj-select" id="proj-bg-select" onchange="changeProjectionBackground(this.value)">
-              <option value="loop-aurora">🎬 Loop: Aurora Celestial</option>
-              <option value="loop-particles">🎬 Loop: Destellos Dorados</option>
+              <option value="loop-aurora">Aurora Celestial (Video Loop)</option>
+              <option value="loop-particles">Destellos Dorados (Video Loop)</option>
               <option value="ocean">Azul Noche</option>
               <option value="worship-purple">Púrpura Adoración</option>
               <option value="warm-gold">Luz de Altar</option>
@@ -1137,9 +1103,9 @@
           <div>
             <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Color de Letra:</label>
             <select class="proj-select" id="proj-color-select" onchange="changeTextColor(this.value)">
-              <option value="#FFE600">🟡 Amarillo Intenso (Recomendado)</option>
-              <option value="#FFFFFF">⚪ Blanco Nítido</option>
-              <option value="#67E8F9">🔵 Celeste Neón</option>
+              <option value="#FFE600">Amarillo Intenso (Recomendado)</option>
+              <option value="#FFFFFF">Blanco Nítido</option>
+              <option value="#67E8F9">Celeste Neón</option>
             </select>
           </div>
         </div>
@@ -1164,23 +1130,23 @@
         </div>
 
         <div style="display:flex; gap:10px;">
-          <button class="btn-proj-action" id="btn-blackout" onclick="toggleBlackout()">⚫ Pantalla Negra</button>
-          <button class="btn-proj-action" id="btn-clear" onclick="toggleClearText()">🚫 Ocultar Texto</button>
+          <button class="btn-proj-action" id="btn-blackout" onclick="toggleBlackout()">PANTALLA NEGRA</button>
+          <button class="btn-proj-action" id="btn-clear" onclick="toggleClearText()">OCULTAR TEXTO</button>
         </div>
       </div>
 
       <!-- Panel de Biblioteca y Lista Dominical -->
       <div class="panel">
         <h2>
-          <span>📚 Biblioteca de Canciones</span>
+          <span>BIBLIOTECA DE CANCIONES</span>
           <div style="display:flex; gap:6px;">
-            <button class="btn btn-primary btn-sm" onclick="openFastDocModal()">⚡ + Subir Letras</button>
-            <button class="btn btn-secondary btn-sm" onclick="refreshLibrary()">⟳</button>
+            <button class="btn btn-primary btn-sm" onclick="openFastDocModal()">+ SUBIR LETRAS</button>
+            <button class="btn btn-secondary btn-sm" onclick="refreshLibrary()">ACTUALIZAR</button>
           </div>
         </h2>
         <!-- Zona Dropzone Rápida de Documentos -->
         <div class="fast-doc-dropzone" id="lib-dropzone" ondragover="handleLibDragOver(event)" ondragleave="handleLibDragLeave(event)" ondrop="handleLibDrop(event)" onclick="document.getElementById('lib-file-input').click()">
-          <span>📄 <strong>Arrastra documentos (.pro, .txt) aquí</strong> para agregarlos al instante a la biblioteca</span>
+          <span><strong>Arrastra documentos (.pro, .txt) aquí</strong> para agregarlos al instante a la biblioteca</span>
           <input type="file" id="lib-file-input" multiple accept=".pro,.txt,.cho,.chordpro" style="display:none;" onchange="handleLibFilesSelected(this.files)">
         </div>
         <div id="library-list">Cargando...</div>
@@ -1190,15 +1156,15 @@
       <div class="panel">
         <h2>Accesos de Red Local (LAN)</h2>
         <div class="link-row">
-          <div><span class="link-badge bg-pill-mus">🎸 ESCENARIO</span> Músicos (Acordes & Compás)</div>
+          <div><span class="link-badge bg-pill-mus">ESCENARIO</span> Músicos (Acordes & Compás)</div>
           <a id="musicians-link" target="_blank" href="/musicians">/musicians</a>
         </div>
         <div class="link-row">
-          <div><span class="link-badge bg-pill-proj">📽 PROYECTOR</span> Proyección (con Video Loops)</div>
+          <div><span class="link-badge bg-pill-proj">PROYECTOR</span> Proyección (con Video Loops)</div>
           <a id="projection-link" target="_blank" href="/projection">/projection</a>
         </div>
         <div class="link-row">
-          <div><span class="link-badge bg-pill-obs">🎥 OBS STUDIO</span> Letras OBS (Transparente)</div>
+          <div><span class="link-badge bg-pill-obs">OBS STUDIO</span> Letras OBS (Transparente)</div>
           <a id="obs-link" target="_blank" href="/obs">/obs</a>
         </div>
       </div>
@@ -1209,12 +1175,12 @@
   <div class="modal-overlay" id="song-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 style="font-size:1.1rem; color:#fff;" id="modal-title">Nueva Canción</h3>
-        <button onclick="closeModal('song-modal')" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
+        <h3 style="font-size:1.1rem; color:#fff;" id="modal-title">NUEVA CANCIÓN</h3>
+        <button onclick="closeModal('song-modal')" style="background:none; border:none; color:#94a3b8; font-size:1rem; font-weight:700; cursor:pointer;">CERRAR [X]</button>
       </div>
       <div class="modal-body">
         <div id="section-info">
-          <div style="font-size:0.8rem; font-weight:800; color:#3b82f6; margin-bottom:8px;">1 · DATOS DE LA CANCIÓN</div>
+          <div style="font-size:0.8rem; font-weight:800; color:#38bdf8; margin-bottom:8px;">1 · PARÁMETROS DE LA CANCIÓN</div>
           <div class="form-grid">
             <div class="field"><label>Título *</label><input id="f-title" placeholder="Ej. Cuán Grande es Dios"></div>
             <div class="field"><label>Artista</label><input id="f-artist" placeholder="Ej. Marcos Witt"></div>
@@ -1223,14 +1189,14 @@
           </div>
         </div>
         <div id="section-chart">
-          <div style="font-size:0.8rem; font-weight:800; color:#3b82f6; margin-bottom:8px;">2 · LETRA Y ACORDES (CHORDPRO)</div>
+          <div style="font-size:0.8rem; font-weight:800; color:#38bdf8; margin-bottom:8px;">2 · LETRA Y ACORDES (CHORDPRO)</div>
           <textarea id="chordpro-input" style="width:100%; height:180px; background:#0b0f19; border:1px solid var(--border); border-radius:6px; color:#fff; font-family:monospace; padding:10px;" placeholder="Pega aquí tu texto ChordPro o sube un archivo"></textarea>
           <div style="margin-top:6px;">
             <input type="file" id="chart-file-input" accept=".pro,.txt,.cho" onchange="handleChartFile(this.files[0])">
           </div>
         </div>
         <div id="section-stems" style="margin-top:16px;">
-          <div style="font-size:0.8rem; font-weight:800; color:#3b82f6; margin-bottom:8px;">3 · PISTAS DE AUDIO (STEMS)</div>
+          <div style="font-size:0.8rem; font-weight:800; color:#38bdf8; margin-bottom:8px;">3 · PISTAS DE AUDIO (STEMS)</div>
           <div class="dropzone" onclick="document.getElementById('stems-file-input').click()">
             Arrastra aquí tus pistas de audio (WAV, MP3, FLAC) o haz clic para seleccionarlas
             <input type="file" id="stems-file-input" multiple accept=".wav,.mp3,.flac,.ogg,.m4a" style="display:none;" onchange="handleAddStems(this.files)">
@@ -1242,7 +1208,7 @@
         <div></div>
         <div style="display:flex; gap:8px;">
           <button class="btn btn-secondary" onclick="closeModal('song-modal')">Cancelar</button>
-          <button class="btn btn-success" id="btn-submit-song" onclick="submitSongModal()">⬆ Guardar Canción</button>
+          <button class="btn btn-success" id="btn-submit-song" onclick="submitSongModal()">GUARDAR CANCIÓN</button>
         </div>
       </div>
     </div>
@@ -1252,13 +1218,13 @@
   <div class="modal-overlay" id="scenes-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 style="font-size:1.1rem; color:#fff;">📅 Listas de Servicio Dominical (Escenas)</h3>
-        <button onclick="closeModal('scenes-modal')" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
+        <h3 style="font-size:1.1rem; color:#fff;">LISTAS DE SERVICIO DOMINICAL (SETLISTS)</h3>
+        <button onclick="closeModal('scenes-modal')" style="background:none; border:none; color:#94a3b8; font-size:1rem; font-weight:700; cursor:pointer;">CERRAR [X]</button>
       </div>
       <div class="modal-body">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <h4 style="font-size:0.95rem; color:#cbd5e1;">Mis Listas Guardadas</h4>
-          <button class="btn btn-sm btn-success" onclick="openCreateSceneForm()">+ Nueva Lista</button>
+          <button class="btn btn-sm btn-success" onclick="openCreateSceneForm()">+ NUEVA LISTA</button>
         </div>
 
         <div id="scenes-list-container">Cargando listas...</div>
@@ -1282,12 +1248,12 @@
           </div>
           <div style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:0.8rem; color:#94a3b8;">
             <input type="checkbox" id="scene-add-autonext" style="cursor:pointer;">
-            <label for="scene-add-autonext" style="cursor:pointer;">🔗 Tocar seguida sin parar (Auto-Play / Medley continuo)</label>
+            <label for="scene-add-autonext" style="cursor:pointer;">Auto-Next: Continuar inmediatamente con la siguiente canción (Medley continuo)</label>
           </div>
 
           <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
             <button class="btn btn-secondary btn-sm" onclick="document.getElementById('scene-form').style.display='none'">Cancelar</button>
-            <button class="btn btn-success btn-sm" onclick="saveScene()">💾 Guardar Lista</button>
+            <button class="btn btn-success btn-sm" onclick="saveScene()">GUARDAR LISTA</button>
           </div>
         </div>
       </div>
@@ -1298,8 +1264,8 @@
   <div class="modal-overlay" id="bg-modal">
     <div class="modal-card" style="max-width:600px;">
       <div class="modal-header">
-        <h3 style="font-size:1.1rem; color:#fff;">🖼 Subir Fondo o Video Loop</h3>
-        <button onclick="closeModal('bg-modal')" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
+        <h3 style="font-size:1.1rem; color:#fff;">SUBIR FONDO O VIDEO LOOP</h3>
+        <button onclick="closeModal('bg-modal')" style="background:none; border:none; color:#94a3b8; font-size:1rem; font-weight:700; cursor:pointer;">CERRAR [X]</button>
       </div>
       <div class="modal-body">
         <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
@@ -1324,22 +1290,22 @@
     <div class="modal-card" style="max-width:920px;">
       <div class="modal-header">
         <div>
-          <h3 style="font-size:1.15rem; color:#fff;" id="chart-edit-title">📝 Editar Letra y Acordes</h3>
+          <h3 style="font-size:1.15rem; color:#fff;" id="chart-edit-title">EDITAR LETRA Y ACORDES</h3>
           <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;" id="chart-edit-subtitle">Sincronización en tiempo real con músicos, proyector y OBS</p>
         </div>
-        <button onclick="closeModal('chart-edit-modal')" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
+        <button onclick="closeModal('chart-edit-modal')" style="background:none; border:none; color:#94a3b8; font-size:1rem; font-weight:700; cursor:pointer;">CERRAR [X]</button>
       </div>
 
       <div class="modal-body" style="display:flex; flex-direction:column; gap:10px;">
         <!-- Barra de Acciones del Documento -->
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; background:#0b1120; border:1px solid #1e293b; border-radius:8px; padding:8px 12px;">
           <div style="display:flex; gap:6px; align-items:center;">
-            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('replace-chart-file-input').click()">📄 Reemplazar con Archivo (.pro, .txt)</button>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('replace-chart-file-input').click()">REEMPLAZAR ARCHIVO (.pro, .txt)</button>
             <input type="file" id="replace-chart-file-input" accept=".pro,.txt,.cho,.chordpro" style="display:none;" onchange="handleReplaceChartFile(this.files[0])">
-            <button class="btn btn-secondary btn-sm" onclick="downloadCurrentChart()">⬇ Descargar (.pro)</button>
+            <button class="btn btn-secondary btn-sm" onclick="downloadCurrentChart()">DESCARGAR (.pro)</button>
           </div>
           <div style="display:flex; gap:6px; align-items:center;">
-            <button class="btn btn-sm" id="btn-toggle-chart-preview" onclick="toggleChartPreview()" style="background:#1e293b; color:#cbd5e1; border:1px solid #334155;">👁 Vista Previa</button>
+            <button class="btn btn-sm" id="btn-toggle-chart-preview" onclick="toggleChartPreview()" style="background:#1e293b; color:#cbd5e1; border:1px solid #334155;">VISTA PREVIA</button>
           </div>
         </div>
 
@@ -1387,13 +1353,13 @@
 
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:var(--text-muted);">
           <div id="chart-edit-stats">0 caracteres · 0 líneas</div>
-          <div style="color:#10b981;">⚡ Los cambios se actualizan al instante en el proyector, músicos y OBS</div>
+          <div style="color:#10b981;">Sincronización en tiempo real activa en monitores, proyección y OBS</div>
         </div>
       </div>
 
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal('chart-edit-modal')">Cancelar</button>
-        <button class="btn btn-success" id="btn-save-chart" onclick="saveEditedChart()">💾 Guardar Cambios en la Letra</button>
+        <button class="btn btn-success" id="btn-save-chart" onclick="saveEditedChart()">GUARDAR CAMBIOS</button>
       </div>
     </div>
   </div>
@@ -1402,8 +1368,8 @@
   <div class="modal-overlay" id="fast-doc-modal">
     <div class="modal-card" style="max-width:680px;">
       <div class="modal-header">
-        <h3 style="font-size:1.1rem; color:#fff;">⚡ Subida Rápida de Documentos de Letras</h3>
-        <button onclick="closeModal('fast-doc-modal')" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
+        <h3 style="font-size:1.1rem; color:#fff;">IMPORTACIÓN RÁPIDA DE LETRAS (BATCH)</h3>
+        <button onclick="closeModal('fast-doc-modal')" style="background:none; border:none; color:#94a3b8; font-size:1rem; font-weight:700; cursor:pointer;">CERRAR [X]</button>
       </div>
       <div class="modal-body">
         <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
@@ -1419,7 +1385,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal('fast-doc-modal')">Cerrar</button>
-        <button class="btn btn-success" id="btn-submit-fast-docs" style="display:none;" onclick="submitFastDocs()">⚡ Importar Documentos Seleccionados</button>
+        <button class="btn btn-success" id="btn-submit-fast-docs" style="display:none;" onclick="submitFastDocs()">IMPORTAR SELECCIONADOS</button>
       </div>
     </div>
   </div>
@@ -1522,7 +1488,7 @@
           scBar.style.display = 'flex';
           const curItem = status.active_scene.items && status.active_scene.items[status.active_scene.index];
           const curSubgroup = curItem && curItem.subgroup ? ` · [${curItem.subgroup}]` : '';
-          const autoNextBadge = curItem && curItem.auto_next ? ' · 🔗 Continuo' : ' · ⏸ Pausa de Ministración';
+          const autoNextBadge = curItem && curItem.auto_next ? ' · [AUTO-NEXT]' : ' · [PAUSA MINISTRACIÓN]';
           document.getElementById('scene-active-name').textContent = `${status.active_scene.name} (${status.active_scene.date})${curSubgroup}${autoNextBadge}`;
           document.getElementById('scene-active-pos').textContent = `Canción ${status.active_scene.index + 1} de ${status.active_scene.total}`;
         } else {
@@ -1542,7 +1508,7 @@
       const c = document.getElementById('library-list');
       c.innerHTML = '';
       if (!librarySongs.length) {
-        c.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px;">No hay canciones aún. Usa "⚡ + Subir Letras" o "⬆ Nueva Canción".</div>';
+        c.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px;">No hay canciones en la biblioteca. Usa "+ SUBIR LETRAS" o "+ NUEVA CANCIÓN".</div>';
         return;
       }
       librarySongs.forEach(s => {
@@ -1551,14 +1517,14 @@
         if (s.id === activeSongId) row.style.borderColor = '#3b82f6';
         row.innerHTML = `
           <div>
-            <div style="font-weight:700; font-size:0.9rem;">${s.id === activeSongId ? '▶ ' : ''}${esc(s.title)}</div>
+            <div style="font-weight:700; font-size:0.9rem;">${s.id === activeSongId ? '[ACTIVA] ' : ''}${esc(s.title)}</div>
             <div style="font-size:0.75rem; color:var(--text-muted);">${esc(s.artist)} · ${esc(s.key)} · ${s.bpm} BPM · ${s.stems_count} pistas</div>
           </div>
           <div style="display:flex; gap:6px;">
-            ${s.id !== activeSongId ? `<button class="btn btn-sm btn-success" onclick="switchSong('${s.id}')">▶ Cargar</button>` : ''}
-            <button class="btn btn-sm btn-info" onclick="openEditChartModal('${s.id}', '${esc(s.title)}')" title="Ver, editar o cambiar documento de letra y acordes">📝 Letra</button>
-            <button class="btn btn-sm btn-secondary" onclick="openStemsModal('${s.id}')">🎵 + Pistas</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteSong('${s.id}', '${s.title}')">🗑</button>
+            ${s.id !== activeSongId ? `<button class="btn btn-sm btn-success" onclick="switchSong('${s.id}')">CARGAR</button>` : ''}
+            <button class="btn btn-sm btn-info" onclick="openEditChartModal('${s.id}', '${esc(s.title)}')" title="Ver o editar documento de letra y acordes">LETRA</button>
+            <button class="btn btn-sm btn-secondary" onclick="openStemsModal('${s.id}')">+ PISTAS</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteSong('${s.id}', '${s.title}')">BORRAR</button>
           </div>`;
         c.appendChild(row);
       });
@@ -1568,7 +1534,7 @@
       toast('Cargando canción...', 'info', 1500);
       try {
         await api(`/api/songs/${encodeURIComponent(songId)}/load`, { method: 'POST' });
-        toast('✓ Canción cargada', 'success');
+        toast('Canción cargada', 'success');
         await refreshAll();
       } catch (e) { toast(e.message, 'error'); }
     }
@@ -1682,7 +1648,7 @@
         d.backgrounds.forEach(bg => {
           const opt = document.createElement('option');
           opt.value = bg.id;
-          opt.textContent = (bg.kind === 'video' ? '🎬 Video: ' : '') + bg.label;
+          opt.textContent = (bg.kind === 'video' ? '[VIDEO] ' : '') + bg.label;
           if (bg.id === d.settings.background) opt.selected = true;
           sel.appendChild(opt);
         });
@@ -1770,7 +1736,7 @@
       fd.append('apply_immediately', 'true');
       try {
         await api('/api/projection/backgrounds', { method: 'POST', body: fd });
-        statusEl.innerHTML = `<span style="color:#10b981;">✓ "${file.name}" cargado y aplicado</span>`;
+        statusEl.innerHTML = `<span style="color:#10b981;">"${file.name}" cargado y aplicado</span>`;
         await loadProjectionSettings();
       } catch (e) {
         statusEl.innerHTML = `<span style="color:#ef4444;">Error: ${e.message}</span>`;
@@ -1789,8 +1755,8 @@
         const item = document.createElement('div');
         item.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:0.85rem;';
         item.innerHTML = `
-          <span>${b.kind === 'video' ? '🎬' : '🖼'} ${esc(b.filename)}</span>
-          <button class="btn btn-sm btn-danger" onclick="deleteBackgroundFile('${b.filename}')">🗑</button>`;
+          <span>${b.kind === 'video' ? '[VIDEO]' : '[IMG]'} ${esc(b.filename)}</span>
+          <button class="btn btn-sm btn-danger" onclick="deleteBackgroundFile('${b.filename}')">ELIMINAR</button>`;
         c.appendChild(item);
       });
     }
@@ -1830,14 +1796,14 @@
         const subgBadges = subgroups.map(sg => `<span style="background:#1e293b; color:#38bdf8; border:1px solid #334155; padding:2px 6px; border-radius:4px; font-size:0.72rem; font-weight:700; margin-right:4px;">${esc(sg)}</span>`).join('');
         box.innerHTML = `
           <div>
-            <div class="scene-meta-title">📅 ${esc(sc.name)}</div>
+            <div class="scene-meta-title">${esc(sc.name)}</div>
             <div class="scene-meta-date">${esc(sc.date)}${sc.notes ? ` · <em>${esc(sc.notes)}</em>` : ''} · ${sc.songs_count} canciones</div>
             <div style="margin-top:6px;">${subgBadges}</div>
           </div>
           <div style="display:flex; gap:6px;">
-            <button class="btn btn-sm btn-success" onclick="activateScene('${sc.id}')">▶ Activar Lista</button>
-            <button class="btn btn-sm btn-secondary" onclick="editScene('${sc.id}')">✏ Editar</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteScene('${sc.id}')">🗑</button>
+            <button class="btn btn-sm btn-success" onclick="activateScene('${sc.id}')">ACTIVAR LISTA</button>
+            <button class="btn btn-sm btn-secondary" onclick="editScene('${sc.id}')">EDITAR</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteScene('${sc.id}')">BORRAR</button>
           </div>`;
         c.appendChild(box);
       });
@@ -1928,7 +1894,7 @@
                    onchange="builderSongs[${idx}].subgroup = this.value.trim() || 'General';">
             <label style="display:inline-flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;" title="Reproducir siguiente canción automáticamente">
               <input type="checkbox" ${item.auto_next ? 'checked' : ''} onchange="builderSongs[${idx}].auto_next = this.checked; renderBuilderSongs();">
-              <span style="${item.auto_next ? 'color:#10b981; font-weight:700;' : 'color:#94a3b8;'}">${item.auto_next ? '🔗 Auto-Play' : '⏸ Pausa'}</span>
+              <span style="${item.auto_next ? 'color:#10b981; font-weight:700;' : 'color:#94a3b8;'}">${item.auto_next ? 'Auto-Play' : 'Pausa'}</span>
             </label>
           </div>
           <div style="display:flex; align-items:center; gap:6px;">
@@ -1936,7 +1902,7 @@
             <input type="number" min="-11" max="11" value="${item.transpose}" style="width:50px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:4px; padding:2px 4px; font-size:0.8rem;" onchange="builderSongs[${idx}].transpose = parseInt(this.value)||0">
             <button class="btn btn-sm btn-secondary" onclick="moveBuilderSong(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
             <button class="btn btn-sm btn-secondary" onclick="moveBuilderSong(${idx}, 1)" ${idx === builderSongs.length - 1 ? 'disabled' : ''}>▼</button>
-            <button class="btn btn-sm btn-danger" onclick="removeBuilderSong(${idx})">✕</button>
+            <button class="btn btn-sm btn-danger" onclick="removeBuilderSong(${idx})">QUITAR</button>
           </div>`;
         c.appendChild(row);
       });
@@ -1970,14 +1936,14 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
-          toast('✓ Lista actualizada', 'success');
+          toast('Lista actualizada', 'success');
         } else {
           await api('/api/scenes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
-          toast('✓ Nueva lista creada', 'success');
+          toast('Nueva lista creada', 'success');
         }
         document.getElementById('scene-form').style.display = 'none';
         await refreshScenesList();
@@ -1987,7 +1953,7 @@
     async function activateScene(scId) {
       try {
         await api(`/api/scenes/${encodeURIComponent(scId)}/activate?index=0`, { method: 'POST' });
-        toast('✓ Lista activada para el servicio', 'success');
+        toast('Lista activada para el servicio', 'success');
         closeModal('scenes-modal');
         await refreshAll();
       } catch (e) { toast(e.message, 'error'); }
@@ -2071,7 +2037,7 @@
       if (keyMatch) document.getElementById('f-key').value = keyMatch[1].trim();
       if (bpmMatch) document.getElementById('f-bpm').value = bpmMatch[1].trim();
 
-      toast(`✓ Documento "${file.name}" cargado y analizado`, 'success', 2200);
+      toast(`Documento "${file.name}" cargado y analizado`, 'success', 2200);
     }
 
     function handleAddStems(files) {
@@ -2081,8 +2047,8 @@
       pendingStemFiles.forEach((f, idx) => {
         const row = document.createElement('div');
         row.style.cssText = 'font-size:0.8rem; background:#0f172a; padding:4px 8px; border-radius:4px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;';
-        row.innerHTML = `<span>🎧 ${esc(f.name)} (${(f.size / 1024 / 1024).toFixed(1)} MB)</span>
-          <button style="background:none; border:none; color:#ef4444; cursor:pointer;" onclick="pendingStemFiles.splice(${idx},1); handleAddStems([]);">✕</button>`;
+        row.innerHTML = `<span>[AUDIO] ${esc(f.name)} (${(f.size / 1024 / 1024).toFixed(1)} MB)</span>
+          <button style="background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;" onclick="pendingStemFiles.splice(${idx},1); handleAddStems([]);">QUITAR</button>`;
         list.appendChild(row);
       });
     }
@@ -2106,14 +2072,14 @@
 
           toast('Guardando canción en la biblioteca...', 'info', 1000);
           await api('/api/songs/upload', { method: 'POST', body: fd });
-          toast('✓ Canción creada con éxito', 'success');
+          toast('Canción creada con éxito', 'success');
         } else if (modalMode === 'stems') {
           if (!pendingStemFiles.length) { toast('Selecciona al menos una pista.', 'error'); btn.disabled = false; return; }
           const fd = new FormData();
           pendingStemFiles.forEach(f => fd.append('stems', f, f.name));
           toast('Subiendo pistas...', 'info', 2000);
           await api(`/api/songs/${encodeURIComponent(modalSongId)}/stems`, { method: 'POST', body: fd });
-          toast('✓ Pistas agregadas con éxito', 'success');
+          toast('Pistas agregadas con éxito', 'success');
         }
         closeModal('song-modal');
         await refreshAll();
@@ -2130,7 +2096,7 @@
         return;
       }
       editingChartSongId = songId;
-      document.getElementById('chart-edit-title').textContent = `📝 Editar Letra y Acordes · ${songTitle || songId}`;
+      document.getElementById('chart-edit-title').textContent = `EDITAR LETRA Y ACORDES · ${songTitle || songId}`;
       document.getElementById('chart-edit-subtitle').textContent = `ID: ${songId} · Guardado instantáneo y sincronizado`;
       document.getElementById('chart-edit-textarea').value = 'Cargando documento...';
       document.getElementById('chart-edit-stats').textContent = 'Cargando...';
@@ -2171,7 +2137,7 @@
       document.getElementById('chart-edit-textarea').value = text;
       updateChartStats();
       if (isChartPreviewVisible) renderChartPreview();
-      toast(`✓ Archivo "${file.name}" cargado en el editor. Haz clic en "Guardar Cambios" para aplicarlo.`, 'success', 3500);
+      toast(`Archivo "${file.name}" cargado en el editor. Haz clic en "Guardar Cambios" para aplicarlo.`, 'success', 3500);
       document.getElementById('replace-chart-file-input').value = '';
     }
 
@@ -2190,7 +2156,7 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast('✓ Documento descargado', 'success', 2000);
+      toast('Documento descargado', 'success', 2000);
     }
 
     function insertAtCursor(textToInsert) {
@@ -2281,7 +2247,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content }),
         });
-        toast('✓ Letra y acordes actualizados correctamente', 'success');
+        toast('Letra y acordes actualizados correctamente', 'success');
         closeModal('chart-edit-modal');
         await refreshAll();
       } catch (e) {
@@ -2316,14 +2282,14 @@
         return;
       }
       document.getElementById('btn-submit-fast-docs').style.display = 'inline-flex';
-      document.getElementById('btn-submit-fast-docs').textContent = `⚡ Importar ${pendingFastDocFiles.length} Documento(s)`;
+      document.getElementById('btn-submit-fast-docs').textContent = `IMPORTAR ${pendingFastDocFiles.length} DOCUMENTO(S)`;
 
       pendingFastDocFiles.forEach((f, idx) => {
         const item = document.createElement('div');
         item.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#0f172a; border:1px solid #1e293b; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:0.82rem;';
         item.innerHTML = `
-          <span>📄 <strong>${esc(f.name)}</strong> (${(f.size / 1024).toFixed(1)} KB)</span>
-          <button style="background:none; border:none; color:#ef4444; cursor:pointer;" onclick="pendingFastDocFiles.splice(${idx},1); renderFastDocList();">✕</button>
+          <span><strong>${esc(f.name)}</strong> (${(f.size / 1024).toFixed(1)} KB)</span>
+          <button style="background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;" onclick="pendingFastDocFiles.splice(${idx},1); renderFastDocList();">QUITAR</button>
         `;
         container.appendChild(item);
       });
@@ -2344,7 +2310,7 @@
           method: 'POST',
           body: fd,
         });
-        toast(`✓ ${res.imported_count} documentos importados a la biblioteca al instante`, 'success');
+        toast(`${res.imported_count} documentos importados a la biblioteca al instante`, 'success');
         if (res.errors && res.errors.length) {
           toast(`Advertencias: ${res.errors.join(', ')}`, 'warning', 4000);
         }
@@ -2383,7 +2349,7 @@
           method: 'POST',
           body: fd,
         });
-        toast(`✓ ${res.imported_count} canciones agregadas a la biblioteca al instante`, 'success');
+        toast(`${res.imported_count} canciones agregadas a la biblioteca al instante`, 'success');
         await refreshLibrary();
       } catch (e) {
         toast(`Error al subir documentos: ${e.message}`, 'error');
@@ -2448,7 +2414,7 @@
       currentSongSections.forEach(sec => {
         const btn = document.createElement('button');
         btn.className = 'section-jump-btn' + (sec.name === activeSec ? ' active-sec' : '');
-        btn.textContent = `⚡ ${sec.name}`;
+        btn.textContent = sec.name;
         btn.title = `Saltar a sección "${sec.name}" en el próximo compás`;
         btn.onclick = () => jumpToSection(sec.name);
         c.appendChild(btn);
@@ -2458,7 +2424,7 @@
     function highlightActiveSection(secName) {
       const btns = document.querySelectorAll('#transport-sections-chips .section-jump-btn');
       btns.forEach(b => {
-        if (b.textContent.includes(secName)) {
+        if (b.textContent.trim() === secName.trim()) {
           b.classList.add('active-sec');
         } else {
           b.classList.remove('active-sec');
@@ -2468,7 +2434,7 @@
 
     async function jumpToSection(secName) {
       try {
-        toast(`⏳ Programando salto al compás para: "${secName}"...`, 'info', 1500);
+        toast(`Programando salto en compás para: "${secName}"...`, 'info', 1500);
         await api('/api/transport/jump-section', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2501,7 +2467,7 @@
         currentLoopSec = res.section || '';
         updateLoopButton();
         if (isLoopActive) {
-          toast(`🔁 Bucle activado en sección: "${currentLoopSec}"`, 'success', 2500);
+          toast(`Bucle activado en sección: "${currentLoopSec}"`, 'success', 2500);
         } else {
           toast('Bucle desactivado', 'info', 1500);
         }
@@ -2528,12 +2494,12 @@
         btn.style.background = '#047857';
         btn.style.borderColor = '#10b981';
         btn.style.color = '#fff';
-        btn.textContent = `🔁 BUCLE ACTIVO (${currentLoopSec || 'Sección'}) ✕`;
+        btn.textContent = `BUCLE ACTIVO: ${currentLoopSec || 'SECCIÓN'} [CANCELAR]`;
       } else {
         btn.style.background = '#1e293b';
         btn.style.borderColor = '#334155';
         btn.style.color = '#cbd5e1';
-        btn.textContent = '🔁 Repetir Sección (Loop)';
+        btn.textContent = 'LOOP SECCIÓN';
       }
     }
 
@@ -2542,7 +2508,7 @@
       if (!badge) return;
       if (currentPendingJump) {
         badge.style.display = 'inline-block';
-        badge.textContent = `⏳ Saltando a ${currentPendingJump} en siguiente compás... ✕`;
+        badge.textContent = `SALTANDO A ${currentPendingJump} EN SIGUIENTE COMPÁS [CANCELAR]`;
       } else {
         badge.style.display = 'none';
       }
@@ -2564,7 +2530,7 @@
       deferredPwaPrompt.prompt();
       const choice = await deferredPwaPrompt.userChoice;
       if (choice.outcome === 'accepted') {
-        toast('✓ ¡App instalada en tu dispositivo!', 'success');
+        toast('App instalada en tu dispositivo', 'success');
       }
       deferredPwaPrompt = null;
       const btn = document.getElementById('btn-pwa-install');
@@ -2599,9 +2565,9 @@
         dynamicCuesEnabled = Boolean(res.enabled);
         updateDynamicCuesUI(dynamicCuesEnabled);
         if (dynamicCuesEnabled) {
-          toast('🎙️ Guías de voz inteligentes ACTIVADAS en audífonos In-Ear', 'success', 2500);
+          toast('Guías de voz inteligentes ACTIVADAS en audífonos In-Ear', 'success', 2500);
         } else {
-          toast('🎙️ Guías de voz inteligentes SILENCIADAS en In-Ears', 'info', 2000);
+          toast('Guías de voz inteligentes SILENCIADAS en In-Ears', 'info', 2000);
         }
       } catch (e) {
         toast(`Error cambiando guías: ${e.message}`, 'error');
@@ -2618,17 +2584,17 @@
         led.className = enabled ? 'cue-led-dot' : 'cue-led-dot led-off';
       }
       if (txt) {
-        txt.textContent = enabled ? '🎙️ Guías In-Ear: ON' : '🎙️ Guías In-Ear: OFF';
+        txt.textContent = enabled ? 'GUÍAS IN-EAR: ON' : 'GUÍAS IN-EAR: OFF';
       }
       if (btn) {
         btn.classList.toggle('active-on', enabled);
       }
       if (vfdBadge) {
         if (enabled) {
-          vfdBadge.textContent = '🎙️ GUÍAS: ON';
+          vfdBadge.textContent = 'GUÍAS: ON';
           vfdBadge.className = 'vfd-cue-badge cue-on';
         } else {
-          vfdBadge.textContent = '🎙️ GUÍAS: OFF';
+          vfdBadge.textContent = 'GUÍAS: OFF';
           vfdBadge.className = 'vfd-cue-badge cue-off';
         }
       }
@@ -2637,7 +2603,7 @@
     async function triggerManualCue(name) {
       try {
         await api(`/api/transport/play-cue?name=${encodeURIComponent(name)}`, { method: 'POST' });
-        toast(`🎙️ Guía "${name.toUpperCase()}" enviada a monitores In-Ear`, 'info', 1500);
+        toast(`Guía "${name.toUpperCase()}" enviada a monitores In-Ear`, 'info', 1500);
       } catch (e) {
         toast(`Error enviando cue: ${e.message}`, 'error');
       }

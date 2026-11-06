@@ -202,42 +202,42 @@
     /* Luces de Escenario Gigantes para Metrónomo / Compás */
     .beat-pulse-box {
       display: flex;
-      gap: 10px;
+      gap: 14px;
       align-items: center;
       background: #080c14;
-      border: 1px solid #161f30;
-      padding: 5px 12px;
-      border-radius: 24px;
+      border: 1px solid #1e283d;
+      padding: 8px 18px;
+      border-radius: 36px;
     }
     .beat-dot {
-      width: 34px;
-      height: 34px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       background: #0f1422;
-      border: 2px solid #1e283d;
-      color: #475569;
+      border: 2px solid #28354f;
+      color: #64748b;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.92rem;
-      font-weight: 800;
+      font-size: 1.35rem;
+      font-weight: 900;
       display: flex;
       align-items: center;
       justify-content: center;
       user-select: none;
-      transition: all 0.06s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.05s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .beat-dot.beat-active {
-      background: #38bdf8;
-      border-color: #e0f2fe;
-      color: #000;
-      box-shadow: 0 0 22px rgba(56, 189, 248, 0.95), 0 0 8px #fff;
-      transform: scale(1.12);
+      background: #0284c7;
+      border-color: #7dd3fc;
+      color: #ffffff;
+      box-shadow: 0 0 26px rgba(56, 189, 248, 0.95), 0 0 10px #ffffff;
+      transform: scale(1.15);
     }
     .beat-dot.beat-one.beat-active {
-      background: #f59e0b;
-      border-color: #fef08a;
-      color: #000;
-      box-shadow: 0 0 28px rgba(245, 158, 11, 0.98), 0 0 10px #fde047;
-      transform: scale(1.18);
+      background: #d97706;
+      border-color: #fde047;
+      color: #000000;
+      box-shadow: 0 0 32px rgba(245, 158, 11, 0.98), 0 0 12px #fde047;
+      transform: scale(1.22);
     }
 
     /* HERO CHORD: El Acorde Actual Gigante */
@@ -475,9 +475,9 @@
       </div>
 
       <div class="header-tools">
-        <button class="view-toggle-btn active" id="btn-mode-measure" onclick="setViewMode('measure')">🎯 Compás actual</button>
-        <button class="view-toggle-btn" id="btn-mode-sheet" onclick="setViewMode('sheet')">📄 Hoja completa</button>
-        <button class="view-toggle-btn" id="btn-pwa-install" style="display:none;" onclick="triggerPWAInstall()">📲 Instalar</button>
+        <button class="view-toggle-btn active" id="btn-mode-measure" onclick="setViewMode('measure')">COMPÁS ACTUAL</button>
+        <button class="view-toggle-btn" id="btn-mode-sheet" onclick="setViewMode('sheet')">HOJA COMPLETA</button>
+        <button class="view-toggle-btn" id="btn-pwa-install" style="display:none;" onclick="triggerPWAInstall()">INSTALAR APP</button>
 
         <div class="transpose-box">
           <button class="btn-tp" onclick="changeTranspose(-1)">-1</button>
@@ -494,8 +494,8 @@
       <div class="measure-top-bar">
         <div style="display:flex; align-items:center; gap:8px;">
           <div class="section-pill" id="m-section">INTRO</div>
-          <span id="mus-loop-badge" style="display:none; background:#047857; color:#a7f3d0; border:1px solid #10b981; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:800; animation:pulse 1.2s infinite;">🔁 BUCLE: <strong id="mus-loop-name">--</strong></span>
-          <span id="mus-jump-badge" style="display:none; background:#854d0e; color:#fef08a; border:1px solid #facc15; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:800; animation:pulse 0.8s infinite;">⏳ SALTO A: <strong id="mus-jump-name">--</strong></span>
+          <span id="mus-loop-badge" style="display:none; background:#064e3b; color:#a7f3d0; border:1px solid #10b981; padding:4px 10px; border-radius:4px; font-size:0.75rem; font-weight:800; letter-spacing:0.5px; animation:pulse 1.2s infinite;">LOOP: <strong id="mus-loop-name">--</strong></span>
+          <span id="mus-jump-badge" style="display:none; background:#78350f; color:#fef08a; border:1px solid #d97706; padding:4px 10px; border-radius:4px; font-size:0.75rem; font-weight:800; letter-spacing:0.5px; animation:pulse 0.8s infinite;">SALTO A: <strong id="mus-jump-name">--</strong></span>
         </div>
         <div class="beat-pulse-box" id="beat-box">
           <div class="beat-dot beat-one" id="dot-1">1</div>

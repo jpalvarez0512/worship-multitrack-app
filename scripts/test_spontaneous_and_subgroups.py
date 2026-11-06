@@ -98,8 +98,8 @@ def test_engine_spontaneous_loop_and_jump():
         eng._is_playing = True
     eng.schedule_jump(target_seconds=10.0, label="Coro", quantize_to_bar=True)
     
-    # Simular callback de audio reproduciendo buffer a buffer
-    for _ in range(50): # ~580 ms, cruzará el segundo 2.0 (frontera de compás)
+    # Simular callback de audio reproduciendo buffer a buffer (cruza el compás de aviso y el compás de salto)
+    for _ in range(250): # ~2.9s, cruzará el compás de conteo y el salto en el compás 2
         out_buf = np.zeros((512, 2), dtype=np.float32)
         eng._audio_callback(out_buf, 512, None, None)
         if eng.current_position_seconds >= 10.0:

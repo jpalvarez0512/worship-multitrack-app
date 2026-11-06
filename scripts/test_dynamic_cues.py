@@ -50,7 +50,13 @@ def test_cue_manager():
     loop_audio = cm.build_loop_cue("Coro")
     assert loop_audio is not None
     assert len(loop_audio) > len(cm.get_cue("repite"))
-    print(f"  ✓ Banco de guías verificado con éxito ({len(cm._cues)} clips de audio cargados en memoria)")
+
+    # Audio para aviso anticipado con conteo rítmico ("Coro 2, 3, 4")
+    trans_audio = cm.build_transition_cue("Coro", bpm=120.0, beats_per_bar=4)
+    assert trans_audio is not None
+    expected_samples = int((60.0 / 120.0) * cm.sample_rate * 4)
+    assert len(trans_audio) == expected_samples, f"Esperado {expected_samples}, obtenido {len(trans_audio)}"
+    print(f"  ✓ Banco de guías verificado con éxito ({len(cm._cues)} clips de audio cargados en memoria, compás de conteo={len(trans_audio)} samples)")
 
 
 def test_engine_cue_injection():

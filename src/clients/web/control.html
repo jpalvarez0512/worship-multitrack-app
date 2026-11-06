@@ -13,253 +13,738 @@
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
   <style>
     :root {
-      --bg: #0b0f19;
-      --card: #141c2e;
-      --card-2: #0e1524;
-      --border: #24324a;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --chord: #fbbf24;
+      /* Paleta Pro Audio DAW / Rack Hardware */
+      --bg: #07090e;
+      --chassis: #0e121b;
+      --chassis-surface: #131824;
+      --chassis-inset: #06080d;
+      --border-rack: #1e2638;
+      --border-rack-highlight: #2c384e;
+      --border-rack-subtle: #151b27;
+      
+      /* LEDs e Indicadores de Consola */
+      --vfd-green: #10b981;
+      --vfd-cyan: #38bdf8;
+      --vfd-amber: #f59e0b;
+      --vfd-red: #ef4444;
+      --vfd-purple: #818cf8;
+      
+      /* Tipografía y Serigrafía */
+      --text: #f1f5f9;
+      --text-muted: #8492a6;
+      --text-dim: #475569;
+      --text-engraved: #334155;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      padding: 18px;
-      max-width: 1320px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      padding: 16px 20px;
+      max-width: 1400px;
       margin: 0 auto;
+      letter-spacing: -0.01em;
     }
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 18px;
+      padding: 12px 18px;
+      background: linear-gradient(180deg, #121722 0%, #0a0d14 100%);
+      border: 1px solid var(--border-rack);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
       flex-wrap: wrap;
       gap: 12px;
     }
-    h1 { font-size: 1.35rem; color: #fff; }
-    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-
-    .btn {
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      cursor: pointer;
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .rack-bolt {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #475569 30%, #1e293b 80%);
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.8);
+      display: inline-block;
+    }
+    h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
       color: #fff;
-      background: var(--accent);
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* Botones de Hardware General */
+    .btn {
+      border: 1px solid #2d3748;
+      padding: 7px 13px;
+      border-radius: 5px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      color: #e2e8f0;
+      background: linear-gradient(180deg, #1e2638 0%, #111622 100%);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
       display: inline-flex;
       align-items: center;
       gap: 6px;
       white-space: nowrap;
+      transition: all 0.12s ease;
+      user-select: none;
     }
-    .btn:hover { filter: brightness(1.12); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-secondary { background: #24324a; }
-    .btn-success { background: var(--success); }
-    .btn-danger { background: #7f1d1d; }
-    .btn-warning { background: var(--warning); color: #000; }
-    .btn-info { background: #0284c7; color: #fff; }
-    .btn-primary { background: #2563eb; color: #fff; }
-    .btn-sm { padding: 5px 9px; font-size: 0.76rem; }
+    .btn:hover {
+      filter: brightness(1.15);
+      border-color: #3e4c63;
+      transform: translateY(-1px);
+    }
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.7);
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: linear-gradient(180deg, #1e2838 0%, #131924 100%); border-color: #2a374c; }
+    .btn-success { background: linear-gradient(180deg, #059669 0%, #047857 100%); border-color: #10b981; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+    .btn-danger { background: linear-gradient(180deg, #991b1b 0%, #7f1d1d 100%); border-color: #ef4444; color: #fff; }
+    .btn-warning { background: linear-gradient(180deg, #d97706 0%, #b45309 100%); border-color: #f59e0b; color: #fff; }
+    .btn-info { background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%); border-color: #38bdf8; color: #fff; }
+    .btn-primary { background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%); border-color: #60a5fa; color: #fff; }
+    .btn-sm { padding: 5px 9px; font-size: 0.76rem; border-radius: 4px; }
 
     .lan-badge {
-      background: #064e3b;
-      color: #6ee7b7;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
+      background: #042f2e;
+      color: #5eead4;
+      border: 1px solid #115e59;
+      padding: 5px 11px;
+      border-radius: 5px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      letter-spacing: 0.5px;
     }
 
-    .grid-layout { display: grid; grid-template-columns: 1.45fr 1fr; gap: 20px; }
+    .grid-layout { display: grid; grid-template-columns: 1.48fr 1fr; gap: 18px; }
     @media (max-width: 980px) { .grid-layout { grid-template-columns: 1fr; } }
 
+    /* Rack Chassis Panels */
     .panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 20px;
-      margin-bottom: 20px;
+      background: linear-gradient(180deg, #10141e 0%, #0a0d14 100%);
+      border: 1px solid var(--border-rack);
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+      position: relative;
     }
     .panel h2 {
-      font-size: 1.05rem;
+      font-size: 0.95rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
       margin-bottom: 14px;
-      color: #cbd5e1;
+      color: #94a3b8;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 10px;
+      border-bottom: 1px solid var(--border-rack-subtle);
+      padding-bottom: 8px;
     }
 
-    /* Transporte */
+    /* -------------------------------------------------------------
+       DISPLAY MAESTRO DE TRANSPORTE (ESTILO OLED / VFD HARDWARE)
+       ------------------------------------------------------------- */
+    .master-display-bezel {
+      background: #05070c;
+      border: 1px solid #141c2a;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.95), 0 1px 0 rgba(255,255,255,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .master-display-bezel::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 40%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+      pointer-events: none;
+    }
+    .vfd-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .vfd-song-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .vfd-badge-live {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 0.68rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      background: #450a0a;
+      color: #fca5a5;
+      border: 1px solid #991b1b;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .vfd-song-title {
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: #f8fafc;
+      letter-spacing: -0.01em;
+    }
+    .vfd-meta-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .vfd-chip {
+      background: #0c121d;
+      border: 1px solid #1a2538;
+      color: var(--vfd-cyan);
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .vfd-cue-badge {
+      font-family: ui-monospace, monospace;
+      font-size: 0.74rem;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+    }
+    .vfd-cue-badge.cue-on {
+      background: #064e3b;
+      border: 1px solid #10b981;
+      color: #6ee7b7;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    }
+    .vfd-cue-badge.cue-off {
+      background: #181c26;
+      border: 1px solid #2d3748;
+      color: #64748b;
+    }
+
+    /* Reloj Digital OLED Grande */
+    .vfd-time-digits {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 12px;
+      margin: 8px 0 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+      user-select: none;
+    }
+    .vfd-time-now {
+      font-size: 2.3rem;
+      font-weight: 900;
+      color: var(--vfd-green);
+      letter-spacing: 2px;
+      text-shadow: 0 0 16px rgba(16, 185, 129, 0.5), 0 0 4px #10b981;
+    }
+    .vfd-time-sep {
+      font-size: 1.4rem;
+      color: #334155;
+    }
+    .vfd-time-total {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 1px;
+    }
+
+    /* Barra de Navegación de Escena / Setlist */
     .scene-nav-bar {
       display: flex;
       gap: 8px;
       margin-bottom: 12px;
-      background: rgba(59, 130, 246, 0.12);
-      border: 1px solid rgba(59, 130, 246, 0.35);
-      border-radius: 8px;
+      background: #0b1322;
+      border: 1px solid #1e3a5f;
+      border-radius: 6px;
       padding: 8px 12px;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
     }
-    .scene-nav-bar strong { color: #60a5fa; }
+    .scene-nav-bar strong { color: #38bdf8; }
     .scene-nav-btns { display: flex; gap: 6px; }
 
-    .transport-controls { display: flex; gap: 10px; margin-bottom: 14px; }
-    .btn-transport {
-      flex: 1;
-      padding: 13px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.02rem;
-      font-weight: 800;
-      cursor: pointer;
-      color: #fff;
+    /* Botones de Transporte Tipo Hardware Push-Button */
+    .transport-controls-hw {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
     }
-    .btn-play { background: var(--success); }
-    .btn-pause { background: var(--warning); color: #000; }
-    .btn-stop { background: var(--danger); }
-    .btn-transport:active { opacity: 0.85; }
+    .btn-hw {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-size: 0.96rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 1px solid transparent;
+      user-select: none;
+      transition: all 0.1s ease;
+      position: relative;
+    }
+    .btn-hw-play {
+      background: linear-gradient(180deg, #059669 0%, #047857 50%, #064e3b 100%);
+      color: #fff;
+      border-color: #10b981;
+      box-shadow: 0 4px 12px rgba(4, 120, 87, 0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+    .btn-hw-pause {
+      background: linear-gradient(180deg, #d97706 0%, #b45309 50%, #78350f 100%);
+      color: #fff;
+      border-color: #f59e0b;
+      box-shadow: 0 4px 12px rgba(180, 83, 9, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+    .btn-hw-stop {
+      background: linear-gradient(180deg, #dc2626 0%, #b91c1c 50%, #7f1d1d 100%);
+      color: #fff;
+      border-color: #ef4444;
+      box-shadow: 0 4px 12px rgba(185, 28, 28, 0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+    .btn-hw:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+    .btn-hw:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+    }
+    .btn-hw-led {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 8px #fff;
+      display: inline-block;
+    }
 
+    /* Scrubber / Slider VFD Timeline */
+    .vfd-progress-well {
+      margin-top: 8px;
+      padding: 0 2px;
+    }
     .slider {
       width: 100%;
-      height: 8px;
-      border-radius: 4px;
-      background: #24324a;
+      height: 6px;
+      border-radius: 3px;
+      background: #0b111a;
+      border: 1px solid #1a2436;
       outline: none;
       -webkit-appearance: none;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+      cursor: pointer;
     }
     .slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: var(--accent);
+      width: 14px;
+      height: 20px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, #94a3b8 0%, #475569 50%, #334155 100%);
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.4);
       cursor: pointer;
     }
-    .time-labels {
+
+    /* -------------------------------------------------------------
+       RACK DE ADORACIÓN ESPONTÁNEA & GUÍAS IN-EAR ON-THE-FLY
+       ------------------------------------------------------------- */
+    .spontaneous-rack {
+      background: #090c13;
+      border: 1px solid #1c2536;
+      border-radius: 7px;
+      padding: 12px 14px;
+      margin-top: 14px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+    }
+    .spontaneous-header {
       display: flex;
       justify-content: space-between;
-      font-family: monospace;
-      font-size: 0.95rem;
-      color: var(--text-muted);
-      margin-top: 6px;
-    }
-
-    /* Mezclador de Stems (Nombres Completos) */
-    .stem-row {
-      display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 8px;
-      border-bottom: 1px solid #1a263a;
-      border-radius: 6px;
-      transition: background 0.15s;
-    }
-    .stem-row:hover { background: rgba(255, 255, 255, 0.02); }
-    .stem-row:last-child { border-bottom: none; }
-    .stem-name {
-      flex: 0 0 220px;
-      min-width: 170px;
-      max-width: 260px;
-      font-weight: 700;
-      font-size: 0.92rem;
-      color: #f1f5f9;
-      word-break: break-word;
-      white-space: normal;
-      line-height: 1.25;
-    }
-    .route-tag {
-      font-size: 0.7rem;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-weight: 800;
-      min-width: 86px;
-      text-align: center;
-      cursor: pointer;
-      user-select: none;
-      transition: transform 0.1s;
-    }
-    .route-tag:active { transform: scale(0.95); }
-    .route-cue { background: #4338ca; color: #c7d2fe; }
-    .route-master { background: #047857; color: #a7f3d0; }
-    .route-both { background: #92400e; color: #fde68a; }
-
-    .vol-box {
-      display: flex;
-      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
       gap: 8px;
-      flex: 1;
     }
-    .vol-label {
-      font-family: monospace;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      min-width: 38px;
-      text-align: right;
+    .spontaneous-title {
+      font-size: 0.72rem;
+      font-weight: 900;
+      color: #94a3b8;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .btn-toggle {
-      padding: 6px 11px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: #1e293b;
+    .rack-indicator-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--vfd-cyan);
+      box-shadow: 0 0 6px var(--vfd-cyan);
+    }
+    .spontaneous-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn-rack-action {
+      background: #121824;
+      border: 1px solid #243248;
       color: #cbd5e1;
-      font-weight: 800;
-      font-size: 0.8rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 4px;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.12s ease;
     }
-    .btn-toggle.active-mute { background: #dc2626; color: #fff; }
-    .btn-toggle.active-solo { background: #eab308; color: #000; }
-    .synthetic-note {
-      font-size: 0.8rem;
-      color: var(--warning);
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px dashed rgba(245, 158, 11, 0.4);
-      border-radius: 6px;
+    .btn-rack-action:hover {
+      background: #1a2334;
+      border-color: #3b4d6b;
+      color: #fff;
+    }
+    .btn-cue-toggle {
+      border-color: #065f46;
+      background: #064e3b;
+      color: #a7f3d0;
+    }
+    .btn-cue-toggle.active-on {
+      border-color: #10b981;
+      background: #064e3b;
+      color: #6ee7b7;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+    .cue-led-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+      display: inline-block;
+    }
+    .cue-led-dot.led-off {
+      background: #475569;
+      box-shadow: none;
+    }
+
+    /* Barra de Micro-Cues de Intercom / Avisos Rápidos */
+    .micro-cues-toolbar {
+      background: #06080d;
+      border: 1px solid #141b26;
+      border-radius: 5px;
       padding: 8px 10px;
       margin-bottom: 10px;
     }
+    .micro-cues-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #64748b;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .micro-cues-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .btn-cue-trigger {
+      background: #111722;
+      border: 1px solid #202b3c;
+      color: #cbd5e1;
+      font-size: 0.73rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.1s ease;
+    }
+    .btn-cue-trigger:hover {
+      background: #1e293b;
+      border-color: #f59e0b;
+      color: #fde68a;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+    }
+    .btn-cue-trigger:active {
+      transform: scale(0.96);
+      background: #b45309;
+      color: #fff;
+    }
+    .btn-cue-trigger.btn-cue-sec {
+      background: #0f1624;
+      border-color: #1e2e46;
+      color: #93c5fd;
+    }
+    .btn-cue-trigger.btn-cue-sec:hover {
+      border-color: #38bdf8;
+      color: #e0f2fe;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+    }
 
-    /* Escenas / Listas Dominicales */
+    /* Secciones de Canción para Salto Cuantizado */
+    .section-chips-container {
+      margin-top: 6px;
+    }
+    .section-chips-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #64748b;
+      letter-spacing: 0.8px;
+      margin-bottom: 5px;
+      display: block;
+    }
+    .section-chips-flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .section-jump-btn {
+      background: #0f1522;
+      border: 1px solid #202c40;
+      color: #cbd5e1;
+      padding: 5px 9px;
+      border-radius: 4px;
+      font-size: 0.77rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+    .section-jump-btn:hover {
+      background: #1e293b;
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+    .section-jump-btn.active-sec {
+      background: #0284c7;
+      color: #fff;
+      border-color: #7dd3fc;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+      font-weight: 800;
+    }
+
+    /* -------------------------------------------------------------
+       MEZCLADOR DE STEMS: CONSOLA DE ESTUDIO CON ESCALA DB
+       ------------------------------------------------------------- */
+    .stem-channel-strip {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: linear-gradient(180deg, #111622 0%, #0a0d14 100%);
+      border: 1px solid #1a2436;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
+      transition: border-color 0.15s ease;
+    }
+    .stem-channel-strip:hover {
+      border-color: #2b3952;
+    }
+    .stem-header-info {
+      flex: 0 0 200px;
+      min-width: 150px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stem-name-tag {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: #f8fafc;
+      word-break: break-word;
+      line-height: 1.25;
+    }
+    .route-tag {
+      align-self: flex-start;
+      font-size: 0.66rem;
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s ease;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+    }
+    .route-tag:active { transform: scale(0.95); }
+    .route-cue {
+      background: #1e1b4b;
+      border: 1px solid #4338ca;
+      color: #c7d2fe;
+    }
+    .route-master {
+      background: #022c22;
+      border: 1px solid #059669;
+      color: #a7f3d0;
+    }
+    .route-both {
+      background: #451a03;
+      border: 1px solid #d97706;
+      color: #fde68a;
+    }
+
+    /* Canal Fader con Escala dB Serigrafiada */
+    .fader-track-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .db-scale-legend {
+      display: flex;
+      justify-content: space-between;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 0.62rem;
+      color: #475569;
+      padding: 0 4px;
+      user-select: none;
+    }
+    .fader-control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .fader-range-slider {
+      flex: 1;
+      height: 8px;
+      background: #05070c;
+      border: 1px solid #141b26;
+      border-radius: 4px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.9);
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+    .fader-range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 24px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, #475569 0%, #1e293b 50%, #334155 100%);
+      border: 1px solid #94a3b8;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.4);
+      cursor: pointer;
+    }
+    .vol-db-display {
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    /* Switches Mecánicos Mute y Solo con Retroiluminación LED */
+    .stem-switches-group {
+      display: flex;
+      gap: 5px;
+    }
+    .btn-hw-switch {
+      width: 32px;
+      height: 30px;
+      border-radius: 4px;
+      font-weight: 900;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #273346;
+      background: linear-gradient(180deg, #182030 0%, #0d121c 100%);
+      color: #64748b;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+      user-select: none;
+      transition: all 0.12s ease;
+    }
+    .btn-hw-switch:hover {
+      filter: brightness(1.2);
+    }
+    .btn-hw-switch.active-mute {
+      background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
+      border-color: #f87171;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.75), inset 0 1px 0 rgba(255,255,255,0.4);
+    }
+    .btn-hw-switch.active-solo {
+      background: linear-gradient(180deg, #facc15 0%, #b45309 100%);
+      border-color: #fef08a;
+      color: #000;
+      box-shadow: 0 0 12px rgba(250, 204, 21, 0.75), inset 0 1px 0 rgba(255,255,255,0.4);
+    }
+
+    .synthetic-note {
+      font-size: 0.8rem;
+      color: var(--vfd-amber);
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px dashed rgba(245, 158, 11, 0.35);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+
+    /* -------------------------------------------------------------
+       ESCENAS / LISTAS DOMINICALES
+       ------------------------------------------------------------- */
     .scene-header-box {
-      background: var(--card-2);
-      border: 1px solid #23344d;
-      border-radius: 8px;
+      background: #090d16;
+      border: 1px solid #1a2538;
+      border-radius: 6px;
       padding: 10px 14px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 10px;
     }
-    .scene-meta-title { font-weight: 800; font-size: 0.95rem; color: #fff; }
-    .scene-meta-date { font-size: 0.78rem; color: var(--text-muted); }
+    .scene-meta-title { font-weight: 800; font-size: 0.92rem; color: #fff; }
+    .scene-meta-date { font-size: 0.76rem; color: var(--text-muted); }
     .scene-songs-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
     .scene-song-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #0f172a;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
+      background: #0a0e18;
+      border: 1px solid #1b2638;
+      border-radius: 5px;
       padding: 8px 12px;
-      font-size: 0.86rem;
+      font-size: 0.84rem;
     }
     .scene-song-item.active {
-      border-color: #3b82f6;
-      background: rgba(59, 130, 246, 0.15);
+      border-color: #0284c7;
+      background: rgba(2, 132, 199, 0.12);
     }
     .scene-song-num {
       font-weight: 800;
@@ -275,77 +760,83 @@
       margin-bottom: 12px;
     }
     .proj-select {
-      background: var(--card-2);
-      border: 1px solid var(--border);
+      background: #080c14;
+      border: 1px solid #1e283d;
       color: #fff;
-      padding: 8px 10px;
-      border-radius: 6px;
-      font-size: 0.85rem;
+      padding: 7px 10px;
+      border-radius: 5px;
+      font-size: 0.83rem;
       outline: none;
       width: 100%;
     }
     .range-control {
-      margin-bottom: 12px;
-      background: var(--card-2);
+      margin-bottom: 10px;
+      background: #080c14;
       padding: 10px 12px;
-      border-radius: 8px;
-      border: 1px solid #1e293b;
+      border-radius: 6px;
+      border: 1px solid #161f30;
     }
     .range-control label {
       display: flex;
       justify-content: space-between;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--text-muted);
       margin-bottom: 6px;
     }
     .range-control label strong { color: #fff; }
     .btn-proj-action {
       flex: 1;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: #1e293b;
+      padding: 9px;
+      border-radius: 5px;
+      border: 1px solid #202b3c;
+      background: #111723;
       color: #fff;
-      font-weight: bold;
+      font-weight: 700;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
+      transition: all 0.12s ease;
     }
-    .btn-proj-action.active { background: #dc2626; }
+    .btn-proj-action:hover {
+      border-color: #38bdf8;
+    }
+    .btn-proj-action.active { background: #991b1b; border-color: #ef4444; }
 
     /* Enlaces LAN */
     .link-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--card-2);
-      padding: 9px 12px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      font-size: 0.85rem;
+      background: #090d16;
+      padding: 8px 12px;
+      border-radius: 5px;
+      border: 1px solid #151d2c;
+      margin-bottom: 6px;
+      font-size: 0.82rem;
     }
     .link-row a {
       color: #38bdf8;
       text-decoration: none;
       font-weight: 700;
-      font-family: monospace;
+      font-family: ui-monospace, SFMono-Regular, monospace;
     }
     .link-badge {
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: 3px;
       font-weight: 800;
+      letter-spacing: 0.5px;
     }
-    .bg-pill-obs { background: #701a75; color: #f5d0fe; }
-    .bg-pill-proj { background: #1e3a8a; color: #bfdbfe; }
-    .bg-pill-mus { background: #064e3b; color: #a7f3d0; }
+    .bg-pill-obs { background: #4a044e; color: #f5d0fe; border: 1px solid #86198f; }
+    .bg-pill-proj { background: #172554; color: #bfdbfe; border: 1px solid #1d4ed8; }
+    .bg-pill-mus { background: #042f2e; color: #a7f3d0; border: 1px solid #0f766e; }
 
     /* Modales */
     .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.82);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.86);
+      backdrop-filter: blur(5px);
       z-index: 1000;
       justify-content: center;
       align-items: center;
@@ -353,90 +844,94 @@
     }
     .modal-overlay.active { display: flex; }
     .modal-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      background: #0c1018;
+      border: 1px solid #233044;
+      border-radius: 10px;
       width: 100%;
       max-width: 880px;
       max-height: 92vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65);
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.85);
     }
     .modal-header {
-      padding: 16px 20px;
-      background: #0d1424;
-      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+      background: #080c14;
+      border-bottom: 1px solid #1a2538;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+    .modal-body { padding: 18px; overflow-y: auto; flex: 1; }
     .modal-footer {
-      padding: 14px 20px;
-      background: #0d1424;
-      border-top: 1px solid var(--border);
+      padding: 12px 18px;
+      background: #080c14;
+      border-top: 1px solid #1a2538;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 10px;
     }
-    .field label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+    .field label { display: block; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
     .field input, .field select, .field textarea {
       width: 100%;
-      background: var(--card-2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
+      background: #060910;
+      border: 1px solid #1c273a;
+      border-radius: 5px;
       color: #fff;
-      padding: 8px 10px;
-      font-size: 0.9rem;
+      padding: 7px 10px;
+      font-size: 0.88rem;
       outline: none;
     }
-    .form-grid { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: #0284c7;
+      box-shadow: 0 0 8px rgba(2, 132, 199, 0.4);
+    }
+    .form-grid { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
 
     .dropzone {
-      border: 2px dashed #475569;
-      border-radius: 10px;
-      padding: 20px;
+      border: 2px dashed #2d3b52;
+      border-radius: 8px;
+      padding: 18px;
       text-align: center;
       color: var(--text-muted);
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       cursor: pointer;
-      background: var(--card-2);
-      transition: border-color 0.2s;
+      background: #060910;
+      transition: all 0.15s ease;
     }
-    .dropzone:hover { border-color: var(--accent); color: #fff; }
+    .dropzone:hover { border-color: #38bdf8; color: #fff; }
 
     .fast-doc-dropzone {
-      border: 2px dashed #334155;
-      border-radius: 8px;
-      padding: 10px 14px;
+      border: 2px dashed #27354a;
+      border-radius: 6px;
+      padding: 10px 12px;
       text-align: center;
       color: #94a3b8;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       cursor: pointer;
-      background: #0b1120;
+      background: #070b13;
       margin-bottom: 12px;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
     }
     .fast-doc-dropzone:hover, .fast-doc-dropzone.dragover {
       border-color: #38bdf8;
-      background: #0f1e38;
+      background: #0b1526;
       color: #38bdf8;
     }
     .chord-chip {
-      background: #1e293b;
-      border: 1px solid #334155;
+      background: #0f1522;
+      border: 1px solid #233044;
       color: #facc15;
-      font-weight: 700;
-      font-family: monospace;
-      font-size: 0.82rem;
-      padding: 4px 9px;
+      font-weight: 800;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 0.8rem;
+      padding: 3px 8px;
       border-radius: 4px;
       cursor: pointer;
       user-select: none;
-      transition: all 0.15s;
+      transition: all 0.12s;
     }
     .chord-chip:hover {
       background: #facc15;
@@ -444,69 +939,51 @@
       border-color: #facc15;
     }
     .section-chip {
-      background: #1e293b;
-      border: 1px solid #334155;
+      background: #0f1522;
+      border: 1px solid #233044;
       color: #60a5fa;
-      font-weight: 600;
-      font-size: 0.76rem;
-      padding: 4px 8px;
+      font-weight: 700;
+      font-size: 0.74rem;
+      padding: 3px 7px;
       border-radius: 4px;
       cursor: pointer;
       user-select: none;
-      transition: all 0.15s;
+      transition: all 0.12s;
     }
     .section-chip:hover {
-      background: #3b82f6;
+      background: #2563eb;
       color: #fff;
-      border-color: #3b82f6;
+      border-color: #60a5fa;
     }
 
-    /* Notificaciones */
+    /* Notificaciones Toast */
     #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; max-width: 440px; }
     .toast {
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 0.88rem;
+      padding: 11px 15px;
+      border-radius: 6px;
+      font-size: 0.85rem;
       font-weight: 600;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
       animation: slideIn 0.25s ease-out;
       white-space: pre-line;
+      border: 1px solid transparent;
     }
-    .toast-success { background: #065f46; color: #d1fae5; }
-    .toast-error { background: #7f1d1d; color: #fee2e2; }
-    .toast-info { background: #1e3a8a; color: #dbeafe; }
+    .toast-success { background: #064e3b; color: #a7f3d0; border-color: #10b981; }
+    .toast-error { background: #7f1d1d; color: #fee2e2; border-color: #ef4444; }
+    .toast-info { background: #0c2340; color: #bae6fd; border-color: #0284c7; }
     @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .section-jump-btn {
-      background: #1e293b;
-      border: 1px solid #334155;
-      color: #e2e8f0;
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .section-jump-btn:hover {
-      background: #38bdf8;
-      color: #000;
-      border-color: #38bdf8;
-    }
-    .section-jump-btn.active-sec {
-      background: #0284c7;
-      color: #fff;
-      border-color: #38bdf8;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
-    }
   </style>
 </head>
 <body>
 
   <header>
-    <div>
-      <h1>🎛 Panel de Control y Operador</h1>
-      <p style="color:var(--text-muted); font-size:0.85rem;">Worship Multitrack Live Engine</p>
+    <div class="header-branding">
+      <span class="rack-bolt"></span>
+      <div>
+        <h1>🎛 Panel de Control Central & Mezcla</h1>
+        <p style="color:var(--text-muted); font-size:0.78rem; font-family:ui-monospace, monospace; letter-spacing:0.5px;">WORSHIP LIVE MULTITRACK ENGINE · RACK MASTER CONSOLE</p>
+      </div>
     </div>
     <div class="header-actions">
       <button class="btn btn-warning" onclick="openScenesModal()">📅 Listas Dominicales</button>
@@ -523,9 +1000,9 @@
       <!-- Panel de Transporte -->
       <div class="panel">
         <h2>
-          <span>Transporte Multitrack</span>
+          <span>Consola de Transporte Multitrack</span>
           <span style="display:inline-flex; align-items:center; gap:8px;">
-            <span style="font-size:0.88rem; color:#38bdf8;" id="current-song-title">--</span>
+            <span style="font-size:0.84rem; color:var(--vfd-cyan); font-family:ui-monospace, monospace; font-weight:700;" id="current-song-title">--</span>
             <button class="btn btn-secondary btn-sm" id="btn-edit-active-chart" onclick="openEditActiveChart()" title="Editar letra y acordes de la canción activa">📝 Editar Letra</button>
           </span>
         </h2>
@@ -543,28 +1020,84 @@
           </div>
         </div>
 
-        <div class="transport-controls">
-          <button class="btn-transport btn-play" onclick="controlTransport('play')">▶ PLAY</button>
-          <button class="btn-transport btn-pause" onclick="controlTransport('pause')">⏸ PAUSA</button>
-          <button class="btn-transport btn-stop" onclick="controlTransport('stop')">⏹ STOP</button>
-        </div>
-        <input type="range" min="0" max="100" step="0.1" value="0" class="slider" id="timeline">
-        <div class="time-labels">
-          <span id="current-time">00:00</span>
-          <span id="total-time">00:00</span>
-        </div>
-
-        <!-- Barra de Secciones y Adoración Espontánea (Saltos Cuantizados y Bucle) -->
-        <div style="margin-top:14px; background:#0b1120; border:1px solid #1e293b; border-radius:8px; padding:10px 12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
-            <span style="font-size:0.75rem; color:#94a3b8; font-weight:800; text-transform:uppercase;">🔁 Adoración Espontánea & Secciones</span>
-            <div style="display:flex; gap:6px; align-items:center;">
-              <span id="jump-pending-badge" style="display:none; background:#854d0e; color:#fef08a; padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; animation:pulse 1s infinite; cursor:pointer;" onclick="cancelPendingJump()" title="Clic para cancelar salto">⏳ Saltando en siguiente compás... ✕</span>
-              <button class="btn btn-sm" id="btn-loop-toggle" onclick="toggleActiveSectionLoop()" style="background:#1e293b; color:#cbd5e1; border:1px solid #334155;">🔁 Repetir Sección (Loop)</button>
+        <!-- Master VFD / OLED Display Bezel -->
+        <div class="master-display-bezel">
+          <div class="vfd-top-row">
+            <div class="vfd-song-info">
+              <span class="vfd-badge-live">LIVE REC</span>
+              <span class="vfd-song-title" id="display-song-title">Cargando canción...</span>
+            </div>
+            <div class="vfd-meta-chips">
+              <span class="vfd-chip" id="display-bpm-key">-- BPM · --</span>
+              <span class="vfd-cue-badge cue-on" id="display-cue-status" title="Guías de voz inteligentes en audífonos In-Ear">🎙️ GUÍAS: ON</span>
             </div>
           </div>
-          <div id="transport-sections-chips" style="display:flex; flex-wrap:wrap; gap:6px;">
-            <span style="font-size:0.76rem; color:var(--text-muted);">Cargando secciones...</span>
+
+          <div class="vfd-time-digits">
+            <span class="vfd-time-now" id="current-time">00:00</span>
+            <span class="vfd-time-sep">/</span>
+            <span class="vfd-time-total" id="total-time">00:00</span>
+          </div>
+
+          <div class="vfd-progress-well">
+            <input type="range" min="0" max="100" step="0.1" value="0" class="slider" id="timeline" title="Línea de tiempo de reproducción">
+          </div>
+        </div>
+
+        <!-- Controles de Transporte de Hardware -->
+        <div class="transport-controls-hw">
+          <button class="btn-hw btn-hw-play" onclick="controlTransport('play')" title="Reproducir pistas">
+            <span class="btn-hw-led"></span>
+            <span>▶ PLAY</span>
+          </button>
+          <button class="btn-hw btn-hw-pause" onclick="controlTransport('pause')" title="Pausar">
+            <span class="btn-hw-led"></span>
+            <span>⏸ PAUSA</span>
+          </button>
+          <button class="btn-hw btn-hw-stop" onclick="controlTransport('stop')" title="Detener y volver al inicio">
+            <span class="btn-hw-led"></span>
+            <span>⏹ STOP</span>
+          </button>
+        </div>
+
+        <!-- Rack de Adoración Espontánea & Guías In-Ear On-The-Fly -->
+        <div class="spontaneous-rack">
+          <div class="spontaneous-header">
+            <div class="spontaneous-title">
+              <span class="rack-indicator-dot"></span>
+              <span>ADORACIÓN ESPONTÁNEA & GUÍAS IN-EAR</span>
+            </div>
+            <div class="spontaneous-actions">
+              <span id="jump-pending-badge" style="display:none; background:#78350f; color:#fef08a; border:1px solid #d97706; padding:3px 8px; border-radius:4px; font-size:0.74rem; font-weight:700; animation:pulse 1s infinite; cursor:pointer;" onclick="cancelPendingJump()" title="Clic para cancelar salto cuantizado">⏳ Saltando en siguiente compás... ✕</span>
+              <button class="btn-rack-action" id="btn-loop-toggle" onclick="toggleActiveSectionLoop()">🔁 Repetir Sección (Loop)</button>
+              <button class="btn-rack-action btn-cue-toggle active-on" id="btn-dynamic-cues-toggle" onclick="toggleDynamicCues()" title="Activar/Silenciar avisos automáticos en audífonos de músicos">
+                <span class="cue-led-dot" id="dynamic-cues-led"></span>
+                <span id="dynamic-cues-text">🎙️ Guías In-Ear: ON</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Micro-Cues de Intercomunicador Rápido (Solo In-Ears) -->
+          <div class="micro-cues-toolbar">
+            <span class="micro-cues-label">AVISOS HABLADOS EN VIVO A AUDÍFONOS (SOLO IN-EAR, 0 FUGA A SALA):</span>
+            <div class="micro-cues-btns">
+              <button class="btn-cue-trigger" onclick="triggerManualCue('atentos')" title="Aviso hablado: 'Atentos'">⚠️ Atentos</button>
+              <button class="btn-cue-trigger" onclick="triggerManualCue('corte')" title="Aviso hablado: 'Corte'">🛑 Corte</button>
+              <button class="btn-cue-trigger" onclick="triggerManualCue('repite')" title="Aviso hablado: 'Repite'">🔁 Repite</button>
+              <button class="btn-cue-trigger btn-cue-sec" onclick="triggerManualCue('intro')" title="Aviso hablado: 'Intro'">Intro</button>
+              <button class="btn-cue-trigger btn-cue-sec" onclick="triggerManualCue('verso')" title="Aviso hablado: 'Verso'">Verso</button>
+              <button class="btn-cue-trigger btn-cue-sec" onclick="triggerManualCue('coro')" title="Aviso hablado: 'Coro'">Coro</button>
+              <button class="btn-cue-trigger btn-cue-sec" onclick="triggerManualCue('puente')" title="Aviso hablado: 'Puente'">Puente</button>
+              <button class="btn-cue-trigger btn-cue-sec" onclick="triggerManualCue('final')" title="Aviso hablado: 'Final'">Final</button>
+            </div>
+          </div>
+
+          <!-- Secciones Dinámicas de la Canción para Salto Cuantizado -->
+          <div class="section-chips-container">
+            <span class="section-chips-label">SALTAR A SECCIÓN (AL FINALIZAR EL COMPÁS ACTUAL):</span>
+            <div id="transport-sections-chips" class="section-chips-flow">
+              <span style="font-size:0.76rem; color:var(--text-dim);">Cargando secciones...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -978,6 +1511,11 @@
         activeSongTitle = status.song.title;
         document.getElementById('current-song-title').textContent = `${status.song.title} (${status.song.key})`;
 
+        const dispTitle = document.getElementById('display-song-title');
+        if (dispTitle) dispTitle.textContent = status.song.title || '--';
+        const dispBpm = document.getElementById('display-bpm-key');
+        if (dispBpm) dispBpm.textContent = `${status.song.bpm || 120} BPM · ${status.song.key || 'C'}`;
+
         // Actualizar barra de escena activa si existe
         const scBar = document.getElementById('active-scene-bar');
         if (status.active_scene) {
@@ -1076,24 +1614,33 @@
 
       currentStems.forEach(stem => {
         const row = document.createElement('div');
-        row.className = 'stem-row';
+        row.className = 'stem-channel-strip';
 
         const routeClass = stem.route === 'cue' ? 'route-cue' : (stem.route === 'master' ? 'route-master' : 'route-both');
         const routeLabel = stem.route === 'cue' ? 'CUE / IN-EAR' : (stem.route === 'master' ? 'SALA / FOH' : 'AMBOS');
 
         row.innerHTML = `
-          <div class="stem-name" title="${esc(stem.name)}">${esc(stem.name)}</div>
-          <span class="route-tag ${routeClass}" title="Haz clic para alternar ruteo">${routeLabel}</span>
-          <div class="vol-box">
-            <input type="range" min="0" max="1" step="0.02" value="${stem.volume}" class="slider">
-            <span class="vol-label">${Math.round(stem.volume * 100)}%</span>
+          <div class="stem-header-info">
+            <span class="stem-name-tag" title="${esc(stem.name)}">${esc(stem.name)}</span>
+            <span class="route-tag ${routeClass}" title="Haz clic para alternar ruteo">${routeLabel}</span>
           </div>
-          <button class="btn-toggle ${stem.mute ? 'active-mute' : ''}" data-act="mute">M</button>
-          <button class="btn-toggle ${stem.solo ? 'active-solo' : ''}" data-act="solo">S</button>`;
+          <div class="fader-track-area">
+            <div class="db-scale-legend">
+              <span>+6</span><span>0</span><span>-6</span><span>-12</span><span>-24</span><span>-∞</span>
+            </div>
+            <div class="fader-control-row">
+              <input type="range" min="0" max="1" step="0.01" value="${stem.volume}" class="fader-range-slider">
+              <span class="vol-db-display">${Math.round(stem.volume * 100)}%</span>
+            </div>
+          </div>
+          <div class="stem-switches-group">
+            <button class="btn-hw-switch ${stem.mute ? 'active-mute' : ''}" data-act="mute" title="Silenciar canal (Mute)">M</button>
+            <button class="btn-hw-switch ${stem.solo ? 'active-solo' : ''}" data-act="solo" title="Aislar canal (Solo)">S</button>
+          </div>`;
 
         const enc = encodeURIComponent(stem.name);
-        const slider = row.querySelector('input');
-        const volLabel = row.querySelector('.vol-label');
+        const slider = row.querySelector('.fader-range-slider');
+        const volLabel = row.querySelector('.vol-db-display');
         const tag = row.querySelector('.route-tag');
 
         slider.addEventListener('input', () => {
@@ -2030,6 +2577,72 @@
       });
     }
 
+    // ------------------------------------------------ Guías de Voz Dinámicas (Cues In-Ear)
+    let dynamicCuesEnabled = true;
+
+    async function loadDynamicCuesState() {
+      try {
+        const d = await api('/api/transport/dynamic-cues');
+        dynamicCuesEnabled = Boolean(d.enabled);
+        updateDynamicCuesUI(dynamicCuesEnabled);
+      } catch (e) {}
+    }
+
+    async function toggleDynamicCues() {
+      const nextState = !dynamicCuesEnabled;
+      try {
+        const res = await api('/api/transport/dynamic-cues', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: nextState })
+        });
+        dynamicCuesEnabled = Boolean(res.enabled);
+        updateDynamicCuesUI(dynamicCuesEnabled);
+        if (dynamicCuesEnabled) {
+          toast('🎙️ Guías de voz inteligentes ACTIVADAS en audífonos In-Ear', 'success', 2500);
+        } else {
+          toast('🎙️ Guías de voz inteligentes SILENCIADAS en In-Ears', 'info', 2000);
+        }
+      } catch (e) {
+        toast(`Error cambiando guías: ${e.message}`, 'error');
+      }
+    }
+
+    function updateDynamicCuesUI(enabled) {
+      const led = document.getElementById('dynamic-cues-led');
+      const txt = document.getElementById('dynamic-cues-text');
+      const vfdBadge = document.getElementById('display-cue-status');
+      const btn = document.getElementById('btn-dynamic-cues-toggle');
+
+      if (led) {
+        led.className = enabled ? 'cue-led-dot' : 'cue-led-dot led-off';
+      }
+      if (txt) {
+        txt.textContent = enabled ? '🎙️ Guías In-Ear: ON' : '🎙️ Guías In-Ear: OFF';
+      }
+      if (btn) {
+        btn.classList.toggle('active-on', enabled);
+      }
+      if (vfdBadge) {
+        if (enabled) {
+          vfdBadge.textContent = '🎙️ GUÍAS: ON';
+          vfdBadge.className = 'vfd-cue-badge cue-on';
+        } else {
+          vfdBadge.textContent = '🎙️ GUÍAS: OFF';
+          vfdBadge.className = 'vfd-cue-badge cue-off';
+        }
+      }
+    }
+
+    async function triggerManualCue(name) {
+      try {
+        await api(`/api/transport/play-cue?name=${encodeURIComponent(name)}`, { method: 'POST' });
+        toast(`🎙️ Guía "${name.toUpperCase()}" enviada a monitores In-Ear`, 'info', 1500);
+      } catch (e) {
+        toast(`Error enviando cue: ${e.message}`, 'error');
+      }
+    }
+
     async function refreshPlayerState() {
       try {
         const status = await api('/api/status');
@@ -2046,6 +2659,7 @@
       await loadSongSections();
       await loadStems();
       await loadProjectionSettings();
+      await loadDynamicCuesState();
     }
 
     window.onload = async () => {

@@ -1,39 +1,41 @@
 # 🔄 Último Handover (Relevo)
-- **Fecha:** 2026-11-06 11:15
+- **Fecha:** 2026-11-06 16:15
 - **Desarrollador / Cuenta:** jpalvarez0512
 - **Rama activa:** main (Sincronizado con origin/main en GitHub)
 
 ### ✅ Completado en esta sesión:
-1. **Modo Espontáneo / Bucle de Sección en Vivo (Loop On-The-Fly sin Cortes de Audio):**
-   - **Saltos Cuantizados al Compás (*Bar-Quantized Section Jumps*):** Implementados en `src/audio/engine.py` mediante `schedule_jump()` y `set_song_timing()`. Al presionar un botón de sección (ej. Coro, Puente, Instrumental), el salto no corta abruptamente el audio ni tropieza el tiempo del metrónomo/batería, sino que se sincroniza exactamente en el tiempo 1 del siguiente compás musical. Si el motor está en pausa o detenido, el salto se posiciona de inmediato.
-   - **Bucle Infinito de Sección (*Loop On-The-Fly*):** El operador puede presionar **`🔁 Repetir Sección (Loop)`** en cualquier momento del culto para repetir indefinidamente la sección en la que el líder esté ministrando.
-   - **Micro-Crossfade Isopotente Cero-Clics (512 muestras ~ 11.6 ms):** Implementado en `MultitrackEngine._audio_callback` utilizando modulación de coseno elevado ($f_{\text{out}} = 0.5 \cdot (1 + \cos(\pi t))$, $f_{\text{in}} = 0.5 \cdot (1 - \cos(\pi t))$) conservando la energía acústica (0 dB) y eliminando completamente clics, pops o discontinuidades de voltaje al recircular o saltar pistas pregrabadas.
-   - **Endpoints REST y WebSockets en Vivo:**
-     - `POST /api/transport/jump-section`: programa salto cuantizado.
-     - `POST /api/transport/cancel-jump`: cancela un salto programado antes de que termine el compás.
-     - `POST /api/transport/loop-section`: activa o conmuta el bucle de la sección actual o una sección específica.
-     - `GET /api/transport/loop-status`: estado en tiempo real.
-     - WebSockets emiten periódicamente `loop_active`, `loop_sec` y `jump_pending` tanto al panel de operador como a los músicos.
-   - **Interfaz en Panel de Control (`control.html`):** Barra dedicada de "🔁 Adoración Espontánea & Secciones" con chips dinámicos de cada sección (`Intro`, `Verso`, `Coro`, etc.) que se iluminan al pasar por ellas, botón para activar/desactivar bucle y badge animado para cancelar saltos pendientes.
-   - **HUD en Terminal de Músicos (`musicians.html`):** Insignias dinámicas `🔁 BUCLE: CORO` y `⏳ SALTO A: PUENTE` en la barra superior para que toda la banda sepa con anticipación qué sección repetirá o a dónde irá el director.
+1. **Rediseño Estético Pro Hardware / Consola DAW (Anti-IA):**
+   - **Eliminación del look "plástico / IA":** Se reemplazaron las esquinas hiper-redondeadas, degradados genéricos de Tailwind y botones planos por una estética profesional de hardware analógico/digital de rack (estilo Neve / Ableton Live / SSL / Teenage Engineering).
+   - **Paleta de Hardware de Estudio:** Negro carbón mate (`#07090e`), grafito de chasis mecanizado (`#0e121b`), acentos en cian técnico (`#38bdf8`), verde consola (`#10b981`), ámbar cálido (`#f59e0b`) y carmesí (`#ef4444`).
+   - **Master VFD / OLED Display Bezel:** Pantalla digital empotrada con bisel interior, reloj de transporte en fuente monospace/digital con resplandor de fósforo verde OLED (`00:00 / 04:12`), insignia `LIVE REC`, título de canción, tempo/tono (`BPM · Key`) y badge indicador de estado de guías de voz (`🎙️ GUÍAS: ON / OFF`).
+   - **Botones de Transporte Físicos:** Botones estilo switch de estudio táctil con bisel 3D, relieves mecánicos y LEDs superiores de activación (Play en verde esmeralda, Pause en ámbar, Stop en rojo consola).
+   - **Faders de Consola con Escala dB Serigrafiada:** Canales individuales para cada stem con escala grabada en decibelios (`+6, 0, -6, -12, -24, -∞`), faders estriados de aluminio pulido y switches mecánicos push-button para **Mute** (retroiluminación LED roja de estudio) y **Solo** (retroiluminación LED amarilla de estudio).
+   - **Badges de Ruteo Patch-Bay:** Indicadores con relieve para `CUE / IN-EAR` (índigo profundo), `SALA / FOH` (verde esmeralda) y `AMBOS` (bronce dorado).
 
-2. **Subgrupos y Medleys Continuos vs Pausas de Ministración en Listas Dominicales:**
-   - **Agrupación por Bloques Musicales (`subgroup`):** Ahora las canciones dentro de una lista dominical pueden organizarse en subgrupos como `Alabanza`, `Adoración`, `Ministración`, `Ofrenda`, etc.
-   - **Auto-Play Continuo (*Medleys* sin intervención humana):** Cada canción en la lista cuenta con un selector `auto_next: true / false`. Al terminar una canción con `auto_next = true`, el servidor avanza automáticamente a la siguiente canción del subgrupo y reanuda la reproducción sin que el operador tenga que tocar nada.
-   - **Pausa de Ministración Automática:** Cuando una canción tiene `auto_next = false` (o al final del bloque), el motor detiene la reproducción y se mantiene en espera para permitir al pastor o líder orar o ministrar libremente sin que la siguiente pista entre de imprevisto.
-   - **Constructor de Listas Renovado:** Interfaz en `control.html` con inputs directos de subgrupo, checkboxes visuales `🔗 Auto-Play` vs `⏸ Pausa`, y resumen con insignias de bloques en las listas guardadas y en la barra de transporte activa.
+2. **Guías de Audio Dinámicas en In-Ears (Dynamic Cues On-The-Fly):**
+   - **Banco de Voces en Español 100% Offline:** Generados 18 clips WAV normalizados a -1 dBFS en `assets/cues/` (`intro`, `verso`, `verso_1`, `verso_2`, `pre_coro`, `coro`, `puente`, `instrumental`, `solo`, `final`, `repite`, `atentos`, `corte`, `uno`, `dos`, `tres`, `cuatro`) mediante el script `scripts/generate_cues.py` utilizando el sintetizador nativo de Windows (Helena Desktop `es-ES`) sin requerir internet ni paquetes pesados.
+   - **Módulo `CueManager` (`src/audio/cue_manager.py`):** Carga los clips en memoria RAM como arreglos NumPy `float32`, realiza matching inteligente de secciones musicales ("Coro 1" -> `coro`, "Verse 2" -> `verso_2`, etc.) y compone avisos combinados para bucles espontáneos ("Repite" + 80ms silencio + "[Sección]").
+   - **Inyección en Tiempo Real en `MultitrackEngine` (`src/audio/engine.py`):**
+     - Disparo automático de voz 1 compás antes de saltos cuantizados.
+     - Aviso automático "Repite... [Sección]" 1 compás antes del límite de un bucle activo de ministración.
+     - **Aislamiento Acústico Perfecto (0 Fuga):** En modo `SPLIT_STEREO`, el audio de las guías se inyecta exclusivamente en el canal izquierdo (L / In-Ears). El canal derecho (R / Sala - FOH) permanece en 0.000 absoluto, impidiendo que la congregación escuche las indicaciones internas.
+     - Soporte para reproducción tanto durante el playback como con el transporte en pausa (soundcheck o avisos del director musical a los in-ears).
+   - **Endpoints REST (`src/server/app.py`):**
+     - `GET /api/transport/dynamic-cues`: Retorna el estado y los 18 avisos disponibles.
+     - `POST /api/transport/dynamic-cues`: Activa o desactiva las guías automáticas.
+     - `POST /api/transport/play-cue?name=...`: Dispara cualquier indicación por su nombre en los in-ears.
+   - **Controles en Panel de Operador (`control.html`):** Switch con indicador LED `🎙️ Guías In-Ear: ON` y barra de micro-cues rápidos para el director (`⚠️ Atentos`, `🛑 Corte`, `🔁 Repite`, `Intro`, `Verso`, `Coro`, `Puente`, `Final`).
 
-3. **Modo PWA (Progressive Web App) para iPads, Tablets Android y Celulares:**
-   - **Manifiesto PWA Completo (`static/manifest.json`):** Configurado con modo `display: standalone`, tema oscuro `#070b14`, orientación adaptable y nombres claros.
-   - **Iconos Generados PWA:** Creados en `static/icons/icon-192.png`, `icon-512.png` y `icon.svg` mediante script nativo Python `scripts/create_icons.py`.
-   - **Service Worker con Caché Offline (`static/sw.js`):** Intercepta peticiones con estrategia *Network-First* con reserva local en caché para que los clientes funcionen incluso si el Wi-Fi de la iglesia experimenta micro-cortes.
-   - **Instalación con 1 Clic:** Botón **`📲 Instalar App`** en la cabecera de `control.html` y **`📲 Instalar`** en `musicians.html` que captura el evento `beforeinstallprompt` y permite añadir la app a la pantalla de inicio del iPad, tablet o teléfono sin barra de direcciones del navegador.
-   - **Screen Wake Lock API:** Previene activamente que la pantalla de tablets y atriles se apague o bloquee durante el culto o ensayo.
+3. **Luces del Metrónomo Gigantes para Escenario (`musicians.html`):**
+   - **Lámparas de Compás de 34px:** Luces aumentadas para permitir lectura clara desde atriles a 1.5–2 metros de distancia con números de pulso (1, 2, 3, 4) bien destacados.
+   - **Downbeat Ámbar Brillante:** El tiempo 1 emite un destello dorado expansivo (`#F59E0B`, `box-shadow: 0 0 28px rgba(245, 158, 11, 0.98)`), mientras que los tiempos 2, 3 y 4 parpadean en cian técnico.
+   - **Franja Periférica Superior (`#stage-flash-bar`):** Destello sutil en el borde superior de la pantalla visible sin mirar fijamente la tablet. Cumple estrictamente el requerimiento del usuario de **no añadir ningún elemento físico externo al escenario**, resolviendo todo dentro de la pantalla del dispositivo.
+   - Paleta OLED 100% negro absoluto (`#000000`) para máximo contraste en tarima y cero brillo residual.
 
-4. **Pruebas Automatizadas y Verificación:**
-   - Creado `scripts/test_spontaneous_and_subgroups.py`: verifica la entrega de `/manifest.json`, `/sw.js`, iconos, saltos cuantizados, bucles sin clics, endpoints de transporte y auto-avance de subgrupos con pausas de ministración (100% OK).
-   - Verificados `scripts/test_scenes_and_views.py` y `scripts/test_upload.py`: 100% de pruebas aprobadas sin regresiones.
-   - Servidor en vivo reiniciado y ejecutándose en segundo plano en el puerto 8000 con los nuevos endpoints y vistas activas.
+4. **Pruebas y Verificación:**
+   - Creado `scripts/test_dynamic_cues.py`: verifica la carga de los 18 WAVs, matching de secciones, inyección en tiempo real en `MultitrackEngine` (peak 1.000 en In-Ear vs 0.000 en FOH) y endpoints REST (100% aprobado).
+   - Ejecutado `scripts/test_spontaneous_and_subgroups.py`: 100% aprobado.
+   - Servidor en vivo reiniciado (`main.py`) ejecutándose como proceso demonio en el puerto 8000.
 
 ---
 
@@ -42,10 +44,10 @@
 - **Terminal de Músicos:** `http://192.168.0.7:8000/musicians`
 - **Pantalla de Proyección & Loops:** `http://192.168.0.7:8000/projection`
 - **Letras Transparentes para OBS Studio:** `http://192.168.0.7:8000/obs`
-- **Manifiesto PWA:** `http://localhost:8000/manifest.json`
+- **API Guías Dinámicas:** `http://localhost:8000/api/transport/dynamic-cues`
 
 ---
 
-### ⚠️ Decisiones técnicas o bloqueos:
-- Para saltos y bucles en pistas pregrabadas, el micro-crossfade de 11.6 ms garantiza continuidad matemática $C^1$ en la onda de sonido, evitando ruidos de corriente directa (DC-offset clicks) independientemente de en qué muestra caiga la frontera.
-- Para OBS Studio, utilizar la dirección `/obs` directamente como fuente de navegador en resolución 1920x1080 con fondo transparente.
+### ⚠️ Decisiones técnicas:
+- Las guías de voz se sintetizaron de forma local con `Microsoft Helena Desktop` en formato PCM WAV a 44.1 kHz, sin llamadas a APIs externas en la nube.
+- La inyección en `cue_mix` suma las muestras al canal de audífonos con un multiplicador de presencia (+2 dB) para que la voz del director/programa corte con claridad a través de la mezcla de monitores de la banda sin saturar.

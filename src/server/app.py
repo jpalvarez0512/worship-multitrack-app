@@ -787,6 +787,38 @@ def transport_loop_status():
     return engine.get_loop_state()
 
 
+@app.post("/api/transport/play-cue")
+def transport_play_cue(name: str):
+    """Dispara una indicación de audio en los in-ears (ej. 'intro', 'verso', 'coro', 'puente', 'atentos')."""
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    ok = engine.trigger_cue(name)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"Cue '{name}' no encontrado.")
+    return {"status": "cue_triggered", "name": name}
+
+
+@app.get("/api/transport/dynamic-cues")
+def get_dynamic_cues():
+    """Retorna el estado de guías de voz dinámicas y la lista de avisos disponibles."""
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    return {
+        "enabled": engine.dynamic_cues_enabled,
+        "available_cues": sorted(list(engine._cue_manager._cues.keys())),
+    }
+
+
+@app.post("/api/transport/dynamic-cues")
+def set_dynamic_cues(payload: dict):
+    """Activa o desactiva las guías de voz automáticas en los in-ears."""
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    enabled = bool(payload.get("enabled", True))
+    engine.set_dynamic_cues_enabled(enabled)
+    return {"status": "ok", "enabled": engine.dynamic_cues_enabled}
+
+
 # -----------------------------------------------------------------------------
 # Endpoints de Mezcla de Stems
 # -----------------------------------------------------------------------------

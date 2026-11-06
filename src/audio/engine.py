@@ -14,6 +14,7 @@ try:
 except ImportError:
     sd = None
 
+from src.audio.cue_manager import CueManager
 from src.audio.stem import StemTrack
 
 
@@ -79,6 +80,13 @@ class MultitrackEngine:
         self._loop_end_frame: int = 0
         self._loop_label: str = ""
         self._fade_len: int = 512  # ~11.6 ms a 44.1 kHz (Micro-Crossfade Isopotente)
+
+        # Generador de Guías de Audio Dinámicas (In-Ear Cues en Español)
+        self._cue_manager = CueManager(sample_rate=self.sample_rate)
+        self._dynamic_cues_enabled: bool = True
+        self._active_overlay_cue: Optional[np.ndarray] = None
+        self._active_overlay_pos: int = 0
+        self._loop_cue_last_fired_frame: int = -1
 
     # --------------------------------------------------------------------------
     # Gestión de Stems
@@ -240,6 +248,7 @@ class MultitrackEngine:
         Programa un salto a un punto específico de la canción (ej. Coro o Puente).
         Si quantize_to_bar es True y está reproduciendo, el salto se sincroniza
         exactamente con el tiempo 1 del siguiente compás para no cortar el ritmo.
+        Además, inyecta la indicación hablada correspondiente en los in-ears de los músicos.
         """
         target_f = int(max(0.0, target_seconds) * self.sample_rate)
         with self._lock:
@@ -250,7 +259,34 @@ class MultitrackEngine:
             else:
                 self._pending_jump_frame = target_f
                 self._pending_jump_label = label or "Sección"
+                # Avisar a la banda por in-ear en el compás previo al salto
+                if self._dynamic_cues_enabled and label:
+                    cue_audio = self._cue_manager.get_cue_for_section(label)
+                    if cue_audio is not None:
+                        self._active_overlay_cue = cue_audio
+                        self._active_overlay_pos = 0
         self._notify_tick()
+
+    def trigger_cue(self, cue_name: str) -> bool:
+        """Dispara manualmente una indicación hablada en los in-ears (ej. 'atentos', 'coro', 'corte')."""
+        cue_audio = self._cue_manager.get_cue(cue_name)
+        if cue_audio is None:
+            cue_audio = self._cue_manager.get_cue_for_section(cue_name)
+        if cue_audio is not None:
+            with self._lock:
+                self._active_overlay_cue = cue_audio
+                self._active_overlay_pos = 0
+            return True
+        return False
+
+    @property
+    def dynamic_cues_enabled(self) -> bool:
+        with self._lock:
+            return self._dynamic_cues_enabled
+
+    def set_dynamic_cues_enabled(self, enabled: bool) -> None:
+        with self._lock:
+            self._dynamic_cues_enabled = bool(enabled)
 
     def cancel_scheduled_jump(self) -> None:
         """Cancela un salto programado pendiente."""
@@ -358,7 +394,38 @@ class MultitrackEngine:
         outdata.fill(0.0)
 
         if not self._is_playing:
-            return
+            with self._lock:
+                if self._active_overlay_cue is None:
+                    return
+                # Inyección de guía de voz en in-ears aún en pausa (para soundcheck / aviso previo)
+                if len(self._cue_mix_buf) < frames:
+                    self._master_mix_buf = np.zeros((frames, 2), dtype=np.float32)
+                    self._cue_mix_buf = np.zeros((frames, 2), dtype=np.float32)
+                cue_mix = self._cue_mix_buf[:frames]
+                cue_mix.fill(0.0)
+                rem_cue = len(self._active_overlay_cue) - self._active_overlay_pos
+                if rem_cue > 0:
+                    copy_len = min(frames, rem_cue)
+                    cue_chunk = self._active_overlay_cue[self._active_overlay_pos : self._active_overlay_pos + copy_len]
+                    cue_mix[:copy_len, 0] = cue_chunk * 1.25
+                    cue_mix[:copy_len, 1] = cue_chunk * 1.25
+                    self._active_overlay_pos += copy_len
+                    if self._active_overlay_pos >= len(self._active_overlay_cue):
+                        self._active_overlay_cue = None
+                        self._active_overlay_pos = 0
+                else:
+                    self._active_overlay_cue = None
+                    self._active_overlay_pos = 0
+
+                if self.routing_mode == RoutingMode.SPLIT_STEREO:
+                    cue_mono = (cue_mix[:, 0] + cue_mix[:, 1]) * (0.5 * self._cue_volume)
+                    outdata[:, 0] = np.clip(cue_mono, -1.0, 1.0)
+                    outdata[:, 1] = 0.0
+                else:
+                    cue_out = cue_mix * self._cue_volume
+                    outdata[:, 0] = np.clip(cue_out[:, 0], -1.0, 1.0)
+                    outdata[:, 1] = np.clip(cue_out[:, 1], -1.0, 1.0)
+                return
 
         with self._lock:
             curr = self._current_frame
@@ -409,6 +476,19 @@ class MultitrackEngine:
                     transition_frame = self._loop_end_frame
                     target_frame = self._loop_start_frame
 
+            # Detección de aviso de bucle en In-Ears: 1 compás antes de volver a repetir la sección
+            if self._loop_enabled and self._dynamic_cues_enabled and self._loop_label:
+                loop_lead = self._loop_end_frame - samples_per_bar
+                if loop_lead <= curr < self._loop_end_frame:
+                    if self._loop_cue_last_fired_frame != self._loop_end_frame:
+                        self._loop_cue_last_fired_frame = self._loop_end_frame
+                        loop_cue_audio = self._cue_manager.build_loop_cue(self._loop_label)
+                        if loop_cue_audio is not None:
+                            self._active_overlay_cue = loop_cue_audio
+                            self._active_overlay_pos = 0
+                elif curr < loop_lead - samples_per_bar or curr >= self._loop_end_frame:
+                    self._loop_cue_last_fired_frame = -1
+
             if transition_frame is not None and target_frame is not None:
                 split = max(0, min(frames, transition_frame - curr))
                 # Mezclar parte 1 (antes del límite de compás)
@@ -434,6 +514,22 @@ class MultitrackEngine:
             else:
                 self._mix_stems_range(master_mix, cue_mix, curr, frames, has_solo)
                 self._current_frame += frames
+
+            # Inyección de Guías de Audio Dinámicas en el canal CUE / In-Ear (nunca en FOH / Sala)
+            if self._active_overlay_cue is not None:
+                rem_cue = len(self._active_overlay_cue) - self._active_overlay_pos
+                if rem_cue > 0:
+                    copy_len = min(frames, rem_cue)
+                    cue_chunk = self._active_overlay_cue[self._active_overlay_pos : self._active_overlay_pos + copy_len]
+                    cue_mix[:copy_len, 0] += cue_chunk * 1.25
+                    cue_mix[:copy_len, 1] += cue_chunk * 1.25
+                    self._active_overlay_pos += copy_len
+                    if self._active_overlay_pos >= len(self._active_overlay_cue):
+                        self._active_overlay_cue = None
+                        self._active_overlay_pos = 0
+                else:
+                    self._active_overlay_cue = None
+                    self._active_overlay_pos = 0
 
             # Aplicación de modo de ruteo con aceleración vectorizada
             if self.routing_mode == RoutingMode.SPLIT_STEREO:

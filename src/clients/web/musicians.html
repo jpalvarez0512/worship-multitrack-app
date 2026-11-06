@@ -18,14 +18,14 @@
   <style>
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     :root {
-      --bg: #090c15;
-      --card: #131a2a;
-      --card-border: #1e293b;
-      --accent: #3b82f6;
+      --bg: #000000;
+      --card: #080b12;
+      --card-border: #151c2c;
+      --accent: #0284c7;
       --chord-hero: #ffe600;
       --chord-sec: #fbbf24;
       --text: #f8fafc;
-      --text-dim: #94a3b8;
+      --text-dim: #64748b;
       --success: #10b981;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,6 +41,29 @@
       user-select: none;
     }
 
+    /* Franja de Pulso de Compás en Borde Superior (Visión Periférica para Músicos) */
+    #stage-flash-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 5px;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.06s ease-out;
+    }
+    #stage-flash-bar.flash-one {
+      background: #f59e0b;
+      box-shadow: 0 0 18px #f59e0b, 0 0 30px #f59e0b;
+      opacity: 1;
+    }
+    #stage-flash-bar.flash-other {
+      background: #38bdf8;
+      box-shadow: 0 0 12px #38bdf8;
+      opacity: 0.55;
+    }
+
     /* Contenedor Principal en Modo Stage (100% Pantalla) */
     .stage-container {
       display: flex;
@@ -51,10 +74,10 @@
 
     /* Barra Superior Fija */
     header {
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(8, 12, 18, 0.98);
       backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--card-border);
-      padding: 10px 16px;
+      padding: 8px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -63,16 +86,17 @@
       z-index: 50;
     }
     .song-meta h1 {
-      font-size: 1.15rem;
+      font-size: 1.12rem;
       font-weight: 800;
       color: #fff;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 45vw;
+      letter-spacing: -0.02em;
     }
     .song-meta p {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--text-dim);
     }
 
@@ -83,39 +107,42 @@
     }
 
     .view-toggle-btn {
-      background: #1e293b;
-      border: 1px solid #334155;
+      background: #0f1522;
+      border: 1px solid #1e283d;
       color: #cbd5e1;
-      padding: 6px 10px;
+      padding: 6px 11px;
       border-radius: 6px;
       font-size: 0.78rem;
       font-weight: 700;
       cursor: pointer;
+      transition: all 0.15s ease;
     }
     .view-toggle-btn.active {
-      background: #1d4ed8;
+      background: #0369a1;
       color: #fff;
-      border-color: #3b82f6;
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
     }
 
     .transpose-box {
       display: flex;
       align-items: center;
-      background: #0f172a;
-      border: 1px solid #334155;
+      background: #090d16;
+      border: 1px solid #1e283d;
       border-radius: 6px;
       overflow: hidden;
     }
     .btn-tp {
       background: transparent;
       border: none;
-      color: #fff;
+      color: #94a3b8;
       padding: 6px 10px;
       font-weight: 800;
       font-size: 0.9rem;
       cursor: pointer;
     }
-    .btn-tp:active { background: #3b82f6; }
+    .btn-tp:hover { color: #fff; }
+    .btn-tp:active { background: #0284c7; color: #fff; }
     .key-badge {
       padding: 4px 10px;
       font-weight: 900;
@@ -123,7 +150,9 @@
       color: var(--chord-hero);
       min-width: 44px;
       text-align: center;
-      background: #1e293b;
+      background: #121826;
+      border-left: 1px solid #1e283d;
+      border-right: 1px solid #1e283d;
     }
 
     .net-dot {
@@ -146,7 +175,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 16px 20px 18px;
+      padding: 12px 18px 16px;
       overflow: hidden;
     }
 
@@ -155,69 +184,100 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .section-pill {
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       font-weight: 900;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      background: #2563eb;
-      color: #fff;
+      letter-spacing: 1.2px;
+      background: #0f172a;
+      border: 1px solid #0284c7;
+      color: #38bdf8;
       padding: 5px 12px;
       border-radius: 6px;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
     }
+
+    /* Luces de Escenario Gigantes para Metrónomo / Compás */
     .beat-pulse-box {
       display: flex;
-      gap: 6px;
+      gap: 10px;
       align-items: center;
+      background: #080c14;
+      border: 1px solid #161f30;
+      padding: 5px 12px;
+      border-radius: 24px;
     }
     .beat-dot {
-      width: 12px;
-      height: 12px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      background: #1e293b;
-      border: 1px solid #334155;
-      transition: all 0.08s ease;
+      background: #0f1422;
+      border: 2px solid #1e283d;
+      color: #475569;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.92rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      transition: all 0.06s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .beat-dot.beat-active {
       background: #38bdf8;
-      box-shadow: 0 0 12px #38bdf8;
-      transform: scale(1.3);
+      border-color: #e0f2fe;
+      color: #000;
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.95), 0 0 8px #fff;
+      transform: scale(1.12);
     }
     .beat-dot.beat-one.beat-active {
-      background: var(--chord-hero);
-      box-shadow: 0 0 14px var(--chord-hero);
-      transform: scale(1.4);
+      background: #f59e0b;
+      border-color: #fef08a;
+      color: #000;
+      box-shadow: 0 0 28px rgba(245, 158, 11, 0.98), 0 0 10px #fde047;
+      transform: scale(1.18);
     }
 
     /* HERO CHORD: El Acorde Actual Gigante */
     .hero-chord-panel {
-      background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 75%);
-      border: 2px solid #3b82f6;
-      border-radius: 18px;
-      padding: 18px 24px;
+      background: #06080e;
+      border: 1px solid #161e2e;
+      border-radius: 14px;
+      padding: 14px 20px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), 0 0 20px rgba(59, 130, 246, 0.25);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 30px rgba(0, 0, 0, 0.8);
       position: relative;
-      margin: 8px 0;
+      margin: 6px 0;
       flex-shrink: 0;
     }
     .hero-chord-label {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 800;
-      color: #93c5fd;
+      color: #64748b;
       text-transform: uppercase;
       letter-spacing: 2px;
-      margin-bottom: -4px;
+      margin-bottom: -2px;
     }
     .hero-chord-name {
-      font-size: clamp(4.2rem, 15vw, 8.2rem);
+      font-size: clamp(4.4rem, 16vw, 8.5rem);
+      font-weight: 900;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--chord-hero);
+      line-height: 1;
+      letter-spacing: -1.5px;
+      text-shadow: 0 0 20px rgba(255, 230, 0, 0.35);
+      margin: 4px 0;
+      min-height: 1.1em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
       font-weight: 900;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       color: var(--chord-hero);
@@ -245,12 +305,12 @@
 
     /* Tarjeta del Compás / Línea que toca en este momento */
     .current-measure-card {
-      background: var(--card);
-      border: 1px solid #2b3952;
-      border-left: 6px solid #3b82f6;
-      border-radius: 14px;
-      padding: 18px 22px;
-      margin: 8px 0;
+      background: #07090e;
+      border: 1px solid #141b29;
+      border-left: 5px solid #0284c7;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 6px 0;
       flex-grow: 1;
       display: flex;
       flex-direction: column;
@@ -291,14 +351,14 @@
 
     /* Vista Previa del Próximo Compás */
     .upcoming-preview-card {
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px dashed #334155;
-      border-radius: 10px;
-      padding: 10px 16px;
+      background: #040609;
+      border: 1px dashed #172033;
+      border-radius: 8px;
+      padding: 8px 14px;
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--text-dim);
       flex-shrink: 0;
     }
@@ -376,7 +436,7 @@
 
     /* Barra Inferior Fija de Estado */
     footer {
-      background: rgba(11, 15, 25, 0.96);
+      background: #06090f;
       border-top: 1px solid var(--card-border);
       padding: 8px 16px;
       display: flex;
@@ -389,13 +449,14 @@
     .live-status-pill {
       font-weight: 800;
       font-size: 0.82rem;
-      padding: 2px 8px;
+      padding: 3px 9px;
       border-radius: 4px;
+      letter-spacing: 0.5px;
     }
-    .status-live { background: #064e3b; color: #6ee7b7; }
-    .status-paused { background: #78350f; color: #fde68a; }
+    .status-live { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+    .status-paused { background: #451a03; color: #fde68a; border: 1px solid #b45309; }
     .time-digits {
-      font-family: monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 1.1rem;
       font-weight: 700;
       color: #38bdf8;
@@ -403,6 +464,8 @@
   </style>
 </head>
 <body>
+
+  <div id="stage-flash-bar"></div>
 
   <div class="stage-container">
     <header>
@@ -435,10 +498,10 @@
           <span id="mus-jump-badge" style="display:none; background:#854d0e; color:#fef08a; border:1px solid #facc15; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:800; animation:pulse 0.8s infinite;">⏳ SALTO A: <strong id="mus-jump-name">--</strong></span>
         </div>
         <div class="beat-pulse-box" id="beat-box">
-          <div class="beat-dot beat-one" id="dot-1"></div>
-          <div class="beat-dot" id="dot-2"></div>
-          <div class="beat-dot" id="dot-3"></div>
-          <div class="beat-dot" id="dot-4"></div>
+          <div class="beat-dot beat-one" id="dot-1">1</div>
+          <div class="beat-dot" id="dot-2">2</div>
+          <div class="beat-dot" id="dot-3">3</div>
+          <div class="beat-dot" id="dot-4">4</div>
         </div>
       </div>
 
@@ -645,6 +708,17 @@
         const dot = document.getElementById(`dot-${b}`);
         if (dot) dot.classList.toggle('beat-active', isPlaying && b === currentBeatInBar);
       });
+
+      const flashBar = document.getElementById('stage-flash-bar');
+      if (flashBar) {
+        if (isPlaying && currentBeatInBar === 1) {
+          flashBar.className = 'flash-one';
+        } else if (isPlaying) {
+          flashBar.className = 'flash-other';
+        } else {
+          flashBar.className = '';
+        }
+      }
 
       const st = findLineState(pos);
       if (!st || !st.line) {

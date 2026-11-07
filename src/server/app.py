@@ -181,11 +181,26 @@ async def lifespan(app: FastAPI):
         routing_mode=RoutingMode.SPLIT_STEREO,
     )
     
-    # Cargar primera canción disponible en tracks/ o demo
+    # Cargar canción inicial ligera al arranque para no bloquear la apertura del servidor,
+    # y pre-calentar en segundo plano la primera canción multitrack pesada.
     available = song_loader.scan_songs()
     if available:
         try:
-            current_song = song_loader.load_song(available[0]["id"], engine)
+            light_songs = [s for s in available if s.get("stems_count", 0) == 0]
+            initial_id = light_songs[0]["id"] if light_songs else available[0]["id"]
+            if light_songs or available[0].get("stems_count", 0) <= 4:
+                current_song = song_loader.load_song(initial_id, engine)
+            else:
+                setup_demo_audio(engine, current_song)
+            # Pre-calentar en segundo plano la primera canción con stems reales
+            heavy_songs = [s for s in available if s.get("stems_count", 0) > 0]
+            if heavy_songs:
+                import threading as _th
+                _th.Thread(
+                    target=song_loader.prewarm_song,
+                    args=(heavy_songs[0]["id"],),
+                    daemon=True,
+                ).start()
         except Exception as ex:
             print(f"⚠️ Error cargando canción inicial: {ex}")
             setup_demo_audio(engine, current_song)

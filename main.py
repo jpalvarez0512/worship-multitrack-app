@@ -4,11 +4,11 @@ Ejecuta el servidor de audio, red local y sincronización para iglesias.
 """
 
 import os
+import socket
 import sys
 import threading
 import time
 import webbrowser
-import uvicorn
 
 if sys.platform.startswith("win"):
     try:
@@ -17,18 +17,71 @@ if sys.platform.startswith("win"):
     except Exception:
         pass
 
-from src.server.app import app
 
-
-def open_browser_delayed(url: str = "http://localhost:8000/control", delay: float = 1.2):
-    """Abre el navegador web en el Panel de Control automáticamente tras iniciar el servidor."""
-    time.sleep(delay)
+def open_url_in_browser(url: str) -> None:
+    """Abre la URL en el navegador predeterminado de Windows o multiplataforma."""
     try:
-        webbrowser.open(url)
+        if sys.platform.startswith("win") and hasattr(os, "startfile"):
+            os.startfile(url)
+            return
+    except Exception:
+        pass
+    try:
+        webbrowser.open(url, new=2)
     except Exception:
         pass
 
 
+def is_port_in_use(port: int = 8000, host: str = "127.0.0.1") -> bool:
+    """Verifica si el puerto local ya está siendo utilizado por una instancia activa."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(0.4)
+        return s.connect_ex((host, port)) == 0
+
+
+def wait_and_open_browser(url: str = "http://localhost:8000/control", port: int = 8000, timeout: float = 45.0) -> None:
+    """Espera a que el servidor escuche en el puerto indicado y abre el navegador inmediatamente."""
+    start_t = time.time()
+    while time.time() - start_t < timeout:
+        if is_port_in_use(port=port):
+            time.sleep(0.25)
+            open_url_in_browser(url)
+            return
+        time.sleep(0.25)
+
+
 if __name__ == "__main__":
-    threading.Thread(target=open_browser_delayed, daemon=True).start()
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
+    PORT = 8000
+    CONTROL_URL = f"http://localhost:{PORT}/control"
+
+    print("================================================================", flush=True)
+    print("  WORSHIP MULTITRACK LIVE - INICIANDO SISTEMA...", flush=True)
+    print("  Cargando motor de audio y consola local, por favor espera...", flush=True)
+    print("================================================================", flush=True)
+
+    # Si el servidor ya está corriendo en este equipo (puerto 8000 ocupado),
+    # abrir directamente el navegador en la consola de control sin fallar.
+    if is_port_in_use(port=PORT):
+        print("\n[OK] El servidor Worship Multitrack ya se encuentra activo en este equipo.", flush=True)
+        print(f"Abriendo Consola de Control en: {CONTROL_URL}", flush=True)
+        open_url_in_browser(CONTROL_URL)
+        time.sleep(2.5)
+        sys.exit(0)
+
+    try:
+        import uvicorn
+        from src.server.app import app
+
+        threading.Thread(
+            target=wait_and_open_browser,
+            args=(CONTROL_URL, PORT),
+            daemon=True,
+        ).start()
+
+        uvicorn.run(app, host="0.0.0.0", port=PORT, reload=False)
+    except Exception as exc:
+        print(f"\n[ERROR AL INICIAR EL SERVIDOR]: {exc}", flush=True)
+        try:
+            input("\nPresiona ENTER para cerrar esta ventana...")
+        except Exception:
+            time.sleep(10)

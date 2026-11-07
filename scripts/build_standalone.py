@@ -86,7 +86,7 @@ def build_portable_app():
     os.makedirs(target_config, exist_ok=True)
     os.makedirs(target_assets, exist_ok=True)
 
-    # Copiar canciones existentes si hay
+    # Copiar canciones existentes si hay y pre-generar library_index.json
     src_tracks = os.path.join(ROOT_DIR, "tracks")
     if os.path.exists(src_tracks):
         for item in os.listdir(src_tracks):
@@ -94,6 +94,12 @@ def build_portable_app():
             dst_item = os.path.join(target_tracks, item)
             if os.path.isdir(src_item) and not os.path.exists(dst_item):
                 shutil.copytree(src_item, dst_item)
+    try:
+        sys.path.insert(0, ROOT_DIR)
+        from src.core.song_loader import SongLoader
+        SongLoader(tracks_root=target_tracks).scan_songs(force_refresh=True)
+    except Exception as ex:
+        print(f"[WARN] No se pudo pre-generar library_index.json: {ex}")
 
     # Copiar config existente si hay
     src_config = os.path.join(ROOT_DIR, "config")
@@ -131,7 +137,8 @@ def build_portable_app():
             "@echo off\n"
             "chcp 65001 >nul\n"
             "title Worship Multitrack Live\n"
-            "start WorshipMultitrack.exe\n"
+            "cd /d \"%~dp0\"\n"
+            "WorshipMultitrack.exe\n"
         )
 
     print("\n" + "=" * 64)

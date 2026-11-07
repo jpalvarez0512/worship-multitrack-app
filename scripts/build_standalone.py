@@ -31,7 +31,7 @@ def build_portable_app():
     sep = ";" if sys.platform.startswith("win") else ":"
 
     add_data_args = [
-        f"--add-data={os.path.join('src', 'clients', 'web')}{sep}{os.path.join('src', 'clients', 'web')}",
+        f"--add-data=src{sep}src",
         f"--add-data=assets{sep}assets",
     ]
     if os.path.exists(os.path.join(ROOT_DIR, "static")):
@@ -140,6 +140,16 @@ def build_portable_app():
             "cd /d \"%~dp0\"\n"
             "WorshipMultitrack.exe\n"
         )
+
+    # Sincronizar binario portable ligero (portable_bin/) para actualizaciones OTA via actualizar.bat
+    portable_bin_dir = os.path.join(ROOT_DIR, "portable_bin")
+    os.makedirs(portable_bin_dir, exist_ok=True)
+    built_exe = os.path.join(APP_OUTPUT_DIR, "WorshipMultitrack.exe")
+    built_base_zip = os.path.join(APP_OUTPUT_DIR, "_internal", "base_library.zip")
+    if os.path.exists(built_exe):
+        shutil.copy2(built_exe, os.path.join(portable_bin_dir, "WorshipMultitrack.exe"))
+    if os.path.exists(built_base_zip):
+        shutil.copy2(built_base_zip, os.path.join(portable_bin_dir, "base_library.zip"))
 
     print("\n" + "=" * 64)
     print("[OK] PAQUETE PORTABLE GENERADO CON EXITO")

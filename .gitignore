@@ -61,6 +61,8 @@ config/backgrounds/*
 *.apk
 *.zip
 !deliverables/builds/**/*.gitkeep
+!portable_bin/WorshipMultitrack.exe
+!portable_bin/base_library.zip
 
 # IDEs y Sistema Operativo
 .vscode/

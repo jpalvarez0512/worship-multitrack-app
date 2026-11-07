@@ -1,55 +1,85 @@
 @echo off
 chcp 65001 >nul
-title Actualizador - Worship Multitrack App
+title Actualizador Automatico - Worship Multitrack Live
+cd /d "%~dp0"
 
 echo ================================================================
 echo    WORSHIP MULTITRACK LIVE - ACTUALIZADOR DE SISTEMA
 echo ================================================================
 echo.
-echo Verificando actualizaciones para la versión local...
-echo.
 
-where git >nul 2>&1
-if %ERRORLEVEL% equ 0 (
-    echo [1/3] Conectando con el repositorio oficial en GitHub...
+echo [1/4] Cerrando instancia previa si se encuentra abierta...
+taskkill /F /IM WorshipMultitrack.exe >nul 2>&1
+timeout /t 1 /nobreak >nul
+
+if exist ".git" (
+    echo [2/4] Carpeta de desarrollo detectada. Conectando con GitHub via Git...
     git fetch origin main
     if %ERRORLEVEL% neq 0 (
-        echo [ERROR] No se pudo conectar a Internet o a GitHub. Verifica tu conexión de red.
+        echo [ERROR] No se pudo conectar a GitHub. Verifica tu conexion a Internet.
         pause
         exit /b 1
     )
-
-    echo [2/3] Descargando últimas mejoras de código y motor de audio...
+    echo [3/4] Aplicando cambios desde origin/main...
     git pull origin main
     if %ERRORLEVEL% neq 0 (
-        echo [AVISO] Git pull detectó cambios locales. Aplicando actualización segura...
         git stash
         git pull origin main
         git stash pop
     )
-
-    if exist .venv\Scripts\python.exe (
-        echo [3/3] Verificando dependencias del sistema...
+    if exist ".venv\Scripts\python.exe" (
+        echo [4/4] Verificando dependencias Python...
         .\.venv\Scripts\python.exe -m pip install -q -r requirements.txt
     )
-
-    echo.
-    echo ================================================================
-    echo [OK] ¡ACTUALIZACIÓN COMPLETADA CON ÉXITO!
-    echo Tus canciones (tracks/), configuración (config/) y guías de voz (assets/)
-    echo están intactas y 100%% preservadas.
-    echo ================================================================
-    echo.
-    echo Puedes iniciar el servidor ejecutando: iniciar_servidor.bat
-    echo.
 ) else (
-    echo [MODO PORTÁTIL] Git no está instalado en este equipo.
-    echo Para actualizar la versión portable:
-    echo 1. Descarga el paquete más reciente desde:
-    echo    https://github.com/jpalvarez0512/worship-multitrack-app/releases/latest
-    echo 2. Extrae el contenido en esta misma carpeta.
-    echo 3. Tus carpetas 'tracks/', 'config/' y 'assets/' NUNCA se borran.
-    echo.
+    echo [2/4] Modo Portable detectado. Descargando ultima version desde GitHub...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+      "$ErrorActionPreference = 'Stop'; " ^
+      "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; " ^
+      "$zipPath = Join-Path $env:TEMP 'wml_portable_update.zip'; " ^
+      "$extPath = Join-Path $env:TEMP 'wml_portable_extracted'; " ^
+      "if (Test-Path $zipPath) { Remove-Item $zipPath -Force }; " ^
+      "if (Test-Path $extPath) { Remove-Item $extPath -Recurse -Force }; " ^
+      "Write-Host '      Descargando paquete desde GitHub (main)...'; " ^
+      "Invoke-WebRequest -Uri 'https://github.com/jpalvarez0512/worship-multitrack-app/archive/refs/heads/main.zip' -OutFile $zipPath -UseBasicParsing; " ^
+      "Write-Host '[3/4] Extrayendo e instalando archivos actualizados...'; " ^
+      "Expand-Archive -Path $zipPath -DestinationPath $extPath -Force; " ^
+      "$repoRoot = Get-ChildItem -Path $extPath -Directory | Select-Object -First 1 -ExpandProperty FullName; " ^
+      "$exeSrc = Join-Path $repoRoot 'portable_bin\WorshipMultitrack.exe'; " ^
+      "if (Test-Path $exeSrc) { Copy-Item $exeSrc -Destination '.\WorshipMultitrack.exe' -Force }; " ^
+      "$baseZipSrc = Join-Path $repoRoot 'portable_bin\base_library.zip'; " ^
+      "if ((Test-Path $baseZipSrc) -and (Test-Path '.\_internal')) { Copy-Item $baseZipSrc -Destination '.\_internal\base_library.zip' -Force }; " ^
+      "$srcDir = Join-Path $repoRoot 'src'; " ^
+      "if ((Test-Path $srcDir) -and (Test-Path '.\_internal')) { Copy-Item $srcDir -Destination '.\_internal' -Recurse -Force }; " ^
+      "$staticDir = Join-Path $repoRoot 'static'; " ^
+      "if ((Test-Path $staticDir) -and (Test-Path '.\_internal')) { Copy-Item $staticDir -Destination '.\_internal' -Recurse -Force }; " ^
+      "$verFile = Join-Path $repoRoot 'version.json'; " ^
+      "if (Test-Path $verFile) { Copy-Item $verFile -Destination '.\version.json' -Force }; " ^
+      "Remove-Item $zipPath -Force -ErrorAction SilentlyContinue; " ^
+      "Remove-Item $extPath -Recurse -Force -ErrorAction SilentlyContinue; " ^
+      "Write-Host '[4/4] Archivos del sistema actualizados correctamente.'"
+    if %ERRORLEVEL% neq 0 (
+        echo.
+        echo [ERROR] Ocurrio un problema al descargar o aplicar la actualizacion.
+        echo Verifica que la computadora tenga conexion a Internet.
+        pause
+        exit /b 1
+    )
+)
+
+echo.
+echo ================================================================
+echo [OK] ACTUALIZACION COMPLETADA CON EXITO
+echo Tus canciones (tracks/), configuracion (config/) y recursos (assets/)
+echo estan intactos y 100%% preservados.
+echo ================================================================
+echo.
+
+if exist "WorshipMultitrack.exe" (
+    echo Iniciando WorshipMultitrack.exe...
+    start "" "WorshipMultitrack.exe"
+    timeout /t 3 /nobreak >nul
+    exit /b 0
 )
 
 pause

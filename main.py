@@ -3,6 +3,7 @@ Worship Multitrack App - Punto de Entrada Principal
 Ejecuta el servidor de audio, red local y sincronización para iglesias.
 """
 
+import importlib.machinery
 import os
 import socket
 import sys
@@ -16,6 +17,17 @@ if sys.platform.startswith("win"):
         sys.stderr.reconfigure(encoding="utf-8")
     except Exception:
         pass
+
+# En modo portable (PyInstaller), priorizar archivos en _internal/src para que
+# actualizar.bat pueda actualizar código Python y vistas HTML sin recompilar.
+if getattr(sys, "frozen", False):
+    _bundle_dir = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(sys.executable)))
+    if _bundle_dir not in sys.path:
+        sys.path.insert(0, _bundle_dir)
+    if os.path.isdir(os.path.join(_bundle_dir, "src")):
+        if importlib.machinery.PathFinder in sys.meta_path:
+            sys.meta_path.remove(importlib.machinery.PathFinder)
+        sys.meta_path.insert(0, importlib.machinery.PathFinder)
 
 
 def open_url_in_browser(url: str) -> None:

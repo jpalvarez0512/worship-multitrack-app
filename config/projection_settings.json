@@ -1,7 +1,7 @@
 {
-  "background": "loop-particles",
-  "dim_opacity": 0.35,
-  "lead_seconds": 1.5,
+  "background": "worship-purple",
+  "dim_opacity": 0.0,
+  "lead_seconds": 1.0,
   "text_color": "#FFE600",
   "lower_thirds": false
 }

@@ -939,6 +939,27 @@
     .toast-info { background: #0c2340; color: #bae6fd; border-color: #0284c7; }
     @keyframes slideIn { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* Optimización Responsiva para Dispositivos Móviles */
+    @media (max-width: 680px) {
+      body { padding: 8px 10px; }
+      header { padding: 10px 12px; gap: 8px; }
+      h1 { font-size: 0.92rem; }
+      .header-actions { width: 100%; justify-content: flex-start; gap: 6px; }
+      .header-actions .btn { flex: 1 1 auto; padding: 7px 9px; font-size: 0.74rem; }
+      .panel { padding: 12px; margin-bottom: 12px; }
+      .vfd-time-now { font-size: 1.85rem; }
+      .vfd-time-total, .vfd-time-sep { font-size: 1.05rem; }
+      .btn-hw { padding: 12px 8px; font-size: 0.8rem; }
+      .section-jump-btn { padding: 7px 11px; font-size: 0.78rem; }
+      .stem-channel-strip { flex-wrap: wrap; gap: 8px; padding: 8px 10px; }
+      .stem-header-info { flex: 1 1 65%; min-width: 120px; }
+      .stem-switches-group { margin-left: auto; }
+      .fader-track-area { flex: 1 1 100%; width: 100%; }
+      .form-grid { grid-template-columns: 1fr 1fr; }
+      .proj-control-grid { grid-template-columns: 1fr; }
+      .link-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    }
   </style>
 </head>
 <body>
@@ -2422,6 +2443,9 @@
             }
             if (data.jump_pending !== undefined) {
               currentPendingJump = data.jump_pending || '';
+              if (data.bars_remaining !== undefined) {
+                currentBarsRemaining = data.bars_remaining;
+              }
               updateJumpBadge();
             }
           } else if (data.type === 'song_changed') {

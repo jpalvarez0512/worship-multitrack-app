@@ -90,6 +90,7 @@ class ConnectionManager:
         loop_active: bool = False,
         loop_section: str = "",
         pending_jump: str = "",
+        bars_remaining: int = 0,
     ) -> None:
         """
         Emite la actualización periódica del reloj a todos los canales
@@ -110,6 +111,7 @@ class ConnectionManager:
                 "loop_active": loop_active,
                 "loop_sec": loop_section,
                 "jump_pending": pending_jump,
+                "bars_remaining": bars_remaining,
                 "server_time": now,
             }
             await self.broadcast_to_channel(ChannelType.MUSICIANS, musician_payload)
@@ -139,6 +141,7 @@ class ConnectionManager:
                 "loop_active": loop_active,
                 "loop_sec": loop_section,
                 "jump_pending": pending_jump,
+                "bars_remaining": bars_remaining,
             }
             await self.broadcast_to_channel(ChannelType.CONTROL, control_payload)
 

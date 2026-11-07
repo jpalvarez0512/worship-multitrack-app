@@ -2,21 +2,21 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Terminal Músicos | Worship Multitrack</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Terminal Músicos & Director | Worship Multitrack</title>
 
   <!-- PWA & Mobile Meta Tags -->
   <meta name="theme-color" content="#070b14">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Worship Terminal">
+  <meta name="apple-mobile-web-app-title" content="Worship Stage">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
   <link rel="icon" type="image/svg+xml" href="/static/icons/icon.svg">
 
   <style>
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
     :root {
       --bg: #000000;
       --card: #080b12;
@@ -27,12 +27,15 @@
       --text: #f8fafc;
       --text-dim: #64748b;
       --success: #10b981;
+      --amber: #f59e0b;
+      --danger: #ef4444;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     html, body {
       width: 100vw;
       height: 100vh;
+      height: 100dvh;
       overflow: hidden;
       background-color: var(--bg);
       color: var(--text);
@@ -64,64 +67,110 @@
       opacity: 0.55;
     }
 
+    /* Notificación Toast Minimalista para el Director */
+    #stage-toast {
+      position: fixed;
+      top: 58px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid #38bdf8;
+      color: #f8fafc;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      z-index: 9500;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.18s ease;
+      white-space: nowrap;
+      max-width: 92vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #stage-toast.show { opacity: 1; }
+
     /* Contenedor Principal en Modo Stage (100% Pantalla) */
     .stage-container {
       display: flex;
       flex-direction: column;
       height: 100vh;
+      height: 100dvh;
       width: 100vw;
     }
 
     /* Barra Superior Fija */
     header {
       background: rgba(8, 12, 18, 0.98);
-      backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--card-border);
-      padding: 8px 16px;
+      padding: 8px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-shrink: 0;
       z-index: 50;
+      flex-wrap: wrap;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+    .song-meta {
+      min-width: 0;
+      flex: 1;
     }
     .song-meta h1 {
-      font-size: 1.12rem;
+      font-size: 1.05rem;
       font-weight: 800;
       color: #fff;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 45vw;
       letter-spacing: -0.02em;
     }
     .song-meta p {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .header-tools {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      flex-shrink: 0;
     }
 
     .view-toggle-btn {
       background: #0f1522;
       border: 1px solid #1e283d;
       color: #cbd5e1;
-      padding: 6px 11px;
-      border-radius: 6px;
-      font-size: 0.78rem;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.12s ease;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
     }
     .view-toggle-btn.active {
       background: #0369a1;
       color: #fff;
       border-color: #38bdf8;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    }
+    .view-toggle-btn.director-btn.active {
+      background: #92400e;
+      color: #fef3c7;
+      border-color: #f59e0b;
     }
 
     .transpose-box {
@@ -129,26 +178,25 @@
       align-items: center;
       background: #090d16;
       border: 1px solid #1e283d;
-      border-radius: 6px;
+      border-radius: 4px;
       overflow: hidden;
     }
     .btn-tp {
       background: transparent;
       border: none;
       color: #94a3b8;
-      padding: 6px 10px;
+      padding: 6px 9px;
       font-weight: 800;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
     }
-    .btn-tp:hover { color: #fff; }
     .btn-tp:active { background: #0284c7; color: #fff; }
     .key-badge {
-      padding: 4px 10px;
+      padding: 4px 8px;
       font-weight: 900;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: var(--chord-hero);
-      min-width: 44px;
+      min-width: 38px;
       text-align: center;
       background: #121826;
       border-left: 1px solid #1e283d;
@@ -156,15 +204,16 @@
     }
 
     .net-dot {
-      width: 10px;
-      height: 10px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       background: #ef4444;
+      flex-shrink: 0;
       transition: background 0.3s;
     }
     .net-dot.connected {
       background: #10b981;
-      box-shadow: 0 0 10px #10b981;
+      box-shadow: 0 0 8px #10b981;
     }
 
     /* -------------------------------------------------------------
@@ -175,49 +224,86 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 12px 18px 16px;
+      padding: 10px 14px;
       overflow: hidden;
+      min-height: 0;
     }
 
-    /* Barra Superior del Compás: Sección, Pulso de Compás y Reloj */
+    /* Barra Superior del Compás: Sección, Pulso de Compás y Badges */
     .measure-top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      gap: 8px;
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+    .measure-badges-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-width: 0;
     }
     .section-pill {
-      font-size: 0.88rem;
+      font-size: 0.84rem;
       font-weight: 900;
       text-transform: uppercase;
-      letter-spacing: 1.2px;
+      letter-spacing: 1px;
       background: #0f172a;
       border: 1px solid #0284c7;
       color: #38bdf8;
-      padding: 5px 12px;
-      border-radius: 6px;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+      padding: 5px 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .status-badge-loop {
+      display: none;
+      background: #064e3b;
+      color: #a7f3d0;
+      border: 1px solid #10b981;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      animation: pulse 1.2s infinite;
+      cursor: pointer;
+    }
+    .status-badge-jump {
+      display: none;
+      background: #78350f;
+      color: #fef08a;
+      border: 1px solid #d97706;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      animation: pulse 0.8s infinite;
+      cursor: pointer;
     }
 
     /* Luces de Escenario Gigantes para Metrónomo / Compás */
     .beat-pulse-box {
       display: flex;
-      gap: 14px;
+      gap: 10px;
       align-items: center;
       background: #080c14;
       border: 1px solid #1e283d;
-      padding: 8px 18px;
-      border-radius: 36px;
+      padding: 6px 14px;
+      border-radius: 32px;
+      flex-shrink: 0;
     }
     .beat-dot {
-      width: 52px;
-      height: 52px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       background: #0f1422;
       border: 2px solid #28354f;
       color: #64748b;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 1.35rem;
+      font-size: 1.25rem;
       font-weight: 900;
       display: flex;
       align-items: center;
@@ -229,154 +315,142 @@
       background: #0284c7;
       border-color: #7dd3fc;
       color: #ffffff;
-      box-shadow: 0 0 26px rgba(56, 189, 248, 0.95), 0 0 10px #ffffff;
-      transform: scale(1.15);
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.95), 0 0 8px #ffffff;
+      transform: scale(1.12);
     }
     .beat-dot.beat-one.beat-active {
       background: #d97706;
       border-color: #fde047;
       color: #000000;
-      box-shadow: 0 0 32px rgba(245, 158, 11, 0.98), 0 0 12px #fde047;
-      transform: scale(1.22);
+      box-shadow: 0 0 28px rgba(245, 158, 11, 0.98), 0 0 10px #fde047;
+      transform: scale(1.18);
     }
 
     /* HERO CHORD: El Acorde Actual Gigante */
     .hero-chord-panel {
       background: #06080e;
       border: 1px solid #161e2e;
-      border-radius: 14px;
-      padding: 14px 20px;
+      border-radius: 10px;
+      padding: 10px 16px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 30px rgba(0, 0, 0, 0.8);
-      position: relative;
-      margin: 6px 0;
+      margin: 4px 0;
       flex-shrink: 0;
     }
     .hero-chord-label {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 800;
       color: #64748b;
       text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: -2px;
+      letter-spacing: 1.8px;
     }
     .hero-chord-name {
-      font-size: clamp(4.4rem, 16vw, 8.5rem);
+      font-size: clamp(3.6rem, 14vw, 7.5rem);
       font-weight: 900;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       color: var(--chord-hero);
       line-height: 1;
       letter-spacing: -1.5px;
-      text-shadow: 0 0 20px rgba(255, 230, 0, 0.35);
-      margin: 4px 0;
-      min-height: 1.1em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-      font-weight: 900;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      color: var(--chord-hero);
-      line-height: 1;
-      letter-spacing: -2px;
-      text-shadow:
-        0 4px 18px rgba(0, 0, 0, 0.9),
-        0 0 28px rgba(255, 230, 0, 0.45);
-      margin: 4px 0;
-      min-height: 1.15em;
+      text-shadow: 0 0 20px rgba(255, 230, 0, 0.3);
+      margin: 2px 0;
+      min-height: 1.05em;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .hero-next-chord {
-      font-size: 1rem;
+      font-size: 0.92rem;
       font-weight: 700;
       color: var(--text-dim);
     }
     .hero-next-chord strong {
       color: #38bdf8;
       font-family: monospace;
-      font-size: 1.15rem;
+      font-size: 1.08rem;
     }
 
     /* Tarjeta del Compás / Línea que toca en este momento */
     .current-measure-card {
       background: #07090e;
       border: 1px solid #141b29;
-      border-left: 5px solid #0284c7;
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin: 6px 0;
-      flex-grow: 1;
+      border-left: 4px solid #0284c7;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin: 4px 0;
+      flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      overflow: hidden;
     }
     .measure-chords-flow {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       display: flex;
       flex-wrap: wrap;
-      gap: 12px 20px;
+      gap: 8px 14px;
       align-items: baseline;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     .measure-chord-pill {
-      font-size: 1.75rem;
+      font-size: 1.45rem;
       font-weight: 800;
       color: var(--chord-sec);
       background: rgba(251, 191, 36, 0.12);
       border: 1px solid rgba(251, 191, 36, 0.3);
-      padding: 4px 12px;
-      border-radius: 8px;
+      padding: 3px 10px;
+      border-radius: 6px;
       transition: all 0.12s ease;
     }
     .measure-chord-pill.active-in-measure {
       color: #000;
       background: var(--chord-hero);
       border-color: #fff;
-      box-shadow: 0 0 18px rgba(255, 230, 0, 0.65);
-      transform: scale(1.12);
+      box-shadow: 0 0 14px rgba(255, 230, 0, 0.6);
+      transform: scale(1.08);
     }
     .measure-lyrics-text {
-      font-size: clamp(1.3rem, 3.2vw, 2.2rem);
+      font-size: clamp(1.15rem, 3vw, 1.95rem);
       font-weight: 700;
-      line-height: 1.35;
+      line-height: 1.3;
       color: #f1f5f9;
-      min-height: 1.4em;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     /* Vista Previa del Próximo Compás */
     .upcoming-preview-card {
       background: #040609;
       border: 1px dashed #172033;
-      border-radius: 8px;
-      padding: 8px 14px;
+      border-radius: 6px;
+      padding: 6px 12px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-size: 0.88rem;
+      gap: 10px;
+      font-size: 0.82rem;
       color: var(--text-dim);
       flex-shrink: 0;
     }
     .upcoming-tag {
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 800;
       text-transform: uppercase;
       background: #1e293b;
       color: #94a3b8;
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: 3px;
       white-space: nowrap;
     }
     .upcoming-chords {
       font-family: monospace;
       font-weight: 700;
       color: #60a5fa;
-      margin-right: 8px;
+      white-space: nowrap;
     }
 
     /* -------------------------------------------------------------
@@ -386,116 +460,367 @@
       display: none;
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
-      max-width: 820px;
+      padding: 12px;
+      max-width: 840px;
       margin: 0 auto;
       width: 100%;
+      min-height: 0;
     }
     .section-block {
       background: var(--card);
       border: 1px solid var(--card-border);
-      border-radius: 10px;
-      margin-bottom: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
       overflow: hidden;
     }
     .section-block.active-sec {
       border-color: #3b82f6;
-      box-shadow: 0 0 16px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
     }
     .section-block-head {
-      background: #1e293b;
-      padding: 8px 14px;
+      background: #161f30;
+      padding: 8px 12px;
       font-weight: 800;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: #94a3b8;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sheet-jump-pill {
+      display: none;
+      background: #0f172a;
+      border: 1px solid #0284c7;
+      color: #38bdf8;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    body.director-active .sheet-jump-pill {
+      display: inline-block;
     }
     .sheet-line {
-      padding: 10px 14px;
-      border-bottom: 1px solid #1c273a;
+      padding: 9px 12px;
+      border-bottom: 1px solid #161f30;
       transition: background 0.15s;
     }
     .sheet-line:last-child { border-bottom: none; }
     .sheet-line.active-line {
       background: rgba(59, 130, 246, 0.18);
-      border-left: 5px solid #3b82f6;
+      border-left: 4px solid #3b82f6;
     }
     .sheet-chords {
       font-family: monospace;
-      font-size: 1.15rem;
+      font-size: 1.08rem;
       font-weight: 800;
       color: var(--chord-sec);
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .sheet-lyrics {
-      font-size: 1.05rem;
-      line-height: 1.4;
+      font-size: 1rem;
+      line-height: 1.35;
       color: #f1f5f9;
+    }
+
+    /* -------------------------------------------------------------
+       DOCK DE CONTROL PARA MÚSICO DIRECTOR (MÓVIL / TABLET)
+       ------------------------------------------------------------- */
+    #director-dock {
+      display: none;
+      background: #0a0d14;
+      border-top: 2px solid #b45309;
+      padding: 8px 12px;
+      flex-shrink: 0;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 60;
+    }
+    body.director-active #director-dock {
+      display: flex;
+    }
+
+    .dir-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .dir-transport-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+    .btn-dir {
+      border: 1px solid #28354f;
+      background: #141b29;
+      color: #e2e8f0;
+      font-weight: 800;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      padding: 9px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 38px;
+      white-space: nowrap;
+      flex: 1;
+      transition: all 0.1s ease;
+    }
+    .btn-dir:active { transform: scale(0.97); }
+    .btn-dir-play {
+      background: #064e3b;
+      border-color: #10b981;
+      color: #ecfdf5;
+    }
+    .btn-dir-play.playing-active {
+      background: #059669;
+      border-color: #6ee7b7;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+    }
+    .btn-dir-pause {
+      background: #451a03;
+      border-color: #d97706;
+      color: #fef3c7;
+    }
+    .btn-dir-stop {
+      background: #450a0a;
+      border-color: #dc2626;
+      color: #fee2e2;
+    }
+    .btn-dir-loop {
+      background: #172033;
+      border-color: #334155;
+      color: #cbd5e1;
+    }
+    .btn-dir-loop.loop-on {
+      background: #047857;
+      border-color: #34d399;
+      color: #ffffff;
+    }
+    .btn-dir-mode {
+      background: #0f172a;
+      border-color: #0284c7;
+      color: #7dd3fc;
+      font-size: 0.72rem;
+      padding: 8px 10px;
+      flex: 0 1 auto;
+    }
+    .btn-dir-mode.quick-mode {
+      border-color: #d97706;
+      color: #fde047;
+    }
+
+    /* Selector Rápido de Canciones del Director */
+    .dir-song-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+    .dir-song-select {
+      flex: 1;
+      background: #090d16;
+      color: #f8fafc;
+      border: 1px solid #1e283d;
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      min-width: 0;
+    }
+    .btn-dir-nav {
+      background: #141b29;
+      border: 1px solid #28354f;
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      min-height: 32px;
+      white-space: nowrap;
+    }
+    .btn-dir-nav:active { background: #0284c7; color: #fff; }
+
+    /* Fila Táctil de Secciones para Salto en Vivo */
+    .dir-sections-scroller {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .dir-sections-scroller::-webkit-scrollbar { display: none; }
+
+    .dir-sec-btn {
+      background: #111827;
+      border: 1px solid #28354f;
+      color: #e2e8f0;
+      padding: 8px 13px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-height: 36px;
+      transition: all 0.12s ease;
+    }
+    .dir-sec-btn:active { transform: scale(0.96); }
+    .dir-sec-btn.active-sec {
+      background: #0369a1;
+      border-color: #38bdf8;
+      color: #ffffff;
+    }
+    .dir-sec-btn.pending-sec {
+      background: #92400e;
+      border-color: #fde047;
+      color: #fef08a;
+      animation: pulse 0.75s infinite;
     }
 
     /* Barra Inferior Fija de Estado */
     footer {
       background: #06090f;
       border-top: 1px solid var(--card-border);
-      padding: 8px 16px;
+      padding: 6px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-dim);
       flex-shrink: 0;
     }
     .live-status-pill {
       font-weight: 800;
-      font-size: 0.82rem;
-      padding: 3px 9px;
-      border-radius: 4px;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 3px;
       letter-spacing: 0.5px;
     }
     .status-live { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
     .status-paused { background: #451a03; color: #fde68a; border: 1px solid #b45309; }
     .time-digits {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: 700;
       color: #38bdf8;
+    }
+
+    /* -------------------------------------------------------------
+       OPTIMIZACIÓN RESPONSIVE PARA MÓVILES (VERTICAL Y HORIZONTAL)
+       ------------------------------------------------------------- */
+    body.director-active .hero-chord-panel {
+      padding: 6px 12px;
+    }
+    body.director-active .hero-chord-name {
+      font-size: clamp(2.7rem, 11vw, 5.2rem);
+    }
+    body.director-active .current-measure-card {
+      padding: 8px 12px;
+    }
+
+    @media (max-width: 680px) {
+      header {
+        padding: 6px 10px;
+        gap: 6px;
+      }
+      .header-left {
+        width: 100%;
+        flex: none;
+        justify-content: space-between;
+      }
+      .header-tools {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .view-toggle-btn {
+        flex: 1;
+        text-align: center;
+        padding: 6px 6px;
+        font-size: 0.72rem;
+      }
+      #view-measure {
+        padding: 6px 10px;
+      }
+      .beat-pulse-box {
+        gap: 6px;
+        padding: 4px 10px;
+      }
+      .beat-dot {
+        width: 38px;
+        height: 38px;
+        font-size: 1.05rem;
+      }
+      .measure-chord-pill {
+        font-size: 1.2rem;
+        padding: 2px 8px;
+      }
+      .measure-lyrics-text {
+        font-size: clamp(1.05rem, 4.2vw, 1.45rem);
+      }
+      .btn-dir {
+        padding: 8px 8px;
+        font-size: 0.73rem;
+      }
+    }
+
+    @media (max-height: 680px) {
+      .hero-chord-panel { padding: 4px 10px; }
+      .hero-chord-name { font-size: clamp(2.4rem, 9vw, 4.2rem); }
+      .hero-chord-label { display: none; }
+      .upcoming-preview-card { padding: 4px 10px; font-size: 0.75rem; }
     }
   </style>
 </head>
 <body>
 
   <div id="stage-flash-bar"></div>
+  <div id="stage-toast"></div>
 
   <div class="stage-container">
     <header>
-      <div class="song-meta">
-        <h1 id="hdr-title">Cargando canción...</h1>
-        <p><span id="hdr-artist">--</span> · <span id="hdr-bpm">--</span> BPM</p>
+      <div class="header-left">
+        <div class="song-meta">
+          <h1 id="hdr-title">Cargando canción...</h1>
+          <p><span id="hdr-artist">--</span> · <span id="hdr-bpm">--</span> BPM</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="transpose-box" title="Transposición personal para tu instrumento">
+            <button class="btn-tp" onclick="changeTranspose(-1)">-1</button>
+            <div class="key-badge" id="hdr-key">C</div>
+            <button class="btn-tp" onclick="changeTranspose(1)">+1</button>
+          </div>
+          <div class="net-dot" id="net-dot" title="Conexión en Tiempo Real"></div>
+        </div>
       </div>
 
       <div class="header-tools">
-        <button class="view-toggle-btn active" id="btn-mode-measure" onclick="setViewMode('measure')">COMPÁS ACTUAL</button>
-        <button class="view-toggle-btn" id="btn-mode-sheet" onclick="setViewMode('sheet')">HOJA COMPLETA</button>
-        <button class="view-toggle-btn" id="btn-pwa-install" style="display:none;" onclick="triggerPWAInstall()">INSTALAR APP</button>
-
-        <div class="transpose-box">
-          <button class="btn-tp" onclick="changeTranspose(-1)">-1</button>
-          <div class="key-badge" id="hdr-key">G</div>
-          <button class="btn-tp" onclick="changeTranspose(1)">+1</button>
-        </div>
-
-        <div class="net-dot" id="net-dot" title="Conexión WebSocket"></div>
+        <button class="view-toggle-btn active" id="btn-mode-measure" onclick="setViewMode('measure')">COMPÁS</button>
+        <button class="view-toggle-btn" id="btn-mode-sheet" onclick="setViewMode('sheet')">HOJA</button>
+        <button class="view-toggle-btn director-btn" id="btn-director-mode" onclick="toggleDirectorMode()" title="Activar controles de transporte y secciones para Músico Director">MODO DIRECTOR</button>
+        <button class="view-toggle-btn" id="btn-pwa-install" style="display:none;" onclick="triggerPWAInstall()">APP</button>
       </div>
     </header>
 
     <!-- 1. VISTA DE COMPÁS ACTUAL (MODO PRINCIPAL) -->
     <div id="view-measure">
       <div class="measure-top-bar">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <div class="section-pill" id="m-section">INTRO</div>
-          <span id="mus-loop-badge" style="display:none; background:#064e3b; color:#a7f3d0; border:1px solid #10b981; padding:4px 10px; border-radius:4px; font-size:0.75rem; font-weight:800; letter-spacing:0.5px; animation:pulse 1.2s infinite;">LOOP: <strong id="mus-loop-name">--</strong></span>
-          <span id="mus-jump-badge" style="display:none; background:#78350f; color:#fef08a; border:1px solid #d97706; padding:4px 10px; border-radius:4px; font-size:0.75rem; font-weight:800; letter-spacing:0.5px; animation:pulse 0.8s infinite;">SALTO A: <strong id="mus-jump-name">--</strong></span>
+        <div class="measure-badges-left">
+          <div class="section-pill" id="m-section">LISTO</div>
+          <span id="mus-loop-badge" class="status-badge-loop" onclick="directorToggleLoop()" title="Toca para desactivar el bucle">LOOP: <strong id="mus-loop-name">--</strong></span>
+          <span id="mus-jump-badge" class="status-badge-jump" onclick="directorCancelJump()" title="Toca para cancelar el salto programado">SALTO A: <strong id="mus-jump-name">--</strong></span>
         </div>
         <div class="beat-pulse-box" id="beat-box">
           <div class="beat-dot beat-one" id="dot-1">1</div>
@@ -522,7 +847,7 @@
 
       <!-- PRÓXIMO COMPÁS -->
       <div class="upcoming-preview-card" id="upcoming-box">
-        <span class="upcoming-tag">Próximo compás</span>
+        <span class="upcoming-tag">Próximo</span>
         <span class="upcoming-chords" id="upcoming-chords">--</span>
         <span id="upcoming-lyrics" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">--</span>
       </div>
@@ -531,6 +856,34 @@
     <!-- 2. VISTA DE HOJA COMPLETA -->
     <div id="view-sheet">
       <div id="sheet-container"></div>
+    </div>
+
+    <!-- DOCK DE CONTROLES DEL MÚSICO DIRECTOR (VISIBLE AL ACTIVAR MODO DIRECTOR) -->
+    <div id="director-dock">
+      <!-- Barra de cambio de canción y modo de salto -->
+      <div class="dir-song-bar">
+        <button class="btn-dir-nav" onclick="directorNavigateScene('prev')" title="Canción anterior del setlist">ANT</button>
+        <select id="dir-song-select" class="dir-song-select" onchange="directorSelectSong(this.value)">
+          <option value="">Cargando canciones...</option>
+        </select>
+        <button class="btn-dir-nav" onclick="directorNavigateScene('next')" title="Siguiente canción del setlist">SIG</button>
+        <button class="btn-dir btn-dir-mode" id="btn-dir-jump-mode" onclick="directorToggleJumpMode()" title="Alternar entre esperar al final de la sección o saltar en 1 compás">SALTO: FINAL SECCIÓN</button>
+      </div>
+
+      <!-- Controles de Transporte y Loop -->
+      <div class="dir-top-row">
+        <div class="dir-transport-group">
+          <button class="btn-dir btn-dir-play" id="btn-dir-play" onclick="directorTransport('play')">PLAY</button>
+          <button class="btn-dir btn-dir-pause" id="btn-dir-pause" onclick="directorTransport('pause')">PAUSA</button>
+          <button class="btn-dir btn-dir-stop" id="btn-dir-stop" onclick="directorTransport('stop')">STOP</button>
+          <button class="btn-dir btn-dir-loop" id="btn-dir-loop" onclick="directorToggleLoop()">LOOP</button>
+        </div>
+      </div>
+
+      <!-- Botonera Táctil de Secciones de la Canción -->
+      <div class="dir-sections-scroller" id="dir-sections-bar">
+        <span style="font-size:0.74rem; color:var(--text-dim);">Sin secciones cargadas</span>
+      </div>
     </div>
 
     <footer>
@@ -546,14 +899,32 @@
     let currentSong = null;
     let personalTranspose = 0;
     let viewMode = 'measure'; // 'measure' | 'sheet'
+    let isDirectorMode = localStorage.getItem('worship_director_mode') === '1';
+    let directorJumpMode = localStorage.getItem('worship_director_jump_mode') || 'section_end'; // 'section_end' | 'quick_bar'
 
-    // Reloj interpolado de 60fps con NTP
+    let currentActiveSection = '';
+    let currentPendingJump = '';
+    let currentBarsRemaining = 0;
+    let currentLoopActive = false;
+    let currentLoopSection = '';
+
+    // Reloj interpolado de 60fps
     let lastServerPos = 0;
     let lastServerTimestamp = 0;
     let isPlaying = false;
     let animFrameId = null;
+    let toastTimer = null;
 
-    // Wake Lock para evitar que la tablet se apague en el atril
+    function showToast(msg, duration = 2000) {
+      const el = document.getElementById('stage-toast');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+    }
+
+    // Wake Lock para evitar que el teléfono o tablet se apague en el escenario
     async function initWakeLock() {
       try {
         if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
@@ -572,6 +943,186 @@
       document.getElementById('btn-mode-sheet').classList.toggle('active', mode === 'sheet');
     }
 
+    function applyDirectorModeUI() {
+      document.body.classList.toggle('director-active', isDirectorMode);
+      const btn = document.getElementById('btn-director-mode');
+      if (btn) btn.classList.toggle('active', isDirectorMode);
+      updateDirectorJumpModeBtn();
+      if (isDirectorMode) {
+        loadDirectorSongsList();
+      }
+    }
+
+    function toggleDirectorMode() {
+      isDirectorMode = !isDirectorMode;
+      localStorage.setItem('worship_director_mode', isDirectorMode ? '1' : '0');
+      applyDirectorModeUI();
+      showToast(isDirectorMode ? 'Modo Director activado' : 'Modo Director oculto', 1600);
+    }
+
+    function directorToggleJumpMode() {
+      directorJumpMode = directorJumpMode === 'section_end' ? 'quick_bar' : 'section_end';
+      localStorage.setItem('worship_director_jump_mode', directorJumpMode);
+      updateDirectorJumpModeBtn();
+      showToast(
+        directorJumpMode === 'section_end'
+          ? 'Salto al finalizar la sección actual'
+          : 'Salto rápido en 1 compás',
+        1800
+      );
+    }
+
+    function updateDirectorJumpModeBtn() {
+      const btn = document.getElementById('btn-dir-jump-mode');
+      if (!btn) return;
+      if (directorJumpMode === 'section_end') {
+        btn.textContent = 'SALTO: FINAL SECCIÓN';
+        btn.classList.remove('quick-mode');
+      } else {
+        btn.textContent = 'SALTO: 1 COMPÁS';
+        btn.classList.add('quick-mode');
+      }
+    }
+
+    async function loadDirectorSongsList() {
+      try {
+        const res = await fetch('/api/songs');
+        if (!res.ok) return;
+        const songs = await res.json();
+        const sel = document.getElementById('dir-song-select');
+        if (!sel) return;
+        sel.innerHTML = '';
+        songs.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.textContent = `${s.title} (${s.key} · ${s.bpm} BPM)`;
+          if (currentSong && currentSong.id === s.id) opt.selected = true;
+          sel.appendChild(opt);
+        });
+      } catch (e) {}
+    }
+
+    async function directorSelectSong(songId) {
+      if (!songId) return;
+      try {
+        showToast('Cargando canción...', 1500);
+        const res = await fetch(`/api/songs/${encodeURIComponent(songId)}/load`, { method: 'POST' });
+        if (res.ok) {
+          await loadSongData();
+          showToast('Canción lista', 1500);
+        }
+      } catch (e) {}
+    }
+
+    async function directorNavigateScene(dir) {
+      try {
+        const res = await fetch(`/api/scenes/navigate?direction=${dir}`, { method: 'POST' });
+        if (res.ok) {
+          showToast(dir === 'next' ? 'Siguiente canción' : 'Canción anterior', 1500);
+          await loadSongData();
+        } else {
+          // Si no hay escena dominical activa, avanzar/retroceder en el selector de canciones
+          const sel = document.getElementById('dir-song-select');
+          if (sel && sel.options.length > 1) {
+            const nextIdx = dir === 'next'
+              ? Math.min(sel.options.length - 1, sel.selectedIndex + 1)
+              : Math.max(0, sel.selectedIndex - 1);
+            if (nextIdx !== sel.selectedIndex) {
+              sel.selectedIndex = nextIdx;
+              await directorSelectSong(sel.value);
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    async function directorTransport(action) {
+      try {
+        const res = await fetch(`/api/transport/${action}`, { method: 'POST' });
+        if (res.ok) {
+          if (action === 'play') showToast('Reproduciendo pista', 1200);
+          else if (action === 'pause') showToast('Pista en pausa', 1200);
+          else if (action === 'stop') showToast('Pista detenida y rebobinada', 1400);
+        }
+      } catch (e) {}
+    }
+
+    async function directorJumpToSection(secName) {
+      if (!secName) return;
+      try {
+        const modeLabel = directorJumpMode === 'section_end' ? 'al finalizar sección' : 'en 1 compás';
+        showToast(`Salto a ${secName} (${modeLabel})`, 2000);
+        await fetch('/api/transport/jump-section', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ section_name: secName, quantize: true, mode: directorJumpMode })
+        });
+        currentPendingJump = secName;
+        renderDirectorSectionButtons();
+      } catch (e) {}
+    }
+
+    async function directorCancelJump() {
+      try {
+        await fetch('/api/transport/cancel-jump', { method: 'POST' });
+        currentPendingJump = '';
+        renderDirectorSectionButtons();
+        showToast('Salto cancelado', 1400);
+      } catch (e) {}
+    }
+
+    async function directorToggleLoop() {
+      try {
+        const res = await fetch('/api/transport/loop-section', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        if (res.ok) {
+          const data = await res.json();
+          currentLoopActive = Boolean(data.loop_enabled);
+          currentLoopSection = data.section || '';
+          updateDirectorLoopUI();
+          showToast(
+            currentLoopActive ? `Bucle activo en ${currentLoopSection}` : 'Bucle desactivado',
+            1800
+          );
+        }
+      } catch (e) {}
+    }
+
+    function updateDirectorLoopUI() {
+      const btn = document.getElementById('btn-dir-loop');
+      if (!btn) return;
+      btn.classList.toggle('loop-on', currentLoopActive);
+      btn.textContent = currentLoopActive ? `LOOP: ${currentLoopSection || 'ON'}` : 'LOOP';
+    }
+
+    function renderDirectorSectionButtons() {
+      const bar = document.getElementById('dir-sections-bar');
+      if (!bar) return;
+      bar.innerHTML = '';
+      if (!currentSong || !currentSong.sections || !currentSong.sections.length) {
+        bar.innerHTML = '<span style="font-size:0.74rem; color:var(--text-dim);">Sin secciones en esta canción</span>';
+        return;
+      }
+      currentSong.sections.forEach(sec => {
+        const btn = document.createElement('button');
+        const isCurrent = sec.name === currentActiveSection;
+        const isPending = currentPendingJump && sec.name.toLowerCase() === currentPendingJump.toLowerCase();
+        btn.className = 'dir-sec-btn' + (isCurrent ? ' active-sec' : '') + (isPending ? ' pending-sec' : '');
+        btn.textContent = sec.name;
+        btn.onclick = () => {
+          if (isPending) {
+            directorCancelJump();
+          } else {
+            directorJumpToSection(sec.name);
+          }
+        };
+        bar.appendChild(btn);
+      });
+    }
+
     function formatTime(sec) {
       sec = Math.max(0, sec || 0);
       const m = Math.floor(sec / 60);
@@ -586,6 +1137,8 @@
         currentSong = await res.json();
         renderHeader();
         renderSheet();
+        renderDirectorSectionButtons();
+        if (isDirectorMode) loadDirectorSongsList();
         updateDisplayAt(getCurrentInterpolatedPos());
       } catch (e) {}
     }
@@ -610,7 +1163,20 @@
 
         const head = document.createElement('div');
         head.className = 'section-block-head';
-        head.textContent = sec.name;
+
+        const titleSpan = document.createElement('span');
+        titleSpan.textContent = sec.name;
+        head.appendChild(titleSpan);
+
+        const jumpPill = document.createElement('button');
+        jumpPill.className = 'sheet-jump-pill';
+        jumpPill.textContent = 'SALTAR AQUÍ';
+        jumpPill.onclick = (ev) => {
+          ev.stopPropagation();
+          directorJumpToSection(sec.name);
+        };
+        head.appendChild(jumpPill);
+
         block.appendChild(head);
 
         sec.lines.forEach((l, lIdx) => {
@@ -645,7 +1211,6 @@
       }
     }
 
-    // Calcula posición en segundos con precisión milimétrica entre ticks
     function getCurrentInterpolatedPos() {
       if (!isPlaying || !lastServerTimestamp) return lastServerPos;
       const elapsed = (performance.now() - lastServerTimestamp) / 1000;
@@ -653,7 +1218,6 @@
       return Math.min(dur, lastServerPos + elapsed);
     }
 
-    // Encuentra la línea y sección actual y la siguiente
     function findLineState(t) {
       if (!currentSong || !currentSong.sections) return null;
       let activeLine = null;
@@ -679,7 +1243,6 @@
         if (activeLine && nextLine) break;
       }
 
-      // Si está en el final
       if (!activeLine && currentSong.sections.length) {
         const lastSec = currentSong.sections[currentSong.sections.length - 1];
         if (lastSec.lines.length) {
@@ -702,7 +1265,7 @@
       const bpm = (currentSong && currentSong.bpm) ? currentSong.bpm : 120;
       const beatDuration = 60.0 / bpm;
       const totalBeats = Math.floor(pos / beatDuration);
-      const currentBeatInBar = (totalBeats % 4) + 1; // 1, 2, 3 o 4
+      const currentBeatInBar = (totalBeats % 4) + 1;
 
       [1, 2, 3, 4].forEach(b => {
         const dot = document.getElementById(`dot-${b}`);
@@ -732,10 +1295,13 @@
         return;
       }
 
-      // 1. Sección actual
+      if (st.section && st.section !== currentActiveSection) {
+        currentActiveSection = st.section;
+        renderDirectorSectionButtons();
+      }
+
       document.getElementById('m-section').textContent = st.section || 'SECCIÓN';
 
-      // 2. Determinar acorde activo en este compás y el siguiente
       let currentActiveChord = "";
       let activeChordIndex = -1;
       let nextChord = "";
@@ -761,12 +1327,10 @@
         nextChord = st.next.chords[0].chord;
       }
 
-      // Acorde Hero Gigante
       document.getElementById('hero-chord').textContent = currentActiveChord || '·';
       document.getElementById('hero-next').textContent = nextChord || '--';
       document.getElementById('hero-next-wrapper').style.opacity = nextChord ? '1' : '0.4';
 
-      // Flujo de acordes del compás actual: resalta en grande el que toca en este segundo
       const chordsFlow = document.getElementById('m-chords-flow');
       chordsFlow.innerHTML = '';
       if (line.chords && line.chords.length) {
@@ -778,10 +1342,8 @@
         });
       }
 
-      // Letra del compás que toca en este momento
       document.getElementById('m-lyrics').textContent = line.lyrics || '(Instrumental)';
 
-      // Próximo compás
       if (st.next) {
         const nextChordsText = (st.next.chords || []).map(c => `[${c.chord}]`).join(' ');
         document.getElementById('upcoming-chords').textContent = nextChordsText || '';
@@ -791,7 +1353,6 @@
         document.getElementById('upcoming-lyrics').textContent = 'Fin de la canción';
       }
 
-      // Resaltado en Vista 2 (Hoja Completa) si está visible
       if (viewMode === 'sheet') {
         const allLines = document.querySelectorAll('.sheet-line');
         allLines.forEach(row => {
@@ -809,7 +1370,6 @@
       }
     }
 
-    // Bucle de Render a 60 FPS
     function startClockLoop() {
       if (animFrameId) return;
       function loop() {
@@ -841,21 +1401,43 @@
             stPill.textContent = isPlaying ? 'EN VIVO' : 'PAUSA';
             stPill.className = `live-status-pill ${isPlaying ? 'status-live' : 'status-paused'}`;
 
-            // Actualizar insignias de bucle y salto programado
+            const playBtn = document.getElementById('btn-dir-play');
+            if (playBtn) playBtn.classList.toggle('playing-active', isPlaying);
+
+            // Actualizar estado de bucle
+            const newLoop = Boolean(data.loop_active);
+            const newLoopSec = data.loop_sec || '';
+            if (newLoop !== currentLoopActive || newLoopSec !== currentLoopSection) {
+              currentLoopActive = newLoop;
+              currentLoopSection = newLoopSec;
+              updateDirectorLoopUI();
+            }
+
             const loopBadge = document.getElementById('mus-loop-badge');
-            const jumpBadge = document.getElementById('mus-jump-badge');
             if (loopBadge) {
-              if (data.loop_active) {
+              if (currentLoopActive) {
                 loopBadge.style.display = 'inline-flex';
-                document.getElementById('mus-loop-name').textContent = data.loop_sec || 'ACTIVO';
+                document.getElementById('mus-loop-name').textContent = currentLoopSection || 'ACTIVO';
               } else {
                 loopBadge.style.display = 'none';
               }
             }
+
+            // Actualizar estado de salto cuantizado y conteo de compases
+            const newJump = data.jump_pending || '';
+            const newBars = data.bars_remaining || 0;
+            if (newJump !== currentPendingJump || newBars !== currentBarsRemaining) {
+              currentPendingJump = newJump;
+              currentBarsRemaining = newBars;
+              renderDirectorSectionButtons();
+            }
+
+            const jumpBadge = document.getElementById('mus-jump-badge');
             if (jumpBadge) {
-              if (data.jump_pending) {
+              if (currentPendingJump) {
                 jumpBadge.style.display = 'inline-flex';
-                document.getElementById('mus-jump-name').textContent = data.jump_pending;
+                const barsTxt = currentBarsRemaining > 0 ? ` (${currentBarsRemaining} COMP.)` : '';
+                document.getElementById('mus-jump-name').textContent = `${currentPendingJump}${barsTxt}`;
               } else {
                 jumpBadge.style.display = 'none';
               }
@@ -892,7 +1474,7 @@
         return;
       }
       deferredPwaPrompt.prompt();
-      const choice = await deferredPwaPrompt.userChoice;
+      await deferredPwaPrompt.userChoice;
       deferredPwaPrompt = null;
       const btn = document.getElementById('btn-pwa-install');
       if (btn) btn.style.display = 'none';
@@ -905,6 +1487,7 @@
     }
 
     window.onload = () => {
+      applyDirectorModeUI();
       loadSongData();
       connectWebSocket();
       startClockLoop();

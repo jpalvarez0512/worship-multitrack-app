@@ -115,11 +115,13 @@ def on_engine_tick(pos_seconds: float, is_playing: bool) -> None:
     loop_active = False
     loop_sec = ""
     jump_pending = ""
+    bars_rem = 0
     if engine is not None:
         st = engine.get_loop_state()
         loop_active = bool(st.get("loop_enabled", False))
         loop_sec = str(st.get("loop_label", ""))
         jump_pending = str(st.get("pending_jump_label", ""))
+        bars_rem = int(st.get("bars_remaining", 0))
 
     # Enviar al bucle asíncrono principal sin bloquear el hilo de audio
     coro = ws_manager.broadcast_tick(
@@ -133,6 +135,7 @@ def on_engine_tick(pos_seconds: float, is_playing: bool) -> None:
         loop_active=loop_active,
         loop_section=loop_sec,
         pending_jump=jump_pending,
+        bars_remaining=bars_rem,
     )
     asyncio.run_coroutine_threadsafe(coro, main_event_loop)
 

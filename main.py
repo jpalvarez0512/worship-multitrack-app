@@ -17,6 +17,8 @@ if sys.platform.startswith("win"):
     except Exception:
         pass
 
+from src.server.app import app
+
 
 def open_browser_delayed(url: str = "http://localhost:8000/control", delay: float = 1.2):
     """Abre el navegador web en el Panel de Control automáticamente tras iniciar el servidor."""
@@ -29,4 +31,4 @@ def open_browser_delayed(url: str = "http://localhost:8000/control", delay: floa
 
 if __name__ == "__main__":
     threading.Thread(target=open_browser_delayed, daemon=True).start()
-    uvicorn.run("src.server.app:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)

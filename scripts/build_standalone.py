@@ -54,6 +54,10 @@ def build_portable_app():
         "--hidden-import=fastapi",
         "--hidden-import=starlette",
         "--hidden-import=websockets",
+        "--hidden-import=multipart",
+        "--hidden-import=python_multipart",
+        "--hidden-import=soundfile",
+        "--collect-submodules=src",
     ]
 
     pyinstaller_cmd = [

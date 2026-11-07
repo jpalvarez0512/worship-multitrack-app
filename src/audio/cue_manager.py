@@ -4,6 +4,7 @@ Permite inyectar avisos hablados en tiempo real ante saltos cuantizados y bucles
 """
 
 import os
+import sys
 import wave
 from typing import Dict, Optional
 import numpy as np
@@ -14,9 +15,16 @@ class CueManager:
 
     def __init__(self, cues_dir: Optional[str] = None, sample_rate: int = 44100):
         if cues_dir is None:
-            cues_dir = os.path.abspath(
-                os.path.join(os.path.dirname(__file__), "..", "..", "assets", "cues")
-            )
+            if getattr(sys, "frozen", False):
+                ext_cues = os.path.join(os.path.dirname(os.path.abspath(sys.executable)), "assets", "cues")
+                if os.path.exists(ext_cues):
+                    cues_dir = ext_cues
+                else:
+                    cues_dir = os.path.join(getattr(sys, "_MEIPASS", ""), "assets", "cues")
+            else:
+                cues_dir = os.path.abspath(
+                    os.path.join(os.path.dirname(__file__), "..", "..", "assets", "cues")
+                )
         self.cues_dir = cues_dir
         self.sample_rate = sample_rate
         self._cues: Dict[str, np.ndarray] = {}
@@ -72,17 +80,19 @@ class CueManager:
             return "coro"
         if "puente" in s or "bridge" in s:
             return "puente"
-        if "instrumental" in s or "interludio" in s:
+        if "instrumental" in s or "interludio" in s or "vamp" in s:
             return "instrumental"
         if "solo" in s:
             return "solo"
-        if "final" in s or "outro" in s:
+        if "final" in s or "outro" in s or "ending" in s:
             return "final"
-        if "verso 1" in s or "verso uno" in s or "verse 1" in s:
+        if "corte" in s or "break" in s or "tag" in s:
+            return "corte"
+        if "verso 1" in s or "verso uno" in s or "verse 1" in s or "estrofa 1" in s:
             return "verso_1"
-        if "verso 2" in s or "verso dos" in s or "verse 2" in s:
+        if "verso 2" in s or "verso dos" in s or "verse 2" in s or "estrofa 2" in s:
             return "verso_2"
-        if "verso" in s or "verse" in s:
+        if "verso" in s or "verse" in s or "estrofa" in s:
             return "verso"
         return ""
 

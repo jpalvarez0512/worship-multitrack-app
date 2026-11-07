@@ -952,6 +952,7 @@
       </div>
     </div>
     <div class="header-actions">
+      <span id="update-badge-pill" style="display:none; background:#1e3a5f; color:#7dd3fc; border:1px solid #0284c7; padding:4px 9px; border-radius:3px; font-size:0.75rem; font-weight:700; cursor:pointer; letter-spacing:0.04em;" title="Hay una nueva versión del software disponible">ACTUALIZACIÓN DISPONIBLE</span>
       <button class="btn btn-warning" onclick="openScenesModal()">SETLISTS</button>
       <button class="btn btn-primary" onclick="openFastDocModal()">+ SUBIR LETRAS</button>
       <button class="btn btn-success" onclick="openCreateModal()">+ NUEVA CANCIÓN</button>
@@ -1035,10 +1036,11 @@
             </div>
             <div class="spontaneous-actions">
               <span id="jump-pending-badge" style="display:none; background:#78350f; color:#fef08a; border:1px solid #d97706; padding:3px 8px; border-radius:4px; font-size:0.74rem; font-weight:700; animation:pulse 1s infinite; cursor:pointer;" onclick="cancelPendingJump()" title="Clic para cancelar salto cuantizado">SALTO PROGRAMADO [CANCELAR]</span>
+              <button class="btn-rack-action" id="btn-jump-mode-toggle" onclick="toggleJumpMode()" title="Cambiar modo: esperar a que termine la sección actual o saltar en el siguiente compás">MODO SALTO: FINAL DE SECCIÓN</button>
               <button class="btn-rack-action" id="btn-loop-toggle" onclick="toggleActiveSectionLoop()">LOOP SECCIÓN</button>
-              <button class="btn-rack-action btn-cue-toggle active-on" id="btn-dynamic-cues-toggle" onclick="toggleDynamicCues()" title="Activar/Silenciar avisos automáticos en audífonos de músicos">
+              <button class="btn-rack-action btn-cue-toggle active-on" id="btn-dynamic-cues-toggle" onclick="toggleDynamicCues()" title="Activar/Silenciar guías habladas autónomas en audífonos de músicos">
                 <span class="cue-led-dot" id="dynamic-cues-led"></span>
-                <span id="dynamic-cues-text">GUÍAS IN-EAR: ON</span>
+                <span id="dynamic-cues-text">GUÍAS AUTÓNOMAS: ON</span>
               </button>
             </div>
           </div>
@@ -1140,6 +1142,7 @@
         <h2>
           <span>BIBLIOTECA DE CANCIONES</span>
           <div style="display:flex; gap:6px;">
+            <button class="btn btn-secondary btn-sm" id="btn-sunday-filter" onclick="toggleSundayFilter()" title="Alternar entre ver toda la biblioteca o solo las canciones del setlist dominical">MODO DOMINGO: TODOS</button>
             <button class="btn btn-primary btn-sm" onclick="openFastDocModal()">+ SUBIR LETRAS</button>
             <button class="btn btn-secondary btn-sm" onclick="refreshLibrary()">ACTUALIZAR</button>
           </div>
@@ -1419,6 +1422,10 @@
     let isLoopActive = false;
     let currentLoopSec = '';
     let currentPendingJump = '';
+    let currentBarsRemaining = 0;
+    let jumpMode = 'section_end'; // 'section_end' | 'quick_bar'
+    let isSundayFilterActive = false;
+    let activeSceneStatus = null;
     let deferredPwaPrompt = null;
 
     // Estado del modal de canción
@@ -1484,6 +1491,7 @@
 
         // Actualizar barra de escena activa si existe
         const scBar = document.getElementById('active-scene-bar');
+        activeSceneStatus = status.active_scene;
         if (status.active_scene) {
           scBar.style.display = 'flex';
           const curItem = status.active_scene.items && status.active_scene.items[status.active_scene.index];
@@ -1504,6 +1512,29 @@
       renderLibrary();
     }
 
+    function toggleSundayFilter() {
+      if (!activeSceneStatus || !activeSceneStatus.items || !activeSceneStatus.items.length) {
+        toast('No hay una lista de domingo activa. Abre SETLISTS para activar una.', 'warning', 3000);
+        return;
+      }
+      isSundayFilterActive = !isSundayFilterActive;
+      const btn = document.getElementById('btn-sunday-filter');
+      if (btn) {
+        if (isSundayFilterActive) {
+          btn.textContent = `MODO DOMINGO: SETLIST (${activeSceneStatus.items.length})`;
+          btn.style.background = '#047857';
+          btn.style.borderColor = '#10b981';
+          btn.style.color = '#fff';
+        } else {
+          btn.textContent = 'MODO DOMINGO: TODOS';
+          btn.style.background = '#23252c';
+          btn.style.borderColor = 'var(--border-light)';
+          btn.style.color = '#e5e7eb';
+        }
+      }
+      renderLibrary();
+    }
+
     function renderLibrary() {
       const c = document.getElementById('library-list');
       c.innerHTML = '';
@@ -1511,7 +1542,19 @@
         c.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px;">No hay canciones en la biblioteca. Usa "+ SUBIR LETRAS" o "+ NUEVA CANCIÓN".</div>';
         return;
       }
-      librarySongs.forEach(s => {
+
+      let songsToDisplay = librarySongs;
+      if (isSundayFilterActive && activeSceneStatus && activeSceneStatus.items) {
+        const sceneIds = new Set(activeSceneStatus.items.map(it => it.song_id || it.id));
+        songsToDisplay = librarySongs.filter(s => sceneIds.has(s.id));
+      }
+
+      if (!songsToDisplay.length) {
+        c.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px;">No hay canciones en la lista dominical activa. Desactiva el Modo Domingo para ver toda la biblioteca.</div>';
+        return;
+      }
+
+      songsToDisplay.forEach(s => {
         const row = document.createElement('div');
         row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#0f172a; border:1px solid #1e293b; padding:8px 12px; border-radius:6px; margin-bottom:6px;';
         if (s.id === activeSongId) row.style.borderColor = '#3b82f6';
@@ -2432,15 +2475,38 @@
       });
     }
 
+    function toggleJumpMode() {
+      jumpMode = jumpMode === 'section_end' ? 'quick_bar' : 'section_end';
+      updateJumpModeBtn();
+      const desc = jumpMode === 'section_end' ? 'Al finalizar sección' : 'Salto rápido 1 compás';
+      toast(`Modo de Salto: ${desc}`, 'info', 2000);
+    }
+
+    function updateJumpModeBtn() {
+      const btn = document.getElementById('btn-jump-mode-toggle');
+      if (!btn) return;
+      if (jumpMode === 'section_end') {
+        btn.textContent = 'MODO SALTO: FINAL DE SECCIÓN';
+        btn.style.color = '#7dd3fc';
+        btn.style.borderColor = '#0284c7';
+      } else {
+        btn.textContent = 'MODO SALTO: 1 COMPÁS RÁPIDO';
+        btn.style.color = '#fef08a';
+        btn.style.borderColor = '#d97706';
+      }
+    }
+
     async function jumpToSection(secName) {
       try {
-        toast(`Programando salto a "${secName}" al finalizar sección...`, 'info', 2000);
+        const modeDesc = jumpMode === 'section_end' ? 'al finalizar sección' : 'en el siguiente compás';
+        toast(`Programando salto a "${secName}" (${modeDesc})...`, 'info', 2000);
         await api('/api/transport/jump-section', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ section_name: secName, quantize: true })
+          body: JSON.stringify({ section_name: secName, quantize: true, mode: jumpMode })
         });
         currentPendingJump = secName;
+        currentBarsRemaining = jumpMode === 'section_end' ? 4 : 2;
         updateJumpBadge();
       } catch (e) {
         toast(e.message, 'error');
@@ -2451,6 +2517,7 @@
       try {
         await api('/api/transport/cancel-jump', { method: 'POST' });
         currentPendingJump = '';
+        currentBarsRemaining = 0;
         updateJumpBadge();
         toast('Salto cancelado', 'info', 1500);
       } catch (e) {}
@@ -2481,7 +2548,14 @@
         const st = await api('/api/transport/loop-status');
         isLoopActive = Boolean(st.loop_active);
         currentLoopSec = st.loop_section || '';
-        currentPendingJump = st.pending_jump || '';
+        currentPendingJump = st.pending_jump_label || st.pending_jump || '';
+        if (st.bars_remaining !== undefined) {
+          currentBarsRemaining = st.bars_remaining;
+        }
+        if (st.jump_mode && st.jump_mode !== jumpMode) {
+          jumpMode = st.jump_mode;
+          updateJumpModeBtn();
+        }
         updateLoopButton();
         updateJumpBadge();
       } catch (e) {}
@@ -2508,10 +2582,32 @@
       if (!badge) return;
       if (currentPendingJump) {
         badge.style.display = 'inline-block';
-        badge.textContent = `SALTANDO A ${currentPendingJump} AL FINALIZAR SECCIÓN [CANCELAR]`;
+        if (currentBarsRemaining > 1) {
+          badge.textContent = `TRANSICIÓN A ${currentPendingJump.toUpperCase()} EN ${currentBarsRemaining} COMPASES... [CANCELAR]`;
+        } else if (currentBarsRemaining === 1) {
+          badge.textContent = `AVISO: ${currentPendingJump.toUpperCase()} EN 1 COMPÁS... [CANCELAR]`;
+        } else {
+          badge.textContent = `SALTANDO A ${currentPendingJump.toUpperCase()} [CANCELAR]`;
+        }
       } else {
         badge.style.display = 'none';
       }
+    }
+
+    async function checkSystemUpdates() {
+      try {
+        const res = await api('/api/system/check-update');
+        if (res && res.update_available) {
+          const pill = document.getElementById('update-badge-pill');
+          if (pill) {
+            pill.style.display = 'inline-block';
+            pill.textContent = `ACTUALIZACIÓN v${res.latest_version} DISPONIBLE`;
+            pill.onclick = () => {
+              alert(`NUEVA VERSIÓN v${res.latest_version} DISPONIBLE\n\n${res.release_notes || 'Mejoras de rendimiento, audio y sincronización.'}\n\nPara actualizar en 1 clic manteniendo todos tus datos intactos, ejecuta el archivo 'actualizar.bat' en la carpeta del programa.`);
+            };
+          }
+        }
+      } catch (e) {}
     }
 
     // ------------------------------------------------ Modo PWA e Instalación
@@ -2632,6 +2728,7 @@
       await loadNetworkInfo();
       await refreshAll();
       connectWS();
+      checkSystemUpdates();
     };
   </script>
 </body>

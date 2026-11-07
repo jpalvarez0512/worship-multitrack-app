@@ -27,15 +27,30 @@ from src.core.song import Song, create_demo_song
 from src.core.song_loader import AUDIO_EXTENSIONS, CHART_EXTENSIONS, SongLoader
 from src.server.websocket_manager import ChannelType, ConnectionManager
 from src.utils.network import get_connection_url, get_local_ip, print_ascii_qr
+from src.utils.updater import CURRENT_VERSION, check_for_updates
 
 
 # -----------------------------------------------------------------------------
-# Instancias Globales
+# Instancias Globales y Detección de Modo Portable / Frozen
 # -----------------------------------------------------------------------------
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if getattr(sys, "frozen", False):
+    BUNDLE_DIR = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    DATA_DIR = os.path.dirname(os.path.abspath(sys.executable))
+    ROOT_DIR = DATA_DIR
+    STATIC_DIR = os.path.join(BUNDLE_DIR, "static")
+    CLIENTS_DIR = os.path.join(BUNDLE_DIR, "src", "clients", "web")
+else:
+    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    STATIC_DIR = os.path.join(ROOT_DIR, "static")
+    CLIENTS_DIR = globals().get("CLIENTS_DIR") or os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "clients", "web"))
+
 TRACKS_DIR = os.path.join(ROOT_DIR, "tracks")
 CONFIG_DIR = os.path.join(ROOT_DIR, "config")
-STATIC_DIR = os.path.join(ROOT_DIR, "static")
+ASSETS_DIR = os.path.join(ROOT_DIR, "assets")
+
+os.makedirs(TRACKS_DIR, exist_ok=True)
+os.makedirs(CONFIG_DIR, exist_ok=True)
+os.makedirs(ASSETS_DIR, exist_ok=True)
 
 song_loader = SongLoader(tracks_root=TRACKS_DIR)
 scene_manager = SceneManager(os.path.join(CONFIG_DIR, "scenes.json"))
@@ -177,6 +192,7 @@ async def lifespan(app: FastAPI):
     engine.register_tick_listener(on_engine_tick)
     engine.register_track_finished_listener(on_track_finished)
     engine.set_song_timing(current_song.bpm, current_song.time_signature)
+    engine.set_song_sections(current_song.sections)
 
     local_ip = get_local_ip()
     port = 8000
@@ -283,6 +299,7 @@ def get_status():
         raise HTTPException(status_code=503, detail="Motor no inicializado")
 
     return {
+        "app_version": CURRENT_VERSION,
         "is_playing": engine.is_playing,
         "position_seconds": round(engine.current_position_seconds, 3),
         "duration_seconds": round(engine.duration_seconds, 2),
@@ -296,6 +313,12 @@ def get_status():
         },
         "clients": ws_manager.get_stats(),
     }
+
+
+@app.get("/api/system/check-update")
+def check_update_endpoint():
+    """Consulta si hay una nueva versión del software en GitHub."""
+    return check_for_updates()
 
 
 @app.get("/api/song")
@@ -371,6 +394,7 @@ def _activate_song(
 
     if engine is not None:
         engine.set_song_timing(current_song.bpm, current_song.time_signature)
+        engine.set_song_sections(current_song.sections)
 
     _notify_song_changed()
     return {
@@ -698,14 +722,16 @@ def transport_seek(pos: float):
 def transport_jump_section(payload: dict):
     """
     Programa un salto cuantizado al compás hacia una sección musical (Coro, Puente, etc.).
-    Garantiza que la transición se ejecute al finalizar la sección original en reproducción,
-    disparando la guía hablada con conteo rítmico en su compás final.
+    Soporta dos modos:
+    - 'section_end': espera al final de la sección actual en reproducción (con conteo en su último compás).
+    - 'quick_bar': salto rápido en el siguiente compás (1 compás de aviso previo y transición inmediata).
     """
     if engine is None:
         raise HTTPException(status_code=503, detail="Motor no disponible")
     
     sec_name = payload.get("section_name", "").strip()
     quantize = bool(payload.get("quantize", True))
+    mode = payload.get("mode", "section_end")
     target_time = payload.get("time")
 
     if target_time is None and sec_name:
@@ -723,16 +749,28 @@ def transport_jump_section(payload: dict):
     
     transition_at = None
     from_sec_name = ""
-    if curr_sec is not None:
+    if mode == "section_end" and curr_sec is not None:
         from_sec_name = curr_sec.name
-        if curr_pos < curr_sec.end_time:
-            transition_at = curr_sec.end_time
+        # Buscar si hay una siguiente sección en la estructura para usar su start_time exacto
+        sec_idx = -1
+        for idx, s in enumerate(current_song.sections):
+            if s.name == curr_sec.name and abs(s.start_time - curr_sec.start_time) < 0.01:
+                sec_idx = idx
+                break
+        if sec_idx != -1 and sec_idx + 1 < len(current_song.sections):
+            candidate_end = current_song.sections[sec_idx + 1].start_time
+        else:
+            candidate_end = curr_sec.end_time
+
+        if curr_pos < candidate_end:
+            transition_at = candidate_end
 
     engine.schedule_jump(
         float(target_time),
         label=sec_name,
         quantize_to_bar=quantize,
         transition_at_seconds=transition_at,
+        mode=mode,
     )
     return {
         "status": "jump_scheduled",
@@ -740,6 +778,7 @@ def transport_jump_section(payload: dict):
         "section": sec_name,
         "from_section": from_sec_name,
         "transition_at": transition_at,
+        "mode": mode,
         "quantize": quantize,
     }
 
@@ -1259,7 +1298,7 @@ async def websocket_control_endpoint(websocket: WebSocket):
 # Entrega de Aplicaciones Web Clientes (Control, Músicos, Proyección y OBS)
 # -----------------------------------------------------------------------------
 
-CLIENTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "clients", "web"))
+CLIENTS_DIR = globals().get("CLIENTS_DIR") or os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "clients", "web"))
 
 
 @app.get("/", response_class=HTMLResponse)

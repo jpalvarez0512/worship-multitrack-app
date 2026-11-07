@@ -49,6 +49,19 @@ class SongLoader:
         os.makedirs(self.tracks_root, exist_ok=True)
         # Archivos de audio que no se pudieron decodificar en la última carga
         self.last_load_errors: List[str] = []
+        self._index_file = os.path.join(self.tracks_root, "library_index.json")
+        self._cached_songs: Optional[List[dict]] = None
+        self._last_scan_mtime: float = 0.0
+
+    def invalidate_cache(self) -> None:
+        """Invalida el índice en memoria y fuerza su regeneración."""
+        self._cached_songs = None
+        self._last_scan_mtime = 0.0
+        if os.path.exists(self._index_file):
+            try:
+                os.remove(self._index_file)
+            except Exception:
+                pass
 
     # --------------------------------------------------------------------------
     # Utilidades de rutas
@@ -84,24 +97,77 @@ class SongLoader:
         return files
 
     # --------------------------------------------------------------------------
-    # Lectura de la biblioteca
+    # Lectura y Caché de la biblioteca (library_index.json <2ms)
     # --------------------------------------------------------------------------
 
-    def scan_songs(self) -> List[dict]:
+    def scan_songs(self, force_refresh: bool = False) -> List[dict]:
         """
         Escanea la carpeta tracks/ y retorna la lista de todas las canciones disponibles.
+        Utiliza library_index.json y caché en memoria para resoluciones ultra rápidas (<2ms).
         """
-        songs_list = []
         if not os.path.exists(self.tracks_root):
-            return songs_list
+            return []
 
+        try:
+            current_mtime = os.path.getmtime(self.tracks_root)
+        except OSError:
+            current_mtime = 0.0
+
+        if not force_refresh and self._cached_songs is not None and self._last_scan_mtime == current_mtime:
+            return self._cached_songs
+
+        # Intentar leer desde library_index.json en disco
+        if not force_refresh and os.path.exists(self._index_file):
+            try:
+                with open(self._index_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if isinstance(data, dict) and "songs" in data:
+                        if data.get("tracks_mtime") == current_mtime:
+                            self._cached_songs = data["songs"]
+                            self._last_scan_mtime = current_mtime
+                            return self._cached_songs
+            except Exception:
+                pass
+
+        # Escaneo completo del directorio
+        songs_list = []
         for entry in os.scandir(self.tracks_root):
             if entry.is_dir():
                 info = self._inspect_song_folder(entry.path)
                 if info:
                     songs_list.append(info)
 
-        return sorted(songs_list, key=lambda s: s["title"].lower())
+        sorted_songs = sorted(songs_list, key=lambda s: s["title"].lower())
+        self._cached_songs = sorted_songs
+
+        # Persistir índice a disco
+        try:
+            temp_idx = self._index_file + ".tmp"
+            with open(temp_idx, "w", encoding="utf-8") as f:
+                json.dump({"tracks_mtime": current_mtime, "count": len(sorted_songs), "songs": sorted_songs}, f, indent=2, ensure_ascii=False)
+            if os.path.exists(self._index_file):
+                os.remove(self._index_file)
+            os.rename(temp_idx, self._index_file)
+            self._last_scan_mtime = os.path.getmtime(self.tracks_root)
+        except Exception:
+            self._last_scan_mtime = current_mtime
+
+        return sorted_songs
+
+    def prewarm_song(self, song_id: str) -> bool:
+        """
+        Pre-calienta en la memoria de disco del sistema operativo los archivos de audio
+        de una canción (por ejemplo, el siguiente tema del setlist del domingo).
+        """
+        try:
+            folder = self._song_folder(song_id)
+            for path in self._list_audio_files(folder):
+                with open(path, "rb") as fh:
+                    while fh.read(1024 * 512):
+                        pass
+            return True
+        except Exception:
+            return False
 
     def load_song_metadata(self, song_id: str) -> Optional[Song]:
         """Retorna el objeto Song estructurado de una canción por su ID sin requerir audio."""
@@ -223,6 +289,12 @@ class SongLoader:
 
         if loaded_stems:
             for stem_track in loaded_stems:
+                # Si las guías autónomas están habilitadas y la pista es un stem de guía pregrabado,
+                # silenciarla automáticamente para que el motor autónomo sea el único que dé las indicaciones
+                st_name = stem_track.name.lower().strip()
+                if st_name in ("guia", "guide", "guías", "guias", "click y guia"):
+                    if engine.dynamic_cues_enabled:
+                        stem_track.mute = True
                 engine.add_stem(stem_track)
         else:
             # Generar audio sintético sincronizado con el BPM y la duración de la canción
@@ -254,6 +326,7 @@ class SongLoader:
             f.write(chordpro_content)
 
         ChordProParser.export_to_json(song, os.path.join(folder_path, "song.json"))
+        self.invalidate_cache()
         return song
 
     def create_song(
@@ -319,6 +392,7 @@ class SongLoader:
             with open(dest, "wb") as out:
                 shutil.copyfileobj(stream, out, COPY_CHUNK_SIZE)
             saved.append(safe_name)
+        self.invalidate_cache()
         return saved
 
     def delete_stem(self, song_id: str, filename: str) -> None:
@@ -328,6 +402,7 @@ class SongLoader:
         if not os.path.exists(path):
             raise FileNotFoundError(f"Pista no encontrada: {filename}")
         os.remove(path)
+        self.invalidate_cache()
 
     def delete_song(self, song_id: str) -> None:
         """Elimina por completo la carpeta de una canción (chart, json y stems)."""
@@ -335,3 +410,4 @@ class SongLoader:
         if not os.path.exists(folder_path):
             raise FileNotFoundError(f"Canción no encontrada: {song_id}")
         shutil.rmtree(folder_path)
+        self.invalidate_cache()

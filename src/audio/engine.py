@@ -75,17 +75,27 @@ class MultitrackEngine:
         self._pending_jump_label: str = ""
         self._jump_lead_bar_frame: Optional[int] = None
         self._jump_target_bar_frame: Optional[int] = None
+        self._jump_mode: str = "section_end"  # "section_end" o "quick_bar"
 
         # Modo Bucle Espontáneo de Sección
         self._loop_enabled: bool = False
         self._loop_start_frame: int = 0
         self._loop_end_frame: int = 0
         self._loop_label: str = ""
-        self._fade_len: int = 512  # ~11.6 ms a 44.1 kHz (Micro-Crossfade Isopotente)
+
+        # Micro-Crossfade Isopotente Multi-Bloque de 80 ms (~3528 samples a 44.1 kHz)
+        self._fade_len: int = int(0.080 * self.sample_rate)
+        self._xfade_active: bool = False
+        self._xfade_out_frame: int = 0
+        self._xfade_pos: int = 0
+        self._xfade_master_buf = np.zeros((self.buffer_size, 2), dtype=np.float32)
+        self._xfade_cue_buf = np.zeros((self.buffer_size, 2), dtype=np.float32)
 
         # Generador de Guías de Audio Dinámicas (In-Ear Cues en Español)
         self._cue_manager = CueManager(sample_rate=self.sample_rate)
         self._dynamic_cues_enabled: bool = True
+        self._song_sections: list = []
+        self._fired_auto_cues: set = set()
         self._active_overlay_cue: Optional[np.ndarray] = None
         self._active_overlay_pos: int = 0
         self._loop_cue_last_fired_frame: int = -1
@@ -121,6 +131,9 @@ class MultitrackEngine:
             self.stop()
         with self._lock:
             self._stems.clear()
+            self._song_sections = []
+            self._fired_auto_cues.clear()
+            self._xfade_active = False
             self._current_frame = 0
 
     # --------------------------------------------------------------------------
@@ -159,8 +172,14 @@ class MultitrackEngine:
             self._current_frame = 0
             self._pending_jump_frame = None
             self._pending_jump_label = ""
+            self._jump_lead_bar_frame = None
+            self._jump_target_bar_frame = None
             self._loop_enabled = False
             self._loop_label = ""
+            self._active_overlay_cue = None
+            self._active_overlay_pos = 0
+            self._fired_auto_cues.clear()
+            self._xfade_active = False
             stream_ref = self._stream
 
         if stream_ref is not None:
@@ -183,6 +202,9 @@ class MultitrackEngine:
             self._jump_target_bar_frame = None
             self._active_overlay_cue = None
             self._active_overlay_pos = 0
+            self._fired_auto_cues.clear()
+            self._xfade_active = False
+        self._notify_tick()
         self._notify_tick()
 
     @property
@@ -249,23 +271,30 @@ class MultitrackEngine:
         with self._lock:
             return (60.0 / max(10.0, self._bpm)) * self._beats_per_bar
 
+    def set_song_sections(self, sections: list) -> None:
+        """Carga la lista de secciones de la canción para la emisión autónoma de guías habladas."""
+        with self._lock:
+            self._song_sections = list(sections or [])
+            self._fired_auto_cues.clear()
+
     def schedule_jump(
         self,
         target_seconds: float,
         label: str = "",
         quantize_to_bar: bool = True,
         transition_at_seconds: Optional[float] = None,
+        mode: str = "section_end",
     ) -> None:
         """
         Programa un salto cuantizado a una sección musical (ej. Coro, Puente).
-        Si se especifica transition_at_seconds (final de la sección original),
-        el motor continuará reproduciendo la sección original hasta completarla,
-        disparando el compás de aviso con conteo rítmico ("[Sección] ... 2 ... 3 ... 4")
-        en el último compás de dicha sección, y ejecutando la transición exactamente
-        al inicio de la nueva sección seleccionada.
+        Modos:
+        - 'section_end': Espera al final de la sección original (alineado a compás musical),
+          disparando el compás de aviso con conteo rítmico ("[Sección] 2, 3, 4") en su último compás.
+        - 'quick_bar': Salto rápido en el siguiente compás (1 compás de aviso previo y transición inmediata).
         """
         target_f = int(max(0.0, target_seconds) * self.sample_rate)
         with self._lock:
+            self._jump_mode = mode
             if not self._is_playing or not quantize_to_bar:
                 self._current_frame = target_f
                 self._pending_jump_frame = None
@@ -286,10 +315,10 @@ class MultitrackEngine:
                 curr = self._current_frame
                 next_bar = ((curr // samples_per_bar) + 1) * samples_per_bar
 
-                if transition_at_seconds is not None:
+                if mode == "section_end" and transition_at_seconds is not None:
                     target_trans_f = int(max(0.0, transition_at_seconds) * self.sample_rate)
-                    # Alinear el final de sección con el compás musical más cercano
-                    trans_bar = max(next_bar, round(target_trans_f / samples_per_bar) * samples_per_bar)
+                    # Alinear el final de sección con el compás musical exacto
+                    trans_bar = max(next_bar + samples_per_bar, round(target_trans_f / samples_per_bar) * samples_per_bar)
                     lead_bar = trans_bar - samples_per_bar
 
                     # Si el cursor ya está dentro del último compás o muy cerca del final,
@@ -301,6 +330,7 @@ class MultitrackEngine:
                     self._jump_lead_bar_frame = lead_bar
                     self._jump_target_bar_frame = trans_bar
                 else:
+                    # Modo rápido: 1 compás de aviso anticipado en next_bar y transición en trans_bar
                     self._jump_lead_bar_frame = next_bar
                     self._jump_target_bar_frame = next_bar + samples_per_bar
         self._notify_tick()
@@ -325,6 +355,9 @@ class MultitrackEngine:
     def set_dynamic_cues_enabled(self, enabled: bool) -> None:
         with self._lock:
             self._dynamic_cues_enabled = bool(enabled)
+            if not enabled:
+                self._active_overlay_cue = None
+                self._active_overlay_pos = 0
 
     def cancel_scheduled_jump(self) -> None:
         """Cancela un salto programado pendiente."""
@@ -366,6 +399,14 @@ class MultitrackEngine:
         with self._lock:
             jump_sec = round(self._pending_jump_frame / self.sample_rate, 2) if self._pending_jump_frame is not None else None
             trans_sec = round(self._jump_target_bar_frame / self.sample_rate, 2) if self._jump_target_bar_frame is not None else None
+            
+            bars_rem = 0
+            if self._jump_target_bar_frame is not None and self._pending_jump_frame is not None:
+                samples_per_beat = max(1, int((60.0 / max(10.0, self._bpm)) * self.sample_rate))
+                samples_per_bar = max(1, samples_per_beat * self._beats_per_bar)
+                rem_frames = max(0, self._jump_target_bar_frame - self._current_frame)
+                bars_rem = max(1, int(np.ceil(rem_frames / samples_per_bar)))
+
             return {
                 "loop_enabled": self._loop_enabled,
                 "loop_active": self._loop_enabled,
@@ -377,6 +418,8 @@ class MultitrackEngine:
                 "pending_jump_label": self._pending_jump_label,
                 "jump_target": jump_sec,
                 "jump_transition_at": trans_sec,
+                "jump_mode": getattr(self, "_jump_mode", "section_end"),
+                "bars_remaining": bars_rem,
             }
 
     def register_track_finished_listener(self, callback: Callable[[], None]) -> None:
@@ -551,6 +594,27 @@ class MultitrackEngine:
                 elif curr < loop_lead - samples_per_bar or curr >= self._loop_end_frame:
                     self._loop_cue_last_fired_frame = -1
 
+            # 3. Detección de Guías Autónomas en toda la canción (1 compás antes de cada sección natural)
+            if self._dynamic_cues_enabled and self._song_sections:
+                # Solo disparar avisos de línea de tiempo si NO hay un salto manual ni un bucle programado
+                if self._pending_jump_frame is None and not self._loop_enabled:
+                    for sec in self._song_sections:
+                        sec_name = getattr(sec, "name", "") or (sec.get("name", "") if isinstance(sec, dict) else "")
+                        sec_start = getattr(sec, "start_time", 0.0) if hasattr(sec, "start_time") else (sec.get("start_time", 0.0) if isinstance(sec, dict) else 0.0)
+                        sec_start_frame = int(sec_start * self.sample_rate)
+                        lead_frame = sec_start_frame - samples_per_bar
+                        sec_key = f"{sec_name}_{sec_start_frame}"
+                        if lead_frame >= 0 and (curr <= lead_frame < curr + frames):
+                            if sec_key not in self._fired_auto_cues:
+                                self._fired_auto_cues.add(sec_key)
+                                lead_cue = self._cue_manager.build_transition_cue(
+                                    sec_name, bpm=self._bpm, beats_per_bar=self._beats_per_bar
+                                )
+                                if lead_cue is not None:
+                                    self._active_overlay_cue = lead_cue
+                                    self._active_overlay_pos = 0
+
+            # 4. Procesamiento de Transición Cuantizada con Micro-Crossfade Isopotente Multi-Bloque (80 ms)
             if transition_frame is not None and target_frame is not None:
                 split = max(0, min(frames, transition_frame - curr))
                 # Mezclar parte 1 (antes del límite de compás)
@@ -561,20 +625,82 @@ class MultitrackEngine:
                 if rem > 0:
                     self._mix_stems_range(master_mix[split:frames], cue_mix[split:frames], target_frame, rem, has_solo)
 
-                # Micro-crossfade isopotente (15 ms) en la costura para evitar 'clics' o 'pops'
-                fade_k = min(self._fade_len, split, rem)
-                if fade_k > 8:
-                    t = np.linspace(0.0, 1.0, fade_k, dtype=np.float32)[:, np.newaxis]
+                # Iniciar el Crossfade Isopotente de 80 ms (f_out y f_in continuos)
+                self._xfade_active = True
+                self._xfade_out_frame = transition_frame
+                self._xfade_pos = 0
+
+                if rem > 0 and self._fade_len > 0:
+                    xfade_chunk = min(rem, self._fade_len)
+                    if len(self._xfade_master_buf) < xfade_chunk:
+                        self._xfade_master_buf = np.zeros((xfade_chunk, 2), dtype=np.float32)
+                        self._xfade_cue_buf = np.zeros((xfade_chunk, 2), dtype=np.float32)
+                    self._xfade_master_buf[:xfade_chunk].fill(0.0)
+                    self._xfade_cue_buf[:xfade_chunk].fill(0.0)
+
+                    self._mix_stems_range(
+                        self._xfade_master_buf[:xfade_chunk],
+                        self._xfade_cue_buf[:xfade_chunk],
+                        self._xfade_out_frame,
+                        xfade_chunk,
+                        has_solo,
+                    )
+                    t = (np.arange(xfade_chunk, dtype=np.float32) / float(self._fade_len))[:, np.newaxis]
                     f_out = 0.5 * (1.0 + np.cos(np.pi * t))
                     f_in = 0.5 * (1.0 - np.cos(np.pi * t))
-                    master_mix[split - fade_k : split] *= f_out
-                    cue_mix[split - fade_k : split] *= f_out
-                    master_mix[split : split + fade_k] *= f_in
-                    cue_mix[split : split + fade_k] *= f_in
+
+                    master_mix[split : split + xfade_chunk] = (
+                        master_mix[split : split + xfade_chunk] * f_in
+                        + self._xfade_master_buf[:xfade_chunk] * f_out
+                    )
+                    cue_mix[split : split + xfade_chunk] = (
+                        cue_mix[split : split + xfade_chunk] * f_in
+                        + self._xfade_cue_buf[:xfade_chunk] * f_out
+                    )
+                    self._xfade_pos += xfade_chunk
+                    self._xfade_out_frame += xfade_chunk
+                    if self._xfade_pos >= self._fade_len:
+                        self._xfade_active = False
 
                 self._current_frame = target_frame + rem
             else:
                 self._mix_stems_range(master_mix, cue_mix, curr, frames, has_solo)
+
+                # Aplicar crossfade de salida si continúa activo en este bloque
+                if self._xfade_active and self._fade_len > 0:
+                    xfade_chunk = min(frames, self._fade_len - self._xfade_pos)
+                    if xfade_chunk > 0:
+                        if len(self._xfade_master_buf) < xfade_chunk:
+                            self._xfade_master_buf = np.zeros((xfade_chunk, 2), dtype=np.float32)
+                            self._xfade_cue_buf = np.zeros((xfade_chunk, 2), dtype=np.float32)
+                        self._xfade_master_buf[:xfade_chunk].fill(0.0)
+                        self._xfade_cue_buf[:xfade_chunk].fill(0.0)
+
+                        self._mix_stems_range(
+                            self._xfade_master_buf[:xfade_chunk],
+                            self._xfade_cue_buf[:xfade_chunk],
+                            self._xfade_out_frame,
+                            xfade_chunk,
+                            has_solo,
+                        )
+                        t = ((self._xfade_pos + np.arange(xfade_chunk, dtype=np.float32)) / float(self._fade_len))[:, np.newaxis]
+                        f_out = 0.5 * (1.0 + np.cos(np.pi * t))
+                        f_in = 0.5 * (1.0 - np.cos(np.pi * t))
+
+                        master_mix[:xfade_chunk] = (
+                            master_mix[:xfade_chunk] * f_in
+                            + self._xfade_master_buf[:xfade_chunk] * f_out
+                        )
+                        cue_mix[:xfade_chunk] = (
+                            cue_mix[:xfade_chunk] * f_in
+                            + self._xfade_cue_buf[:xfade_chunk] * f_out
+                        )
+                        self._xfade_pos += xfade_chunk
+                        self._xfade_out_frame += xfade_chunk
+
+                    if self._xfade_pos >= self._fade_len:
+                        self._xfade_active = False
+
                 self._current_frame += frames
 
             # Inyección de Guías de Audio Dinámicas en el canal CUE / In-Ear (nunca en FOH / Sala)

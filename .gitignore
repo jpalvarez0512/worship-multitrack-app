@@ -29,6 +29,10 @@ wheels/
 .coverage
 htmlcov/
 
+# Local cache
+tracks/library_index.json
+*.spec
+
 # Audio Files pesados (GitHub tiene un límite de 100 MB por archivo)
 # Se ignoran archivos de audio grandes en tracks, pero se preservan los JSON, letras y metadatos
 tracks/**/*.wav

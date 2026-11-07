@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from typing import List, Optional
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from src.audio.engine import MultitrackEngine, RoutingMode
@@ -337,6 +337,19 @@ def get_status():
 def check_update_endpoint():
     """Consulta si hay una nueva versión del software en GitHub."""
     return check_for_updates()
+
+
+@app.get("/api/system/portable-bundle.zip")
+def download_portable_bundle():
+    """Entrega el paquete portable actualizado completo (sin tracks) por red local."""
+    candidates = [
+        os.path.join(ROOT_DIR, "dist", "Actualizacion_Completa_Sin_Tracks.zip"),
+        os.path.join(ROOT_DIR, "portable_bin", "portable_bundle.zip"),
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            return FileResponse(c, media_type="application/zip", filename="Actualizacion_Completa_Sin_Tracks.zip")
+    raise HTTPException(status_code=404, detail="Paquete de actualización no encontrado")
 
 
 @app.get("/api/song")

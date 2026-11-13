@@ -14,6 +14,7 @@ try:
 except ImportError:
     sd = None
 
+from src.audio.ambient_pad import AmbientPadManager
 from src.audio.cue_manager import CueManager
 from src.audio.stem import StemTrack
 
@@ -100,6 +101,12 @@ class MultitrackEngine:
         self._active_overlay_pos: int = 0
         self._loop_cue_last_fired_frame: int = -1
 
+        # Módulo de Pads Ambientales Continuos y Modulación
+        self.ambient_pad = AmbientPadManager(sample_rate=self.sample_rate)
+
+        # Transposición de Audio Real (Pitch Shifting en semitonos)
+        self._current_transpose: int = 0
+
     # --------------------------------------------------------------------------
     # Gestión de Stems
     # --------------------------------------------------------------------------
@@ -107,6 +114,11 @@ class MultitrackEngine:
     def add_stem(self, stem: StemTrack) -> None:
         """Agrega o reemplaza un stem en el motor de mezcla."""
         with self._lock:
+            if self._current_transpose != 0:
+                try:
+                    stem.transpose(self._current_transpose)
+                except Exception as ex:
+                    print(f"[WARN] Error al transponer stem '{stem.name}': {ex}")
             self._stems[stem.name] = stem
 
     def remove_stem(self, name: str) -> None:
@@ -135,6 +147,78 @@ class MultitrackEngine:
             self._fired_auto_cues.clear()
             self._xfade_active = False
             self._current_frame = 0
+            self._current_transpose = 0
+
+    def set_transpose(self, semitones: int) -> int:
+        """
+        Transpone el motor de audio en +/- semitonos sin alterar el tempo ni la velocidad.
+        Aplica pitch shifting a todos los stems musicales (Click y Guía se preservan intactos).
+        """
+        with self._lock:
+            self._current_transpose = int(semitones)
+            for stem in self._stems.values():
+                try:
+                    stem.transpose(self._current_transpose)
+                except Exception as ex:
+                    print(f"[WARN] Error al transponer stem '{stem.name}': {ex}")
+            return self._current_transpose
+
+    @property
+    def current_transpose(self) -> int:
+        """Retorna la cantidad actual de semitonos de transposición aplicados."""
+        return self._current_transpose
+
+    # --------------------------------------------------------------------------
+    # Módulo de Pads Ambientales Continuos y Modulación
+    # --------------------------------------------------------------------------
+
+    def toggle_ambient_pad(
+        self,
+        enabled: Optional[bool] = None,
+        key: Optional[str] = None,
+        volume: Optional[float] = None,
+    ) -> dict:
+        """Enciende o apaga el pad ambiental continuo."""
+        with self._lock:
+            if enabled is None:
+                new_state = not self.ambient_pad.is_active
+            else:
+                new_state = bool(enabled)
+
+            if new_state:
+                self.ambient_pad.activate(key=key, volume=volume)
+                self._ensure_stream_open()
+            else:
+                self.ambient_pad.deactivate()
+                if not self._is_playing and self._stream is not None:
+                    try:
+                        self._stream.stop()
+                    except Exception:
+                        pass
+            return self.ambient_pad.get_status()
+
+    def modulate_ambient_pad(self, key: str, crossfade_seconds: float = 4.0) -> dict:
+        """
+        Inicia una modulación armónica suave hacia un nuevo tono con fundido cruzado isopotente.
+        Si las guías dinámicas están activas, avisa por in-ears.
+        """
+        with self._lock:
+            from_k, to_k = self.ambient_pad.modulate_to(key, crossfade_seconds=crossfade_seconds)
+            self._ensure_stream_open()
+            if self._dynamic_cues_enabled and from_k != to_k:
+                # Avisar por los auriculares del equipo sobre la modulación
+                self.trigger_cue("atentos")
+            return self.ambient_pad.get_status()
+
+    def set_ambient_pad_volume(self, volume: float) -> float:
+        """Ajusta el volumen del pad ambiental (0.0 a 1.5)."""
+        with self._lock:
+            self.ambient_pad.set_volume(volume)
+            return self.ambient_pad.volume
+
+    def get_ambient_pad_status(self) -> dict:
+        """Obtiene el estado actual del generador de pads."""
+        return self.ambient_pad.get_status()
 
     # --------------------------------------------------------------------------
     # Controles de Transporte y Reloj Maestro
@@ -182,7 +266,7 @@ class MultitrackEngine:
             self._xfade_active = False
             stream_ref = self._stream
 
-        if stream_ref is not None:
+        if stream_ref is not None and not self.ambient_pad.is_active:
             try:
                 stream_ref.stop()
             except Exception:
@@ -482,36 +566,51 @@ class MultitrackEngine:
 
         if not self._is_playing:
             with self._lock:
-                if self._active_overlay_cue is None:
+                if not self.ambient_pad.is_active and self._active_overlay_cue is None:
                     return
-                # Inyección de guía de voz en in-ears aún en pausa (para soundcheck / aviso previo)
+
+                # Inicializar buffers temporales
                 if len(self._cue_mix_buf) < frames:
                     self._master_mix_buf = np.zeros((frames, 2), dtype=np.float32)
                     self._cue_mix_buf = np.zeros((frames, 2), dtype=np.float32)
+
+                master_mix = self._master_mix_buf[:frames]
                 cue_mix = self._cue_mix_buf[:frames]
+                master_mix.fill(0.0)
                 cue_mix.fill(0.0)
-                rem_cue = len(self._active_overlay_cue) - self._active_overlay_pos
-                if rem_cue > 0:
-                    copy_len = min(frames, rem_cue)
-                    cue_chunk = self._active_overlay_cue[self._active_overlay_pos : self._active_overlay_pos + copy_len]
-                    cue_mix[:copy_len, 0] = cue_chunk * 1.25
-                    cue_mix[:copy_len, 1] = cue_chunk * 1.25
-                    self._active_overlay_pos += copy_len
-                    if self._active_overlay_pos >= len(self._active_overlay_cue):
+
+                # Inyección del Pad Ambiental Continuo (incluso cuando la pista está detenida o en pausa)
+                if self.ambient_pad.is_active:
+                    pad_slice = self.ambient_pad.get_slice(frames)
+                    master_mix += pad_slice
+                    cue_mix += pad_slice
+
+                # Inyección de guía de voz en in-ears aún en pausa (para soundcheck / aviso previo)
+                if self._active_overlay_cue is not None:
+                    rem_cue = len(self._active_overlay_cue) - self._active_overlay_pos
+                    if rem_cue > 0:
+                        copy_len = min(frames, rem_cue)
+                        cue_chunk = self._active_overlay_cue[self._active_overlay_pos : self._active_overlay_pos + copy_len]
+                        cue_mix[:copy_len, 0] += cue_chunk * 1.25
+                        cue_mix[:copy_len, 1] += cue_chunk * 1.25
+                        self._active_overlay_pos += copy_len
+                        if self._active_overlay_pos >= len(self._active_overlay_cue):
+                            self._active_overlay_cue = None
+                            self._active_overlay_pos = 0
+                    else:
                         self._active_overlay_cue = None
                         self._active_overlay_pos = 0
-                else:
-                    self._active_overlay_cue = None
-                    self._active_overlay_pos = 0
 
                 if self.routing_mode == RoutingMode.SPLIT_STEREO:
                     cue_mono = (cue_mix[:, 0] + cue_mix[:, 1]) * (0.5 * self._cue_volume)
+                    master_mono = (master_mix[:, 0] + master_mix[:, 1]) * (0.5 * self._master_volume)
                     outdata[:, 0] = np.clip(cue_mono, -1.0, 1.0)
-                    outdata[:, 1] = 0.0
+                    outdata[:, 1] = np.clip(master_mono, -1.0, 1.0)
                 else:
-                    cue_out = cue_mix * self._cue_volume
-                    outdata[:, 0] = np.clip(cue_out[:, 0], -1.0, 1.0)
-                    outdata[:, 1] = np.clip(cue_out[:, 1], -1.0, 1.0)
+                    full_l = (master_mix[:, 0] * self._master_volume) + (cue_mix[:, 0] * self._cue_volume)
+                    full_r = (master_mix[:, 1] * self._master_volume) + (cue_mix[:, 1] * self._cue_volume)
+                    outdata[:, 0] = np.clip(full_l, -1.0, 1.0)
+                    outdata[:, 1] = np.clip(full_r, -1.0, 1.0)
                 return
 
         with self._lock:
@@ -702,6 +801,12 @@ class MultitrackEngine:
                         self._xfade_active = False
 
                 self._current_frame += frames
+
+            # Inyección del Pad Ambiental Continuo en sala y auriculares
+            if self.ambient_pad.is_active:
+                pad_slice = self.ambient_pad.get_slice(frames)
+                master_mix += pad_slice
+                cue_mix += pad_slice
 
             # Inyección de Guías de Audio Dinámicas en el canal CUE / In-Ear (nunca en FOH / Sala)
             if self._active_overlay_cue is not None:

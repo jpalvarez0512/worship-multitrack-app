@@ -164,6 +164,10 @@ class Song:
             return "", sec_name
         return txt, sec_name
 
+    def get_key(self, transpose_semitones: int = 0) -> str:
+        """Retorna el tono efectivo de la cancion aplicando la transposicion."""
+        return transpose_chord(self.key, transpose_semitones)
+
     def to_summary_dict(self) -> dict:
         return {
             "id": self.id,

@@ -870,6 +870,27 @@
         <button class="btn-dir btn-dir-mode" id="btn-dir-jump-mode" onclick="directorToggleJumpMode()" title="Alternar entre esperar al final de la sección o saltar en 1 compás">SALTO: FINAL SECCIÓN</button>
       </div>
 
+      <!-- Barra Táctil de Pad Ambiental Continuo y Modulación -->
+      <div class="dir-pad-bar" style="display:flex; align-items:center; gap:6px; background:#070b12; border:1px solid #1a2233; border-radius:4px; padding:4px 8px;">
+        <button class="btn-dir btn-sm" id="btn-dir-pad" onclick="directorTogglePad()" style="flex:0 0 auto; padding:6px 10px; font-size:0.72rem; min-height:30px; background:#141b29; color:#cbd5e1; border-color:#28354f;">PAD: OFF</button>
+        <span style="font-size:0.68rem; color:#94a3b8; font-weight:700;">TONO:</span>
+        <select id="dir-pad-key-select" class="dir-song-select" style="max-width:85px; padding:4px 6px; font-size:0.74rem;" onchange="directorModulatePad(this.value)">
+          <option value="C">C (Do)</option>
+          <option value="C#">C# (Do#)</option>
+          <option value="D">D (Re)</option>
+          <option value="D#">D# (Re#)</option>
+          <option value="E">E (Mi)</option>
+          <option value="F">F (Fa)</option>
+          <option value="F#">F# (Fa#)</option>
+          <option value="G">G (Sol)</option>
+          <option value="G#">G# (Sol#)</option>
+          <option value="A">A (La)</option>
+          <option value="A#">A# (La#)</option>
+          <option value="B">B (Si)</option>
+        </select>
+        <span id="dir-pad-status-badge" style="font-size:0.68rem; color:#38bdf8; font-weight:800; margin-left:auto; font-family:monospace;">PAD LISTO</span>
+      </div>
+
       <!-- Controles de Transporte y Loop -->
       <div class="dir-top-row">
         <div class="dir-transport-group">
@@ -1096,6 +1117,72 @@
       if (!btn) return;
       btn.classList.toggle('loop-on', currentLoopActive);
       btn.textContent = currentLoopActive ? `LOOP: ${currentLoopSection || 'ON'}` : 'LOOP';
+    }
+
+    let directorPadActive = false;
+    let directorPadKey = 'C';
+
+    async function directorTogglePad() {
+      try {
+        const res = await fetch('/api/transport/pad/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: !directorPadActive, key: directorPadKey })
+        });
+        if (res.ok) {
+          const d = await res.json();
+          updateDirectorPadUI(d);
+          showToast(d.is_active ? `Pad continuo en Tono ${d.current_key}` : 'Pad apagado', 1800);
+        }
+      } catch (e) {}
+    }
+
+    async function directorModulatePad(k) {
+      directorPadKey = k;
+      try {
+        const res = await fetch('/api/transport/pad/modulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: k, crossfade: 4.0 })
+        });
+        if (res.ok) {
+          const d = await res.json();
+          updateDirectorPadUI(d);
+          showToast(`Modulando Pad a Tono ${k}...`, 2000);
+        }
+      } catch (e) {}
+    }
+
+    function updateDirectorPadUI(pad) {
+      if (!pad) return;
+      directorPadActive = Boolean(pad.is_active);
+      directorPadKey = pad.current_key || 'C';
+
+      const btn = document.getElementById('btn-dir-pad');
+      const sel = document.getElementById('dir-pad-key-select');
+      const badge = document.getElementById('dir-pad-status-badge');
+
+      if (btn) {
+        btn.textContent = directorPadActive ? `PAD: ON (${directorPadKey})` : 'PAD: OFF';
+        btn.style.background = directorPadActive ? '#047857' : '#141b29';
+        btn.style.borderColor = directorPadActive ? '#10b981' : '#28354f';
+        btn.style.color = directorPadActive ? '#ffffff' : '#cbd5e1';
+      }
+      if (sel && sel.value !== directorPadKey) {
+        sel.value = directorPadKey;
+      }
+      if (badge) {
+        if (!directorPadActive) {
+          badge.textContent = 'PAD EN ESPERA';
+          badge.style.color = 'var(--text-dim)';
+        } else if (pad.is_modulating && pad.target_key) {
+          badge.textContent = `MODULANDO A ${pad.target_key}...`;
+          badge.style.color = '#f59e0b';
+        } else {
+          badge.textContent = `PAD EN ${directorPadKey}`;
+          badge.style.color = '#38bdf8';
+        }
+      }
     }
 
     function renderDirectorSectionButtons() {
@@ -1443,6 +1530,15 @@
               }
             }
 
+            if (data.pad) {
+              updateDirectorPadUI(data.pad);
+            }
+          } else if (data.type === 'pad_status') {
+            if (data.pad) updateDirectorPadUI(data.pad);
+          } else if (data.type === 'song_transposed') {
+            personalTranspose = data.transpose || 0;
+            loadSongData();
+            showToast(`Tono cambiado a: ${data.song?.transposed_key || data.song?.key || 'Transpuesto'}`, 2000);
           } else if (data.type === 'song_changed') {
             if (typeof data.default_transpose === 'number') {
               personalTranspose = data.default_transpose;

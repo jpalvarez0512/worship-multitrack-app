@@ -23,8 +23,9 @@ from src.audio.synthetic import (
 from src.core.chordpro import ChordProParser
 from src.core.projection_config import ProjectionConfigManager
 from src.core.scene_manager import SceneManager
-from src.core.song import Song, create_demo_song
+from src.core.song import Song, SongSection, create_demo_song
 from src.core.song_loader import AUDIO_EXTENSIONS, CHART_EXTENSIONS, SongLoader
+from src.core.waveform import get_song_waveform
 from src.server.websocket_manager import ChannelType, ConnectionManager
 from src.utils.network import get_connection_url, get_local_ip, print_ascii_qr
 from src.utils.updater import CURRENT_VERSION, check_for_updates
@@ -111,17 +112,21 @@ def on_engine_tick(pos_seconds: float, is_playing: bool) -> None:
         pos_seconds, projection_config.lead_seconds
     )
 
-    # Estado de bucle de adoración espontánea y saltos programados
+    # Estado de bucle de adoración espontánea, saltos programados, pad continuo y transposición
     loop_active = False
     loop_sec = ""
     jump_pending = ""
     bars_rem = 0
+    pad_st = None
+    curr_trans = active_song_transpose
     if engine is not None:
         st = engine.get_loop_state()
         loop_active = bool(st.get("loop_enabled", False))
         loop_sec = str(st.get("loop_label", ""))
         jump_pending = str(st.get("pending_jump_label", ""))
         bars_rem = int(st.get("bars_remaining", 0))
+        pad_st = engine.get_ambient_pad_status()
+        curr_trans = engine.current_transpose
 
     # Enviar al bucle asíncrono principal sin bloquear el hilo de audio
     coro = ws_manager.broadcast_tick(
@@ -136,6 +141,8 @@ def on_engine_tick(pos_seconds: float, is_playing: bool) -> None:
         loop_section=loop_sec,
         pending_jump=jump_pending,
         bars_remaining=bars_rem,
+        pad_status=pad_st,
+        current_transpose=curr_trans,
     )
     asyncio.run_coroutine_threadsafe(coro, main_event_loop)
 
@@ -324,6 +331,8 @@ def get_status():
         "routing_mode": engine.routing_mode.value,
         "song": current_song.to_summary_dict(),
         "default_transpose": active_song_transpose,
+        "current_transpose": engine.current_transpose,
+        "pad": engine.get_ambient_pad_status(),
         "active_scene": _get_active_scene_status(),
         "projection": {
             "blackout": ws_manager._projection_blackout,
@@ -426,6 +435,8 @@ def _activate_song(
     if engine is not None:
         engine.set_song_timing(current_song.bpm, current_song.time_signature)
         engine.set_song_sections(current_song.sections)
+        if active_song_transpose != 0:
+            engine.set_transpose(active_song_transpose)
 
     _notify_song_changed()
     return {
@@ -907,6 +918,203 @@ def set_dynamic_cues(payload: dict):
     enabled = bool(payload.get("enabled", True))
     engine.set_dynamic_cues_enabled(enabled)
     return {"status": "ok", "enabled": engine.dynamic_cues_enabled}
+
+
+# -----------------------------------------------------------------------------
+# Endpoints de Pads Ambientales Continuos y Modulación
+# -----------------------------------------------------------------------------
+
+@app.get("/api/transport/pad/status")
+def get_pad_status():
+    """Consulta el estado del pad ambiental continuo."""
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    return engine.get_ambient_pad_status()
+
+
+@app.post("/api/transport/pad/toggle")
+def toggle_pad_endpoint(payload: Optional[dict] = None):
+    """Enciende o apaga el pad ambiental continuo."""
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    payload = payload or {}
+    res = engine.toggle_ambient_pad(
+        enabled=payload.get("enabled"),
+        key=payload.get("key"),
+        volume=payload.get("volume"),
+    )
+    _broadcast_async(ChannelType.CONTROL, {"type": "pad_status", "pad": res})
+    _broadcast_async(ChannelType.MUSICIANS, {"type": "pad_status", "pad": res})
+    return res
+
+
+@app.post("/api/transport/pad/modulate")
+def modulate_pad_endpoint(payload: dict):
+    """Modula suavemente hacia un nuevo tono con fundido cruzado isopotente."""
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    key = str(payload.get("key", "C")).strip()
+    xfade = float(payload.get("crossfade", 4.0))
+    res = engine.modulate_ambient_pad(key, crossfade_seconds=xfade)
+    _broadcast_async(ChannelType.CONTROL, {"type": "pad_status", "pad": res})
+    _broadcast_async(ChannelType.MUSICIANS, {"type": "pad_status", "pad": res})
+    return res
+
+
+@app.post("/api/transport/pad/volume")
+def set_pad_volume_endpoint(payload: dict):
+    """Ajusta el volumen del pad ambiental continuo."""
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    vol = float(payload.get("volume", 0.5))
+    new_vol = engine.set_ambient_pad_volume(vol)
+    return {"volume": new_vol}
+
+
+# -----------------------------------------------------------------------------
+# Endpoints de Transposición de Audio Real (Pitch Shifting)
+# -----------------------------------------------------------------------------
+
+@app.post("/api/song/transpose")
+def transpose_song_endpoint(payload: dict):
+    """
+    Transpone tanto la pista de audio (Pitch Shifting en tiempo real)
+    como los acordes en pantalla para los músicos al unísono.
+    """
+    global active_song_transpose
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Motor no disponible")
+    semitones = int(payload.get("semitones", 0))
+    active_song_transpose = semitones
+    engine.set_transpose(semitones)
+
+    summary = current_song.to_summary_dict()
+    summary["transposed_key"] = current_song.get_key(semitones)
+    _broadcast_async(
+        ChannelType.MUSICIANS,
+        {
+            "type": "song_transposed",
+            "transpose": semitones,
+            "song": summary,
+        },
+    )
+    _broadcast_async(
+        ChannelType.CONTROL,
+        {
+            "type": "song_transposed",
+            "transpose": semitones,
+            "song": summary,
+        },
+    )
+    return {"status": "transposed", "transpose": semitones, "song": summary}
+
+
+# -----------------------------------------------------------------------------
+# Endpoints de Forma de Onda (Waveform) y Editor de Secciones
+# -----------------------------------------------------------------------------
+
+@app.get("/api/songs/{song_id}/waveform")
+def get_song_waveform_endpoint(song_id: str):
+    """Entrega la forma de onda de la canción y las secciones actuales para visualización y edición."""
+    folder_path = os.path.join(TRACKS_DIR, song_id)
+    if not os.path.exists(folder_path):
+        raise HTTPException(status_code=404, detail="Canción no encontrada")
+    wf = get_song_waveform(folder_path, max_points=600)
+    wf["song_id"] = song_id
+    if current_song.id == song_id:
+        wf["sections"] = [s.to_dict(active_song_transpose) for s in current_song.sections]
+        wf["duration"] = round(max(current_song.duration_seconds, wf.get("duration", 0.0)), 2)
+    else:
+        meta = song_loader._read_song_metadata(folder_path)
+        wf["sections"] = [s.to_dict() for s in meta.sections] if meta else []
+        if meta:
+            wf["duration"] = round(max(meta.duration_seconds, wf.get("duration", 0.0)), 2)
+    return wf
+
+
+@app.post("/api/songs/{song_id}/sections")
+def update_song_sections_endpoint(song_id: str, payload: dict):
+    """Actualiza las secciones musicales de la canción y las guarda en disco."""
+    global current_song
+    raw_secs = payload.get("sections", [])
+    if not raw_secs:
+        raise HTTPException(status_code=400, detail="La lista de secciones no puede estar vacía")
+    folder_path = os.path.join(TRACKS_DIR, song_id)
+    if not os.path.exists(folder_path):
+        raise HTTPException(status_code=404, detail="Canción no encontrada")
+
+    parsed_sections = []
+    for s in raw_secs:
+        name = str(s.get("name", "Sección")).strip()
+        start = max(0.0, float(s.get("start_time", 0.0)))
+        end = max(start + 0.5, float(s.get("end_time", start + 5.0)))
+        parsed_sections.append(SongSection(name=name, start_time=start, end_time=end))
+
+    parsed_sections.sort(key=lambda x: x.start_time)
+    for i in range(len(parsed_sections) - 1):
+        parsed_sections[i].end_time = parsed_sections[i + 1].start_time
+
+    if current_song.id == song_id:
+        current_song.sections = parsed_sections
+        if engine is not None:
+            engine.set_song_sections(current_song.sections)
+
+    json_file = os.path.join(folder_path, "song.json")
+    try:
+        target_song = current_song if current_song.id == song_id else song_loader._read_song_metadata(folder_path)
+        if target_song:
+            target_song.sections = parsed_sections
+            ChordProParser.export_to_json(target_song, json_file)
+    except Exception as ex:
+        print(f"[WARN] Error guardando secciones en disco: {ex}")
+
+    _notify_song_changed()
+    return {
+        "status": "sections_updated",
+        "song_id": song_id,
+        "sections": [s.to_dict(active_song_transpose) for s in parsed_sections],
+    }
+
+
+@app.post("/api/songs/{song_id}/drop-marker")
+def drop_section_marker_endpoint(song_id: str, payload: dict):
+    """Fija un marcador de sección al vuelo en la posición temporal especificada."""
+    global current_song
+    name = str(payload.get("name", "Coro")).strip()
+    marker_time = max(0.0, float(payload.get("time", 0.0)))
+    folder_path = os.path.join(TRACKS_DIR, song_id)
+    if not os.path.exists(folder_path):
+        raise HTTPException(status_code=404, detail="Canción no encontrada")
+
+    target_song = current_song if current_song.id == song_id else song_loader._read_song_metadata(folder_path)
+    if not target_song:
+        raise HTTPException(status_code=404, detail="Metadatos no disponibles")
+
+    secs = list(target_song.sections)
+    secs.append(SongSection(name=name, start_time=marker_time, end_time=marker_time + 15.0))
+    secs.sort(key=lambda x: x.start_time)
+    for i in range(len(secs) - 1):
+        secs[i].end_time = secs[i + 1].start_time
+    if engine is not None and secs:
+        secs[-1].end_time = max(secs[-1].start_time + 10.0, engine.duration_seconds)
+
+    target_song.sections = secs
+    if current_song.id == song_id and engine is not None:
+        engine.set_song_sections(current_song.sections)
+
+    json_file = os.path.join(folder_path, "song.json")
+    try:
+        ChordProParser.export_to_json(target_song, json_file)
+    except Exception as ex:
+        print(f"[WARN] Error guardando marcador: {ex}")
+
+    _notify_song_changed()
+    return {
+        "status": "marker_dropped",
+        "name": name,
+        "time": marker_time,
+        "sections": [s.to_dict(active_song_transpose) for s in secs],
+    }
 
 
 # -----------------------------------------------------------------------------

@@ -1018,6 +1018,13 @@
             <div class="vfd-meta-chips">
               <span class="vfd-chip" id="display-bpm-key">-- BPM · --</span>
               <span class="vfd-cue-badge cue-on" id="display-cue-status" title="Guías de voz inteligentes en audífonos In-Ear">GUÍAS: ON</span>
+              <div style="display:inline-flex; align-items:center; gap:2px; background:#14161c; border:1px solid var(--border-light); border-radius:2px; padding:1px 5px;" title="Transposición de Audio Real (Pitch Shifting de pistas y acordes)">
+                <span style="font-size:0.65rem; color:var(--text-dim); font-weight:700;">TONO:</span>
+                <button class="btn btn-secondary btn-sm" style="padding:1px 5px; font-size:0.7rem;" onclick="adjustSongTranspose(-1)" title="Bajar 1 semitono">-1</button>
+                <span id="display-transpose-val" style="font-family:var(--font-mono); font-size:0.72rem; font-weight:800; color:#38bdf8; min-width:32px; text-align:center;">0</span>
+                <button class="btn btn-secondary btn-sm" style="padding:1px 5px; font-size:0.7rem;" onclick="adjustSongTranspose(1)" title="Subir 1 semitono">+1</button>
+                <button class="btn btn-secondary btn-sm" style="padding:1px 5px; font-size:0.65rem;" onclick="resetSongTranspose()" title="Restablecer tono original">RESET</button>
+              </div>
             </div>
           </div>
 
@@ -1029,6 +1036,30 @@
 
           <div class="vfd-progress-well">
             <input type="range" min="0" max="100" step="0.1" value="0" class="slider" id="timeline" title="Línea de tiempo de reproducción">
+          </div>
+
+          <!-- Waveform Display interactivo & Editor de Marcadores -->
+          <div class="waveform-rack" style="margin-top:10px; background:#0e0f13; border:1px solid var(--border); border-radius:4px; padding:8px 10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+              <div style="font-size:0.65rem; font-weight:700; color:var(--text-muted); letter-spacing:0.08em; text-transform:uppercase; display:flex; align-items:center; gap:6px;">
+                <span style="width:5px; height:5px; border-radius:50%; background:#10b981;"></span>
+                <span>FORMA DE ONDA & MARCADORES</span>
+              </div>
+              <div style="display:flex; gap:5px; align-items:center;">
+                <button class="btn btn-primary btn-sm" onclick="openDropMarkerPrompt()" title="Fijar marcador en la posición actual [Atajo Tecla M]">MARCAR SECCIÓN [M]</button>
+                <button class="btn btn-secondary btn-sm" onclick="saveSectionMarkers()" title="Guardar ajustes de marcadores en disco">GUARDAR SECCIONES</button>
+              </div>
+            </div>
+            <!-- Canvas interactivo con Playhead y marcadores arrastrables -->
+            <div style="position:relative; width:100%; height:72px; background:#07080b; border:1px solid #1f222b; border-radius:3px; overflow:hidden;" id="waveform-box">
+              <canvas id="waveform-canvas" height="72" style="width:100%; height:100%; display:block; cursor:crosshair;"></canvas>
+              <div id="waveform-playhead" style="position:absolute; top:0; bottom:0; width:2px; background:#ef4444; pointer-events:none; left:0%; z-index:10; box-shadow:0 0 6px #ef4444;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.63rem; color:var(--text-dim); margin-top:4px;">
+              <span id="waveform-start-label">00:00</span>
+              <span id="waveform-status-hint" style="color:var(--text-muted);">Haz clic en la onda para saltar o presiona 'M' en vivo para fijar sección</span>
+              <span id="waveform-end-label">00:00</span>
+            </div>
           </div>
         </div>
 
@@ -1086,6 +1117,48 @@
             <span class="section-chips-label">SALTAR A SECCIÓN (AL FINALIZAR EL COMPÁS ACTUAL):</span>
             <div id="transport-sections-chips" class="section-chips-flow">
               <span style="font-size:0.76rem; color:var(--text-dim);">Cargando secciones...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rack de Pad Ambiental Continuo & Asistencia de Modulación -->
+        <div class="ambient-pad-rack" style="background:var(--panel-inset); border:1px solid var(--border); border-radius:4px; padding:10px 12px; margin-top:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:0.68rem; font-weight:700; color:var(--text-muted); letter-spacing:0.08em; text-transform:uppercase; display:flex; align-items:center; gap:6px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:var(--text-dim);" id="ambient-pad-led"></span>
+              <span>PAD AMBIENTAL CONTINUO (MINISTRACIÓN)</span>
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <button class="btn btn-secondary btn-sm" id="btn-ambient-pad-toggle" onclick="toggleAmbientPad()">ENCENDER PAD</button>
+              <button class="btn btn-secondary btn-sm" onclick="matchPadToSongKey()" title="Modular directamente al tono de la canción activa">SINCRONIZAR A CANCIÓN</button>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center;">
+            <!-- Selector de 12 Notas -->
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <span style="font-size:0.62rem; color:var(--text-dim); font-weight:700; text-transform:uppercase;">TONO ACTIVO / MODULAR:</span>
+              <div id="pad-keys-bar" style="display:flex; flex-wrap:wrap; gap:3px; max-width:320px;">
+                <!-- 12 botones cromáticos inyectados por JS -->
+              </div>
+            </div>
+
+            <!-- Estado de Modulación -->
+            <div style="display:flex; flex-direction:column; gap:3px; background:#12141a; border:1px solid var(--border); border-radius:3px; padding:6px 10px;">
+              <span style="font-size:0.62rem; color:var(--text-dim); font-weight:700; text-transform:uppercase;">ATMÓSFERA ARMÓNICA:</span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-family:var(--font-mono); font-weight:800; font-size:1.15rem; color:#38bdf8;" id="pad-active-key-display">C</span>
+                <span style="font-size:0.74rem; color:var(--text-muted);" id="pad-modulate-status">Pad en reposo</span>
+              </div>
+            </div>
+
+            <!-- Control de Volumen del Pad -->
+            <div style="display:flex; flex-direction:column; gap:3px; min-width:110px;">
+              <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-dim); font-weight:700;">
+                <span>VOLUMEN</span>
+                <span id="pad-vol-lbl">55%</span>
+              </div>
+              <input type="range" min="0" max="1" step="0.02" value="0.55" class="slider" id="pad-volume-slider" oninput="changePadVolume(this.value)">
             </div>
           </div>
         </div>
@@ -1384,6 +1457,34 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal('chart-edit-modal')">Cancelar</button>
         <button class="btn btn-success" id="btn-save-chart" onclick="saveEditedChart()">GUARDAR CAMBIOS</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4.5: Fijar Marcador de Sección al Vuelo (Drop Marker) -->
+  <div class="modal-overlay" id="drop-marker-modal">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-header">
+        <h3 style="font-size:0.95rem; color:#fff;">FIJAR MARCADOR DE SECCIÓN</h3>
+        <button onclick="closeModal('drop-marker-modal')" style="background:none; border:none; color:#94a3b8; font-size:0.95rem; font-weight:700; cursor:pointer;">X</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">
+          Tiempo seleccionado: <strong style="color:#38bdf8; font-family:var(--font-mono);" id="marker-target-time-label">00:00</strong>. Elige el tipo de sección:
+        </p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <button class="btn btn-secondary" onclick="confirmDropMarker('Intro')">Intro</button>
+          <button class="btn btn-secondary" onclick="confirmDropMarker('Verso 1')">Verso 1</button>
+          <button class="btn btn-secondary" onclick="confirmDropMarker('Verso 2')">Verso 2</button>
+          <button class="btn btn-secondary" onclick="confirmDropMarker('Pre-Coro')">Pre-Coro</button>
+          <button class="btn btn-secondary" onclick="confirmDropMarker('Coro')">Coro</button>
+          <button class="btn btn-secondary" onclick="confirmDropMarker('Puente')">Puente</button>
+          <button class="btn btn-secondary" onclick="confirmDropMarker('Solo')">Solo</button>
+          <button class="btn btn-secondary" onclick="confirmDropMarker('Final')">Final</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('drop-marker-modal')">Cancelar</button>
       </div>
     </div>
   </div>
@@ -2432,6 +2533,7 @@
           if (data.type === 'control_tick' && !isSeeking) {
             if (songDuration > 0) timeline.value = (data.pos / songDuration) * 100;
             document.getElementById('current-time').innerText = formatTime(data.pos);
+            updateWaveformPlayhead(data.pos);
             if (data.sec && data.sec !== activeSectionName) {
               activeSectionName = data.sec;
               highlightActiveSection(activeSectionName);
@@ -2448,6 +2550,16 @@
               }
               updateJumpBadge();
             }
+            if (data.pad) {
+              updatePadUI(data.pad);
+            }
+            if (data.transpose !== undefined && data.transpose !== currentSongTranspose) {
+              updateTransposeDisplay(data.transpose);
+            }
+          } else if (data.type === 'song_transposed') {
+            updateTransposeDisplay(data.transpose, data.song ? (data.song.transposed_key || data.song.key) : null);
+          } else if (data.type === 'pad_status') {
+            if (data.pad) updatePadUI(data.pad);
           } else if (data.type === 'song_changed') {
             refreshAll();
           }
@@ -2729,6 +2841,419 @@
       }
     }
 
+    // ------------------------------------------------ Transposición de Audio Real (Pitch Shifting)
+    let currentSongTranspose = 0;
+
+    async function adjustSongTranspose(delta) {
+      await setSongTranspose(currentSongTranspose + delta);
+    }
+    async function resetSongTranspose() {
+      await setSongTranspose(0);
+    }
+    async function setSongTranspose(val) {
+      val = Math.max(-7, Math.min(7, parseInt(val) || 0));
+      currentSongTranspose = val;
+      try {
+        const res = await api('/api/song/transpose', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ semitones: val })
+        });
+        const newKey = res.song && res.song.transposed_key ? res.song.transposed_key : (res.song && res.song.key ? res.song.key : '--');
+        updateTransposeDisplay(val, newKey);
+        toast(`Tono transpuesto: ${newKey} (${val > 0 ? '+' + val : val}) [Audio y acordes sincronizados]`, 'info', 2500);
+      } catch (e) {
+        toast(`Error transponiendo tono: ${e.message}`, 'error');
+      }
+    }
+    function updateTransposeDisplay(val, keyName) {
+      currentSongTranspose = parseInt(val) || 0;
+      const el = document.getElementById('display-transpose-val');
+      if (el) {
+        el.textContent = currentSongTranspose === 0 ? '0' : (currentSongTranspose > 0 ? `+${currentSongTranspose}` : `${currentSongTranspose}`);
+      }
+      if (keyName) {
+        const bpmEl = document.getElementById('display-bpm-key');
+        if (bpmEl && bpmEl.textContent.includes('·')) {
+          const parts = bpmEl.textContent.split('·');
+          bpmEl.textContent = `${parts[0].trim()} · ${keyName}`;
+        }
+      }
+    }
+
+    // ------------------------------------------------ Pads Ambientales Continuos & Modulación
+    const CHROMATIC_KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    let padStatus = { is_active: false, current_key: 'C', target_key: null, is_modulating: false, volume: 0.55 };
+
+    function initPadKeys() {
+      const bar = document.getElementById('pad-keys-bar');
+      if (!bar) return;
+      bar.innerHTML = '';
+      CHROMATIC_KEYS.forEach(k => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-secondary btn-sm';
+        btn.id = `pad-key-btn-${k.replace('#', 's')}`;
+        btn.style.cssText = 'padding:3px 7px; font-size:0.72rem; font-weight:700; font-family:var(--font-mono);';
+        btn.textContent = k;
+        btn.onclick = () => selectPadKey(k);
+        bar.appendChild(btn);
+      });
+      updatePadUI(padStatus);
+    }
+
+    async function loadAmbientPadState() {
+      try {
+        const s = await api('/api/transport/pad/status');
+        padStatus = s;
+        updatePadUI(s);
+      } catch (e) {}
+    }
+
+    async function toggleAmbientPad() {
+      const nextActive = !padStatus.is_active;
+      try {
+        const res = await api('/api/transport/pad/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: nextActive, key: padStatus.current_key })
+        });
+        padStatus = res;
+        updatePadUI(res);
+        if (res.is_active) {
+          toast(`Pad continuo ACTIVADO en Tono ${res.current_key}`, 'success', 2000);
+        } else {
+          toast('Pad continuo APAGADO', 'info', 1500);
+        }
+      } catch (e) {
+        toast(`Error con el pad: ${e.message}`, 'error');
+      }
+    }
+
+    async function selectPadKey(k) {
+      if (!padStatus.is_active) {
+        try {
+          const res = await api('/api/transport/pad/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled: true, key: k })
+          });
+          padStatus = res;
+          updatePadUI(res);
+          toast(`Pad continuo activado en Tono ${k}`, 'success', 2000);
+        } catch (e) { toast(e.message, 'error'); }
+      } else {
+        await modulatePad(k);
+      }
+    }
+
+    async function modulatePad(targetKey) {
+      try {
+        const res = await api('/api/transport/pad/modulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: targetKey, crossfade: 4.0 })
+        });
+        padStatus = res;
+        updatePadUI(res);
+        toast(`Modulando armónicamente de ${res.current_key} hacia ${targetKey}... (Crossfade 4s)`, 'info', 2500);
+      } catch (e) {
+        toast(`Error modulando: ${e.message}`, 'error');
+      }
+    }
+
+    async function matchPadToSongKey() {
+      const bpmEl = document.getElementById('display-bpm-key');
+      let targetK = 'C';
+      if (bpmEl && bpmEl.textContent.includes('·')) {
+        const raw = bpmEl.textContent.split('·')[1].trim();
+        targetK = raw.replace(/[m|maj|sus|add|7|9|\/].*$/gi, '').trim().toUpperCase();
+      }
+      await selectPadKey(targetK || 'C');
+    }
+
+    async function changePadVolume(val) {
+      const v = parseFloat(val) || 0.55;
+      const lbl = document.getElementById('pad-vol-lbl');
+      if (lbl) lbl.textContent = `${Math.round(v * 100)}%`;
+      try {
+        await api('/api/transport/pad/volume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ volume: v })
+        });
+      } catch (e) {}
+    }
+
+    function updatePadUI(st) {
+      if (!st) return;
+      padStatus = st;
+      const led = document.getElementById('ambient-pad-led');
+      const btn = document.getElementById('btn-ambient-pad-toggle');
+      const keyDisp = document.getElementById('pad-active-key-display');
+      const modStatus = document.getElementById('pad-modulate-status');
+      const slider = document.getElementById('pad-volume-slider');
+      const volLbl = document.getElementById('pad-vol-lbl');
+
+      if (led) {
+        led.style.background = st.is_active ? (st.is_modulating ? '#f59e0b' : '#10b981') : 'var(--text-dim)';
+        led.style.boxShadow = st.is_active ? '0 0 8px ' + (st.is_modulating ? '#f59e0b' : '#10b981') : 'none';
+      }
+      if (btn) {
+        if (st.is_active) {
+          btn.textContent = 'APAGAR PAD';
+          btn.className = 'btn btn-danger btn-sm';
+        } else {
+          btn.textContent = 'ENCENDER PAD';
+          btn.className = 'btn btn-secondary btn-sm';
+        }
+      }
+      if (keyDisp) {
+        keyDisp.textContent = st.is_modulating && st.target_key ? `${st.current_key} -> ${st.target_key}` : (st.current_key || 'C');
+      }
+      if (modStatus) {
+        if (!st.is_active) {
+          modStatus.textContent = 'Pad apagado';
+          modStatus.style.color = 'var(--text-dim)';
+        } else if (st.is_modulating && st.target_key) {
+          modStatus.textContent = `Modulando a ${st.target_key} (fundido armónico)...`;
+          modStatus.style.color = '#f59e0b';
+        } else {
+          modStatus.textContent = `Atmósfera en Tono ${st.current_key} activa`;
+          modStatus.style.color = '#10b981';
+        }
+      }
+      if (slider && st.volume !== undefined) {
+        slider.value = st.volume;
+      }
+      if (volLbl && st.volume !== undefined) {
+        volLbl.textContent = `${Math.round(st.volume * 100)}%`;
+      }
+
+      CHROMATIC_KEYS.forEach(k => {
+        const b = document.getElementById(`pad-key-btn-${k.replace('#', 's')}`);
+        if (b) {
+          if (st.is_active && (k === st.current_key || k === st.target_key)) {
+            b.style.background = k === st.target_key ? '#b45309' : '#0369a1';
+            b.style.borderColor = k === st.target_key ? '#f59e0b' : '#38bdf8';
+            b.style.color = '#fff';
+          } else {
+            b.style.background = '#23252c';
+            b.style.borderColor = 'var(--border-light)';
+            b.style.color = '#cbd5e1';
+          }
+        }
+      });
+    }
+
+    // ------------------------------------------------ Waveform Editor & Marcadores al Vuelo
+    let waveformPeaks = [];
+    let waveformDuration = 0;
+    let waveformSections = [];
+    let draggingMarkerIdx = -1;
+    let pendingDropMarkerSec = 0;
+
+    const SECTION_COLORS = {
+      'intro': '#06b6d4',
+      'verso': '#3b82f6',
+      'pre-coro': '#8b5cf6',
+      'coro': '#f59e0b',
+      'puente': '#ec4899',
+      'solo': '#eab308',
+      'instrumental': '#10b981',
+      'final': '#ef4444',
+      'outro': '#ef4444',
+      'corte': '#f97316'
+    };
+
+    function getSecColor(name) {
+      const low = (name || '').toLowerCase();
+      for (const [k, col] of Object.entries(SECTION_COLORS)) {
+        if (low.includes(k)) return col;
+      }
+      return '#3b82f6';
+    }
+
+    async function loadWaveform(songId) {
+      if (!songId) return;
+      try {
+        const wf = await api(`/api/songs/${encodeURIComponent(songId)}/waveform`);
+        waveformPeaks = wf.peaks || [];
+        waveformDuration = wf.duration || 180;
+        waveformSections = wf.sections || [];
+        const endLbl = document.getElementById('waveform-end-label');
+        if (endLbl) endLbl.textContent = formatTime(waveformDuration);
+        drawWaveform();
+      } catch (e) {
+        waveformPeaks = [];
+        drawWaveform();
+      }
+    }
+
+    function drawWaveform() {
+      const canvas = document.getElementById('waveform-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.clientWidth || 600;
+      const h = canvas.clientHeight || 72;
+      canvas.width = w;
+      canvas.height = h;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#090a0d';
+      ctx.fillRect(0, 0, w, h);
+
+      const dur = Math.max(waveformDuration, 1);
+
+      // 1. Regiones de secciones
+      if (waveformSections && waveformSections.length) {
+        waveformSections.forEach((sec, idx) => {
+          const xStart = (sec.start_time / dur) * w;
+          const nextSec = waveformSections[idx + 1];
+          const xEnd = nextSec ? (nextSec.start_time / dur) * w : (sec.end_time / dur) * w;
+          const col = getSecColor(sec.name);
+
+          ctx.fillStyle = col + '22';
+          ctx.fillRect(xStart, 0, Math.max(1, xEnd - xStart), h);
+
+          ctx.strokeStyle = col;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(xStart, 0);
+          ctx.lineTo(xStart, h);
+          ctx.stroke();
+
+          ctx.fillStyle = col;
+          ctx.fillRect(xStart + 2, 2, Math.min(65, Math.max(15, xEnd - xStart - 4)), 13);
+          ctx.fillStyle = '#000';
+          ctx.font = 'bold 9px monospace';
+          ctx.fillText(sec.name.slice(0, 8), xStart + 4, 11);
+        });
+      }
+
+      // 2. Picos de audio
+      if (waveformPeaks && waveformPeaks.length) {
+        const n = waveformPeaks.length;
+        const barWidth = Math.max(1, w / n);
+        const midY = h / 2;
+
+        ctx.fillStyle = '#38bdf8';
+        for (let i = 0; i < n; i++) {
+          const x = (i / n) * w;
+          const peakVal = waveformPeaks[i];
+          const barH = Math.max(2, peakVal * (h * 0.75));
+          ctx.fillRect(x, midY - barH / 2, barWidth - 0.5, barH);
+        }
+      }
+    }
+
+    function updateWaveformPlayhead(pos) {
+      const ph = document.getElementById('waveform-playhead');
+      if (!ph || waveformDuration <= 0) return;
+      const pct = Math.max(0, Math.min(100, (pos / waveformDuration) * 100));
+      ph.style.left = `${pct}%`;
+    }
+
+    function setupWaveformInteraction() {
+      const box = document.getElementById('waveform-box');
+      if (!box) return;
+      let isDraggingWf = false;
+
+      box.addEventListener('mousedown', (e) => {
+        const rect = box.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const dur = Math.max(waveformDuration, 1);
+        const clickTime = (clickX / rect.width) * dur;
+
+        let foundIdx = -1;
+        waveformSections.forEach((s, idx) => {
+          const markerX = (s.start_time / dur) * rect.width;
+          if (Math.abs(clickX - markerX) < 10) foundIdx = idx;
+        });
+
+        if (foundIdx !== -1) {
+          draggingMarkerIdx = foundIdx;
+          isDraggingWf = true;
+          const hint = document.getElementById('waveform-status-hint');
+          if (hint) hint.textContent = `Moviendo inicio de "${waveformSections[foundIdx].name}"...`;
+        } else {
+          api(`/api/transport/seek?pos=${clickTime}`, { method: 'POST' }).catch(() => {});
+        }
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDraggingWf || draggingMarkerIdx === -1) return;
+        const rect = box.getBoundingClientRect();
+        const moveX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+        const dur = Math.max(waveformDuration, 1);
+        const newTime = Math.max(0, (moveX / rect.width) * dur);
+
+        waveformSections[draggingMarkerIdx].start_time = Math.round(newTime * 10) / 10;
+        const hint = document.getElementById('waveform-status-hint');
+        if (hint) hint.textContent = `"${waveformSections[draggingMarkerIdx].name}" en ${formatTime(newTime)} [Recuerda pulsar GUARDAR]`;
+        drawWaveform();
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDraggingWf) {
+          isDraggingWf = false;
+          draggingMarkerIdx = -1;
+          setTimeout(() => {
+            const hint = document.getElementById('waveform-status-hint');
+            if (hint) hint.textContent = "Haz clic en la onda para saltar o presiona 'M' en vivo para fijar sección";
+          }, 3500);
+        }
+      });
+    }
+
+    function openDropMarkerPrompt() {
+      const timeNow = parseFloat((timeline.value / 100) * (songDuration || waveformDuration || 0));
+      pendingDropMarkerSec = Math.round(timeNow * 10) / 10;
+      const lbl = document.getElementById('marker-target-time-label');
+      if (lbl) lbl.textContent = formatTime(pendingDropMarkerSec) + ` (${pendingDropMarkerSec}s)`;
+      openModal('drop-marker-modal');
+    }
+
+    async function confirmDropMarker(secName) {
+      closeModal('drop-marker-modal');
+      if (!activeSongId) return;
+      try {
+        const res = await api(`/api/songs/${encodeURIComponent(activeSongId)}/drop-marker`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: secName, time: pendingDropMarkerSec })
+        });
+        toast(`Marcador "${secName}" fijado en ${formatTime(pendingDropMarkerSec)}`, 'success', 2500);
+        await loadWaveform(activeSongId);
+        await loadSongSections();
+      } catch (e) {
+        toast(`Error fijando marcador: ${e.message}`, 'error');
+      }
+    }
+
+    async function saveSectionMarkers() {
+      if (!activeSongId || !waveformSections.length) return;
+      try {
+        await api(`/api/songs/${encodeURIComponent(activeSongId)}/sections`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sections: waveformSections })
+        });
+        toast('Secciones musicales guardadas en disco', 'success', 2500);
+        await loadSongSections();
+      } catch (e) {
+        toast(`Error guardando secciones: ${e.message}`, 'error');
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        openDropMarkerPrompt();
+      }
+    });
+
     async function refreshPlayerState() {
       try {
         const status = await api('/api/status');
@@ -2746,9 +3271,15 @@
       await loadStems();
       await loadProjectionSettings();
       await loadDynamicCuesState();
+      await loadAmbientPadState();
+      if (activeSongId) {
+        await loadWaveform(activeSongId);
+      }
     }
 
     window.onload = async () => {
+      initPadKeys();
+      setupWaveformInteraction();
       await loadNetworkInfo();
       await refreshAll();
       connectWS();

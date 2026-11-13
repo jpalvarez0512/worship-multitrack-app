@@ -5,8 +5,9 @@ Subagente responsable: 02-audio-multitrack-engineer
 
 import os
 import wave
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 import numpy as np
+from src.audio.pitch_shifter import GLOBAL_PITCH_SHIFTER
 
 
 class StemTrack:
@@ -52,9 +53,44 @@ class StemTrack:
 
         # Matriz de audio normalizada en float32 con forma (N, 2)
         if audio_data is not None:
-            self.audio_data = self._ensure_stereo_float32(audio_data)
+            self.raw_audio_data = self._ensure_stereo_float32(audio_data)
         else:
-            self.audio_data = np.zeros((0, 2), dtype=np.float32)
+            self.raw_audio_data = np.zeros((0, 2), dtype=np.float32)
+
+        self.audio_data = self.raw_audio_data
+        self.current_transpose: int = 0
+        self._transpose_cache: Dict[int, np.ndarray] = {0: self.raw_audio_data}
+
+    def is_cue_track(self) -> bool:
+        """Determina si la pista es de referencia rítmica o vocal (Click o Guía)."""
+        lower = self.name.lower()
+        return any(
+            cue_word in lower
+            for cue_word in ("click", "clic", "metronomo", "metrónomo", "guia", "guía", "guide", "cue", "count")
+        )
+
+    def transpose(self, semitones: int) -> None:
+        """
+        Transpone la pista en +/- semitonos manteniendo la velocidad idéntica.
+        Las pistas de Click y Guía se omiten intencionalmente para conservar su timbre natural.
+        """
+        if self.is_cue_track() or semitones == self.current_transpose:
+            return
+
+        if semitones == 0:
+            self.audio_data = self.raw_audio_data
+            self.current_transpose = 0
+            return
+
+        if semitones in self._transpose_cache:
+            self.audio_data = self._transpose_cache[semitones]
+            self.current_transpose = semitones
+            return
+
+        shifted = GLOBAL_PITCH_SHIFTER.shift_pitch(self.raw_audio_data, semitones, self.sample_rate)
+        self._transpose_cache[semitones] = shifted
+        self.audio_data = shifted
+        self.current_transpose = semitones
 
     @classmethod
     def load_from_file(

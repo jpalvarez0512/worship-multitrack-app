@@ -12,7 +12,7 @@ import numpy as np
 class PitchShifter:
     """Procesador ultrarrapido de cambio de tono y sintesis granular para audio en vivo."""
 
-    def __init__(self, grain_size: int = 2048):
+    def __init__(self, grain_size: int = 3072):
         self.grain_size = grain_size
         self.half_grain = grain_size // 2
 
@@ -37,7 +37,7 @@ class PitchShifter:
 
         t = np.arange(num_frames, dtype=np.float32)
         abs_t = (start_frame + t).astype(np.float32)
-        rate = ratio - 1.0
+        rate = 1.0 - ratio
         mod1 = (abs_t * rate) % grain_len
         mod2 = (abs_t * rate + half) % grain_len
 

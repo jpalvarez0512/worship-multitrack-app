@@ -1,0 +1,440 @@
+{
+  "cancion_id": "cuan-grande-es-dios",
+  "bpm": 76.0,
+  "compas": "4/4",
+  "tonalidad_base": "G",
+  "eventos": [
+    {
+      "seccion": "Intro",
+      "instancia": 1,
+      "compas_inicio": 1,
+      "tiempo_inicio_ms": 0,
+      "tiempo_fin_ms": 6316,
+      "linea_proyeccion": "[ Instrumental ]",
+      "acordes": [
+        {
+          "cifrado": "Em7",
+          "compas": 1,
+          "pulso": 1,
+          "tiempo_ms": 0,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Intro",
+      "instancia": 1,
+      "compas_inicio": 1,
+      "tiempo_inicio_ms": 6316,
+      "tiempo_fin_ms": 12632,
+      "linea_proyeccion": "[ Instrumental ]",
+      "acordes": [
+        {
+          "cifrado": "D2",
+          "compas": 3,
+          "pulso": 2,
+          "tiempo_ms": 6316,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Verso 1",
+      "instancia": 1,
+      "compas_inicio": 5,
+      "tiempo_inicio_ms": 12632,
+      "tiempo_fin_ms": 21474,
+      "linea_proyeccion": "El esplendor de un Rey, vestido en majestad",
+      "acordes": [
+        {
+          "cifrado": "G",
+          "compas": 5,
+          "pulso": 3,
+          "tiempo_ms": 14210,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "Em7",
+          "compas": 6,
+          "pulso": 3,
+          "tiempo_ms": 17368,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Verso 1",
+      "instancia": 1,
+      "compas_inicio": 5,
+      "tiempo_inicio_ms": 21474,
+      "tiempo_fin_ms": 30316,
+      "linea_proyeccion": "La tierra gozará, la tierra gozará",
+      "acordes": [
+        {
+          "cifrado": "C2",
+          "compas": 9,
+          "pulso": 1,
+          "tiempo_ms": 24474,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "D",
+          "compas": 10,
+          "pulso": 2,
+          "tiempo_ms": 28548,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Verso 1",
+      "instancia": 1,
+      "compas_inicio": 5,
+      "tiempo_inicio_ms": 30316,
+      "tiempo_fin_ms": 39158,
+      "linea_proyeccion": "Cubierto está de luz, venció la oscuridad",
+      "acordes": [
+        {
+          "cifrado": "G",
+          "compas": 11,
+          "pulso": 2,
+          "tiempo_ms": 32368,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "Em7",
+          "compas": 12,
+          "pulso": 4,
+          "tiempo_ms": 36549,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Verso 1",
+      "instancia": 1,
+      "compas_inicio": 5,
+      "tiempo_inicio_ms": 39158,
+      "tiempo_fin_ms": 48000,
+      "linea_proyeccion": "Y tiembla a Su voz, y tiembla a Su voz",
+      "acordes": [
+        {
+          "cifrado": "C2",
+          "compas": 14,
+          "pulso": 3,
+          "tiempo_ms": 42125,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "D",
+          "compas": 15,
+          "pulso": 4,
+          "tiempo_ms": 46080,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Coro",
+      "instancia": 1,
+      "compas_inicio": 16,
+      "tiempo_inicio_ms": 48000,
+      "tiempo_fin_ms": 59000,
+      "linea_proyeccion": "Cuán grande es Dios, cántale: Cuán grande es Dios",
+      "acordes": [
+        {
+          "cifrado": "G",
+          "compas": 16,
+          "pulso": 3,
+          "tiempo_ms": 48947,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "Em7",
+          "compas": 18,
+          "pulso": 3,
+          "tiempo_ms": 54679,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Coro",
+      "instancia": 1,
+      "compas_inicio": 16,
+      "tiempo_inicio_ms": 59000,
+      "tiempo_fin_ms": 70000,
+      "linea_proyeccion": "Y todos lo verán, cuán grande es Dios",
+      "acordes": [
+        {
+          "cifrado": "C",
+          "compas": 20,
+          "pulso": 4,
+          "tiempo_ms": 62368,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "D",
+          "compas": 21,
+          "pulso": 4,
+          "tiempo_ms": 64736,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "G",
+          "compas": 22,
+          "pulso": 3,
+          "tiempo_ms": 67339,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Verso 2",
+      "instancia": 2,
+      "compas_inicio": 23,
+      "tiempo_inicio_ms": 70000,
+      "tiempo_fin_ms": 78947,
+      "linea_proyeccion": "Día a día Él está, y el tiempo está en Él",
+      "acordes": [
+        {
+          "cifrado": "G",
+          "compas": 23,
+          "pulso": 4,
+          "tiempo_ms": 71053,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "Em7",
+          "compas": 25,
+          "pulso": 2,
+          "tiempo_ms": 76157,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Verso 2",
+      "instancia": 2,
+      "compas_inicio": 23,
+      "tiempo_inicio_ms": 78947,
+      "tiempo_fin_ms": 88000,
+      "linea_proyeccion": "Principio y el fin, principio y el fin",
+      "acordes": [
+        {
+          "cifrado": "C2",
+          "compas": 27,
+          "pulso": 1,
+          "tiempo_ms": 82105,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "D",
+          "compas": 28,
+          "pulso": 3,
+          "tiempo_ms": 86053,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Verso 2",
+      "instancia": 2,
+      "compas_inicio": 23,
+      "tiempo_inicio_ms": 88000,
+      "tiempo_fin_ms": 97105,
+      "linea_proyeccion": "La Trinidad en Dios, el Padre, Hijo, Espíritu",
+      "acordes": [
+        {
+          "cifrado": "G",
+          "compas": 29,
+          "pulso": 3,
+          "tiempo_ms": 90000,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "Em7",
+          "compas": 30,
+          "pulso": 4,
+          "tiempo_ms": 93158,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Verso 2",
+      "instancia": 2,
+      "compas_inicio": 23,
+      "tiempo_inicio_ms": 97105,
+      "tiempo_fin_ms": 106000,
+      "linea_proyeccion": "Cordero y el León, Cordero y el León",
+      "acordes": [
+        {
+          "cifrado": "C2",
+          "compas": 32,
+          "pulso": 4,
+          "tiempo_ms": 99763,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "D",
+          "compas": 34,
+          "pulso": 1,
+          "tiempo_ms": 103800,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Coro",
+      "instancia": 2,
+      "compas_inicio": 34,
+      "tiempo_inicio_ms": 106000,
+      "tiempo_fin_ms": 118000,
+      "linea_proyeccion": "Cuán grande es Dios, cántale: Cuán grande es Dios",
+      "acordes": [
+        {
+          "cifrado": "G",
+          "compas": 35,
+          "pulso": 1,
+          "tiempo_ms": 107041,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "Em7",
+          "compas": 37,
+          "pulso": 1,
+          "tiempo_ms": 113286,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Coro",
+      "instancia": 2,
+      "compas_inicio": 34,
+      "tiempo_inicio_ms": 118000,
+      "tiempo_fin_ms": 130000,
+      "linea_proyeccion": "Y todos lo verán, cuán grande es Dios",
+      "acordes": [
+        {
+          "cifrado": "C",
+          "compas": 39,
+          "pulso": 4,
+          "tiempo_ms": 121579,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "D",
+          "compas": 40,
+          "pulso": 3,
+          "tiempo_ms": 124341,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "G",
+          "compas": 41,
+          "pulso": 2,
+          "tiempo_ms": 127105,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Puente",
+      "instancia": 1,
+      "compas_inicio": 42,
+      "tiempo_inicio_ms": 130000,
+      "tiempo_fin_ms": 142368,
+      "linea_proyeccion": "Tu Nombre sobre todo es, digno de alabar",
+      "acordes": [
+        {
+          "cifrado": "G",
+          "compas": 42,
+          "pulso": 3,
+          "tiempo_ms": 130788,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "Em7",
+          "compas": 44,
+          "pulso": 3,
+          "tiempo_ms": 136579,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Puente",
+      "instancia": 1,
+      "compas_inicio": 42,
+      "tiempo_inicio_ms": 142368,
+      "tiempo_fin_ms": 154737,
+      "linea_proyeccion": "Y mi ser cantará: Cuán grande es Dios",
+      "acordes": [
+        {
+          "cifrado": "C",
+          "compas": 46,
+          "pulso": 3,
+          "tiempo_ms": 143684,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "D",
+          "compas": 48,
+          "pulso": 2,
+          "tiempo_ms": 148904,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "G",
+          "compas": 49,
+          "pulso": 2,
+          "tiempo_ms": 151745,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Final",
+      "instancia": 1,
+      "compas_inicio": 50,
+      "tiempo_inicio_ms": 154737,
+      "tiempo_fin_ms": 163421,
+      "linea_proyeccion": "[ Instrumental ]",
+      "acordes": [
+        {
+          "cifrado": "Em7",
+          "compas": 50,
+          "pulso": 2,
+          "tiempo_ms": 154737,
+          "confianza": 0.98
+        }
+      ]
+    },
+    {
+      "seccion": "Final",
+      "instancia": 1,
+      "compas_inicio": 50,
+      "tiempo_inicio_ms": 163421,
+      "tiempo_fin_ms": 172105,
+      "linea_proyeccion": "Cuán grande es Dios",
+      "acordes": [
+        {
+          "cifrado": "D",
+          "compas": 53,
+          "pulso": 3,
+          "tiempo_ms": 165299,
+          "confianza": 0.98
+        },
+        {
+          "cifrado": "G",
+          "compas": 54,
+          "pulso": 4,
+          "tiempo_ms": 169161,
+          "confianza": 0.98
+        }
+      ]
+    }
+  ]
+}

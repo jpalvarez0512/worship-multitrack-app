@@ -148,6 +148,8 @@ class MultitrackEngine:
             self._xfade_active = False
             self._current_frame = 0
             self._current_transpose = 0
+        import gc
+        gc.collect()
 
     def set_transpose(self, semitones: int) -> int:
         """

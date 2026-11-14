@@ -57,9 +57,12 @@ class StemTrack:
         else:
             self.raw_audio_data = np.zeros((0, 2), dtype=np.float32)
 
-        self.audio_data = self.raw_audio_data
         self.current_transpose: int = 0
-        self._transpose_cache: Dict[int, np.ndarray] = {0: self.raw_audio_data}
+
+    @property
+    def audio_data(self) -> np.ndarray:
+        """Retorna la matriz de audio base."""
+        return self.raw_audio_data
 
     def is_cue_track(self) -> bool:
         """Determina si la pista es de referencia rítmica o vocal (Click o Guía)."""
@@ -71,26 +74,13 @@ class StemTrack:
 
     def transpose(self, semitones: int) -> None:
         """
-        Transpone la pista en +/- semitonos manteniendo la velocidad idéntica.
+        Ajusta la transposición de la pista de forma instantánea sin bloquear el CPU ni duplicar memoria.
         Las pistas de Click y Guía se omiten intencionalmente para conservar su timbre natural.
         """
-        if self.is_cue_track() or semitones == self.current_transpose:
-            return
-
-        if semitones == 0:
-            self.audio_data = self.raw_audio_data
+        if self.is_cue_track():
             self.current_transpose = 0
             return
-
-        if semitones in self._transpose_cache:
-            self.audio_data = self._transpose_cache[semitones]
-            self.current_transpose = semitones
-            return
-
-        shifted = GLOBAL_PITCH_SHIFTER.shift_pitch(self.raw_audio_data, semitones, self.sample_rate)
-        self._transpose_cache[semitones] = shifted
-        self.audio_data = shifted
-        self.current_transpose = semitones
+        self.current_transpose = int(semitones)
 
     @classmethod
     def load_from_file(
@@ -245,7 +235,12 @@ class StemTrack:
         dst_start = max(0, -start_frame)
         dst_end = dst_start + (src_end - src_start)
 
-        chunk = self.audio_data[src_start:src_end]
+        if self.current_transpose != 0 and not self.is_cue_track():
+            chunk = GLOBAL_PITCH_SHIFTER.shift_block(
+                self.raw_audio_data, src_start, src_end - src_start, self.current_transpose
+            )
+        else:
+            chunk = self.raw_audio_data[src_start:src_end]
 
         if self.pan == 0.0:
             if gain == 1.0:

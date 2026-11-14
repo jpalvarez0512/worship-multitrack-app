@@ -976,7 +976,8 @@
       <span id="update-badge-pill" style="display:none; background:#1e3a5f; color:#7dd3fc; border:1px solid #0284c7; padding:4px 9px; border-radius:3px; font-size:0.75rem; font-weight:700; cursor:pointer; letter-spacing:0.04em;" title="Hay una nueva versión del software disponible">ACTUALIZACIÓN DISPONIBLE</span>
       <button class="btn btn-warning" onclick="openScenesModal()">SETLISTS</button>
       <button class="btn btn-primary" onclick="openFastDocModal()">+ SUBIR LETRAS</button>
-      <button class="btn btn-success" onclick="openCreateModal()">+ NUEVA CANCIÓN</button>
+      <button class="btn btn-success" onclick="openImportSimpleTextModal()" title="Pegar letra con acordes arriba y auto-alinear">+ AUTO-SINCRONIZAR (.TXT)</button>
+      <button class="btn btn-secondary" onclick="openCreateModal()">+ NUEVA CANCIÓN</button>
       <button class="btn btn-secondary btn-sm" id="btn-pwa-install" style="display:none;" onclick="triggerPWAInstall()">INSTALAR APP</button>
       <div class="lan-badge" id="lan-ip">Conectando...</div>
     </div>
@@ -1046,6 +1047,7 @@
                 <span>FORMA DE ONDA & MARCADORES</span>
               </div>
               <div style="display:flex; gap:5px; align-items:center;">
+                <button class="btn btn-secondary btn-sm" onclick="realignCurrentSong()" title="Auto-alinear letra y acordes con la voz y rejilla musical">AUTO-ALINEAR</button>
                 <button class="btn btn-primary btn-sm" onclick="openDropMarkerPrompt()" title="Fijar marcador en la posición actual [Atajo Tecla M]">MARCAR SECCIÓN [M]</button>
                 <button class="btn btn-secondary btn-sm" onclick="saveSectionMarkers()" title="Guardar ajustes de marcadores en disco">GUARDAR SECCIONES</button>
               </div>
@@ -1057,7 +1059,7 @@
             </div>
             <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.63rem; color:var(--text-dim); margin-top:4px;">
               <span id="waveform-start-label">00:00</span>
-              <span id="waveform-status-hint" style="color:var(--text-muted);">Haz clic en la onda para saltar o presiona 'M' en vivo para fijar sección</span>
+              <span id="waveform-status-hint" style="color:var(--text-muted);">Haz clic en la onda para saltar · 'M' para marcar · Barra espaciadora para Tap-to-Sync</span>
               <span id="waveform-end-label">00:00</span>
             </div>
           </div>
@@ -1238,6 +1240,7 @@
           <div style="display:flex; gap:6px;">
             <button class="btn btn-secondary btn-sm" id="btn-sunday-filter" onclick="toggleSundayFilter()" title="Alternar entre ver toda la biblioteca o solo las canciones del setlist dominical">MODO DOMINGO: TODOS</button>
             <button class="btn btn-primary btn-sm" onclick="openFastDocModal()">+ SUBIR LETRAS</button>
+            <button class="btn btn-success btn-sm" onclick="openImportSimpleTextModal()" title="Pegar letra con acordes arriba y auto-alinear">+ AUTO-SINCRONIZAR (.TXT)</button>
             <button class="btn btn-secondary btn-sm" onclick="refreshLibrary()">ACTUALIZAR</button>
           </div>
         </h2>
@@ -1485,6 +1488,31 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary btn-sm" onclick="closeModal('drop-marker-modal')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4.6: Importar Letra y Acordes Simplificados (.txt) -->
+  <div class="modal-overlay" id="import-simple-text-modal">
+    <div class="modal-card" style="max-width:640px;">
+      <div class="modal-header">
+        <h3 style="font-size:0.95rem; color:#fff;">IMPORTAR LETRA Y ACORDES (FORMATO SIMPLE .TXT)</h3>
+        <button onclick="closeModal('import-simple-text-modal')" style="background:none; border:none; color:#94a3b8; font-size:0.95rem; font-weight:700; cursor:pointer;">X</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
+          Pega la letra con acordes arriba y secciones iniciadas con <strong>#</strong> (ej. <code># Intro</code>, <code># Coro</code>, o compases <code>| G | D |</code>). El sistema alineará la voz y cuantizará los acordes al compás automáticamente.
+        </p>
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <input type="text" id="import-song-id" placeholder="ID de Canción (opcional, ej. santo-por-siempre)" style="flex:1; background:#07080b; color:#fff; border:1px solid #1f222b; border-radius:4px; padding:6px 8px; font-size:0.8rem;">
+          <input type="text" id="import-song-key" placeholder="Tono (ej. G)" style="width:90px; background:#07080b; color:#fff; border:1px solid #1f222b; border-radius:4px; padding:6px 8px; font-size:0.8rem;">
+          <input type="number" id="import-song-bpm" placeholder="BPM" style="width:80px; background:#07080b; color:#fff; border:1px solid #1f222b; border-radius:4px; padding:6px 8px; font-size:0.8rem;">
+        </div>
+        <textarea id="import-simple-text-content" style="width:100%; height:260px; background:#07080b; color:#e2e8f0; border:1px solid #1f222b; border-radius:4px; padding:10px; font-family:var(--font-mono); font-size:0.82rem; resize:vertical;" placeholder="# Intro&#10;| G | D | Em | C |&#10;&#10;# Coro&#10;G         D        Em       C&#10;Santo por siempre, digno de adorar"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('import-simple-text-modal')">Cancelar</button>
+        <button class="btn btn-success btn-sm" id="btn-submit-simple-import" onclick="submitSimpleTextImport()">AUTO-SINCRONIZAR Y GUARDAR</button>
       </div>
     </div>
   </div>
@@ -3245,12 +3273,89 @@
       }
     }
 
+    function openImportSimpleTextModal() {
+      document.getElementById('import-song-id').value = activeSongId || '';
+      document.getElementById('import-song-key').value = '';
+      document.getElementById('import-song-bpm').value = '';
+      document.getElementById('import-simple-text-content').value = '';
+      openModal('import-simple-text-modal');
+    }
+
+    async function submitSimpleTextImport() {
+      const btn = document.getElementById('btn-submit-simple-import');
+      const text = (document.getElementById('import-simple-text-content').value || '').trim();
+      if (!text) {
+        toast('Pega la letra con acordes antes de continuar', 'error');
+        return;
+      }
+      const songId = (document.getElementById('import-song-id').value || '').trim();
+      btn.disabled = true;
+      btn.textContent = 'PROCESANDO Y ALINEANDO...';
+
+      try {
+        const res = await api('/api/songs/import-text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ song_id: songId, text: text })
+        });
+        toast(`Canción "${res.song_id}" sincronizada y compilada con éxito`, 'success', 3000);
+        closeModal('import-simple-text-modal');
+        await refreshAll();
+      } catch (e) {
+        toast(`Error al importar texto: ${e.message}`, 'error');
+      }
+      btn.disabled = false;
+      btn.textContent = 'AUTO-SINCRONIZAR Y GUARDAR';
+    }
+
+    async function realignCurrentSong() {
+      if (!activeSongId) {
+        toast('Selecciona una canción primero', 'error');
+        return;
+      }
+      try {
+        toast('Alineando letra con rejilla rítmica y voz...', 'info', 2000);
+        const res = await api(`/api/songs/${encodeURIComponent(activeSongId)}/realign`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ use_hybrid: true })
+        });
+        toast('Auto-alineación completada con éxito', 'success', 2500);
+        await loadWaveform(activeSongId);
+        await loadSongSections();
+      } catch (e) {
+        toast(`Error en auto-alineación: ${e.message}`, 'error');
+      }
+    }
+
+    async function triggerTapToSync() {
+      if (!activeSongId) return;
+      const timeNow = parseFloat((timeline.value / 100) * (songDuration || waveformDuration || 0));
+      const curSecName = currentSectionName || 'Coro';
+      try {
+        const res = await api(`/api/songs/${encodeURIComponent(activeSongId)}/tap-to-sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ time: timeNow, name: curSecName })
+        });
+        const snapped = res.snapped_time !== undefined ? res.snapped_time : timeNow;
+        toast(`Tap-to-Sync: Marcador ajustado al pulso ${formatTime(snapped)} (${snapped}s)`, 'success', 2000);
+        await loadWaveform(activeSongId);
+        await loadSongSections();
+      } catch (e) {
+        toast(`Error en Tap-to-Sync: ${e.message}`, 'error');
+      }
+    }
+
     window.addEventListener('keydown', (e) => {
       const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
       if (e.key === 'm' || e.key === 'M') {
         e.preventDefault();
         openDropMarkerPrompt();
+      } else if (e.code === 'Space') {
+        e.preventDefault();
+        triggerTapToSync();
       }
     });
 

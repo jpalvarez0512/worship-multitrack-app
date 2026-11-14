@@ -6,6 +6,7 @@ Subagente responsable: 03-network-sync-engineer
 import asyncio
 import json
 import os
+import re
 import sys
 from contextlib import asynccontextmanager
 from typing import List, Optional
@@ -14,7 +15,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
+from src.audio.alignment import AutoAlignmentPipeline
 from src.audio.engine import MultitrackEngine, RoutingMode
+from src.audio.rhythmic_grid import extract_rhythmic_grid_from_audio
 from src.audio.synthetic import (
     generate_click_track,
     generate_guide_cues,
@@ -23,6 +26,7 @@ from src.audio.synthetic import (
 from src.core.chordpro import ChordProParser
 from src.core.projection_config import ProjectionConfigManager
 from src.core.scene_manager import SceneManager
+from src.core.simple_chart_parser import SimpleChartParser
 from src.core.song import Song, SongSection, create_demo_song
 from src.core.song_loader import AUDIO_EXTENSIONS, CHART_EXTENSIONS, SongLoader
 from src.core.waveform import get_song_waveform
@@ -165,14 +169,14 @@ def on_track_finished() -> None:
                 async def do_advance():
                     global active_scene_index
                     active_scene_index = next_index
-                    print(f"🔗 [Auto-Play Subgrupo] Avanzando automáticamente a '{next_entry['song_id']}' (índice {next_index})...")
+                    print(f"[Auto-Play Subgrupo] Avanzando automáticamente a '{next_entry['song_id']}' (índice {next_index})...")
                     _activate_song(next_entry["song_id"], next_entry.get("transpose", 0), from_scene=True)
                     if engine is not None:
                         engine.play()
 
                 asyncio.run_coroutine_threadsafe(do_advance(), main_event_loop)
     except Exception as e:
-        print(f"⚠️ Error en auto-avance de escena: {e}")
+        print(f"[WARN] Error en auto-avance de escena: {e}")
 
 
 @asynccontextmanager
@@ -209,7 +213,7 @@ async def lifespan(app: FastAPI):
                     daemon=True,
                 ).start()
         except Exception as ex:
-            print(f"⚠️ Error cargando canción inicial: {ex}")
+            print(f"[WARN] Error cargando canción inicial: {ex}")
             setup_demo_audio(engine, current_song)
     else:
         setup_demo_audio(engine, current_song)
@@ -226,15 +230,15 @@ async def lifespan(app: FastAPI):
     obs_url = get_connection_url(port, "/obs")
 
     print("\n" + "=" * 64)
-    print("🚀 SERVIDOR DE SINCRONIZACIÓN DE ADORACIÓN ACTIVO")
+    print("SERVIDOR DE SINCRONIZACION DE ADORACION ACTIVO")
     print("=" * 64)
-    print(f"📡 IP Local del PC:            {local_ip}")
-    print(f"🎛 Panel de Control Central:   {get_connection_url(port, '/control')}")
-    print(f"🎸 Pantalla Músicos:           {musician_url}")
-    print(f"📽 Pantalla Proyector / Loops: {projection_url}")
-    print(f"🎥 Letras para OBS Studio:     {obs_url}")
+    print(f"IP Local del PC:            {local_ip}")
+    print(f"Panel de Control Central:   {get_connection_url(port, '/control')}")
+    print(f"Pantalla Musicos:           {musician_url}")
+    print(f"Pantalla Proyector / Loops: {projection_url}")
+    print(f"Letras para OBS Studio:     {obs_url}")
     print("=" * 64)
-    print("📲 Escanea este código QR con tu móvil para abrir la vista de músicos:")
+    print("Escanea este codigo QR con tu movil para abrir la vista de musicos:")
     print_ascii_qr(musician_url)
     print("=" * 64 + "\n")
 
@@ -1113,6 +1117,170 @@ def drop_section_marker_endpoint(song_id: str, payload: dict):
         "status": "marker_dropped",
         "name": name,
         "time": marker_time,
+        "sections": [s.to_dict(active_song_transpose) for s in secs],
+    }
+
+
+# -----------------------------------------------------------------------------
+# Endpoints de Auto-Sincronizacion de Letras y Acordes (Pipeline Procedural)
+# -----------------------------------------------------------------------------
+
+@app.post("/api/songs/import-text")
+def import_text_chart_endpoint(payload: dict):
+    """
+    Importa un archivo o texto plano con acordes sobre letra (.txt),
+    ejecuta el pipeline procedural de auto-sincronizacion y actualiza la biblioteca.
+    """
+    global current_song
+    song_id = str(payload.get("song_id") or "").strip()
+    raw_text = str(payload.get("text") or "").strip()
+    if not raw_text:
+        raise HTTPException(status_code=400, detail="El texto de la cancion no puede estar vacio")
+
+    if not song_id:
+        parsed_preview = SimpleChartParser.parse(raw_text)
+        candidate_id = re.sub(r"[^a-zA-Z0-9_-]", "-", parsed_preview.title.lower()).strip("-")
+        song_id = candidate_id or "cancion-nueva"
+
+    folder_path = os.path.join(TRACKS_DIR, song_id)
+    os.makedirs(folder_path, exist_ok=True)
+
+    txt_file = os.path.join(folder_path, "chart.txt")
+    with open(txt_file, "w", encoding="utf-8") as f:
+        f.write(raw_text)
+
+    compiled_song, timeline = AutoAlignmentPipeline.run(
+        song_id=song_id,
+        folder_path=folder_path,
+        simple_text=raw_text,
+        use_hybrid_legacy=True,
+    )
+
+    if current_song.id == song_id:
+        current_song = compiled_song
+        if engine is not None:
+            engine.set_song_timing(current_song.bpm, current_song.time_signature)
+            engine.set_song_sections(current_song.sections)
+
+    song_loader.scan_songs(force_refresh=True)
+    _notify_song_changed()
+    return {
+        "status": "imported_and_aligned",
+        "song_id": song_id,
+        "song": compiled_song.to_summary_dict(),
+        "timeline": timeline,
+    }
+
+
+@app.post("/api/songs/{song_id}/realign")
+def realign_song_endpoint(song_id: str, payload: Optional[dict] = None):
+    """
+    Vuelve a ejecutar la auto-alineacion procedural sobre una cancion existente.
+    """
+    global current_song
+    folder_path = os.path.join(TRACKS_DIR, song_id)
+    if not os.path.exists(folder_path):
+        raise HTTPException(status_code=404, detail="Cancion no encontrada")
+
+    payload = payload or {}
+    use_hybrid = bool(payload.get("use_hybrid", True))
+
+    compiled_song, timeline = AutoAlignmentPipeline.run(
+        song_id=song_id,
+        folder_path=folder_path,
+        use_hybrid_legacy=use_hybrid,
+    )
+
+    if current_song.id == song_id:
+        current_song = compiled_song
+        if engine is not None:
+            engine.set_song_timing(current_song.bpm, current_song.time_signature)
+            engine.set_song_sections(current_song.sections)
+
+    _notify_song_changed()
+    return {
+        "status": "realigned",
+        "song_id": song_id,
+        "song": compiled_song.to_summary_dict(),
+        "timeline": timeline,
+    }
+
+
+@app.get("/api/songs/{song_id}/timeline")
+def get_song_timeline_endpoint(song_id: str):
+    """
+    Obtiene el esquema de linea de tiempo compilada (timeline.json).
+    """
+    folder_path = os.path.join(TRACKS_DIR, song_id)
+    if not os.path.exists(folder_path):
+        raise HTTPException(status_code=404, detail="Cancion no encontrada")
+
+    timeline_path = os.path.join(folder_path, "timeline.json")
+    if os.path.exists(timeline_path):
+        try:
+            with open(timeline_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+
+    _, timeline = AutoAlignmentPipeline.run(
+        song_id=song_id,
+        folder_path=folder_path,
+        use_hybrid_legacy=True,
+    )
+    return timeline
+
+
+@app.post("/api/songs/{song_id}/tap-to-sync")
+def tap_to_sync_endpoint(song_id: str, payload: dict):
+    """
+    Ajuste fino visual (Tap-to-Sync): recibe un tiempo marcado manualmente y lo
+    atrae magneticamente al pulso musical mas cercano de la rejilla.
+    """
+    global current_song
+    folder_path = os.path.join(TRACKS_DIR, song_id)
+    if not os.path.exists(folder_path):
+        raise HTTPException(status_code=404, detail="Cancion no encontrada")
+
+    raw_time = max(0.0, float(payload.get("time", 0.0)))
+    name = str(payload.get("name") or "Coro").strip()
+
+    click_stem, _, dur = AutoAlignmentPipeline._find_stems(folder_path)
+    grid = extract_rhythmic_grid_from_audio(
+        click_audio=click_stem.raw_audio_data if click_stem else None,
+        declared_bpm=current_song.bpm if current_song.id == song_id else 72.0,
+        total_duration=dur,
+    )
+
+    snapped_time = grid.snap_to_nearest_beat(raw_time, max_tolerance=0.150)
+
+    target_song = current_song if current_song.id == song_id else song_loader._read_song_metadata(folder_path)
+    if not target_song:
+        raise HTTPException(status_code=404, detail="Metadatos no disponibles")
+
+    secs = list(target_song.sections)
+    secs.append(SongSection(name=name, start_time=snapped_time, end_time=snapped_time + 15.0))
+    secs.sort(key=lambda x: x.start_time)
+    for i in range(len(secs) - 1):
+        secs[i].end_time = secs[i + 1].start_time
+    if engine is not None and secs:
+        secs[-1].end_time = max(secs[-1].start_time + 10.0, engine.duration_seconds)
+
+    target_song.sections = secs
+    if current_song.id == song_id and engine is not None:
+        engine.set_song_sections(current_song.sections)
+
+    json_file = os.path.join(folder_path, "song.json")
+    try:
+        ChordProParser.export_to_json(target_song, json_file)
+    except Exception as ex:
+        print(f"[WARN] Error guardando tap-to-sync: {ex}")
+
+    _notify_song_changed()
+    return {
+        "status": "tap_synced",
+        "raw_time": raw_time,
+        "snapped_time": snapped_time,
         "sections": [s.to_dict(active_song_transpose) for s in secs],
     }
 

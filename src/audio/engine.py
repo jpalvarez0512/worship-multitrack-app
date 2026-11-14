@@ -58,6 +58,7 @@ class MultitrackEngine:
         self._stems: Dict[str, StemTrack] = {}
         self._lock = threading.RLock()
         self._stream: Optional[object] = None
+        self._virtual_audio_mode: bool = False
 
         # Buffers preasignados de mezcla en memoria contigua (Zero-Allocation en el callback de audio)
         self._master_mix_buf = np.zeros((self.buffer_size, 2), dtype=np.float32)
@@ -228,14 +229,11 @@ class MultitrackEngine:
 
     def play(self) -> None:
         """Inicia la reproducción sincronizada de todos los stems."""
-        if sd is None:
-            raise RuntimeError("sounddevice no está instalado. Instálalo con pip install sounddevice.")
-
         with self._lock:
             if self._is_playing:
                 return
             if not self._stems:
-                return
+                raise RuntimeError("No hay pistas de audio ni stems cargados. Selecciona o carga una canción primero.")
 
         self._ensure_stream_open()
 
@@ -546,8 +544,28 @@ class MultitrackEngine:
     # --------------------------------------------------------------------------
 
     def _ensure_stream_open(self) -> None:
-        """Inicializa el flujo de salida de sounddevice si no está activo."""
-        if self._stream is None or not self._stream.active:
+        """Inicializa el flujo de salida de sounddevice si no está activo o activa reloj virtual si no hay tarjeta."""
+        if sd is None:
+            self._stream = None
+            self._virtual_audio_mode = True
+            return
+
+        if self._stream is not None:
+            if getattr(self._stream, "active", False):
+                self._virtual_audio_mode = False
+                return
+            try:
+                self._stream.start()
+                self._virtual_audio_mode = False
+                return
+            except Exception:
+                try:
+                    self._stream.close()
+                except Exception:
+                    pass
+                self._stream = None
+
+        try:
             self._stream = sd.OutputStream(
                 samplerate=self.sample_rate,
                 blocksize=self.buffer_size,
@@ -557,6 +575,12 @@ class MultitrackEngine:
                 callback=self._audio_callback,
             )
             self._stream.start()
+            self._virtual_audio_mode = False
+        except Exception as ex:
+            # Fallback a reloj virtual si no hay tarjeta de sonido conectada (ej. PC remota en AnyDesk)
+            print(f"[WARN] No se pudo abrir la tarjeta de sonido ({ex}). Funcionando en modo reloj sincronizado virtual.")
+            self._stream = None
+            self._virtual_audio_mode = True
 
     def _audio_callback(self, outdata: np.ndarray, frames: int, time_info, status) -> None:
         """
@@ -854,9 +878,13 @@ class MultitrackEngine:
     def _start_ticker(self) -> None:
         """Inicia el temporizador de emisión de posición."""
         self._stop_ticker_event.clear()
-        if self._ticker_thread is None or not self._ticker_thread.is_alive():
-            self._ticker_thread = threading.Thread(target=self._ticker_loop, daemon=True)
-            self._ticker_thread.start()
+        if self._ticker_thread and self._ticker_thread.is_alive():
+            try:
+                self._ticker_thread.join(timeout=0.1)
+            except Exception:
+                pass
+        self._ticker_thread = threading.Thread(target=self._ticker_loop, daemon=True)
+        self._ticker_thread.start()
 
     def _stop_ticker(self) -> None:
         """Detiene el hilo ticker."""
@@ -864,7 +892,20 @@ class MultitrackEngine:
 
     def _ticker_loop(self) -> None:
         """Bucle periódico a ~22 Hz (cada 45 ms) para sincronizar red sin sobrecargar el CPU."""
+        last_t = time.perf_counter()
         while not self._stop_ticker_event.is_set() and self._is_playing:
+            now = time.perf_counter()
+            dt = now - last_t
+            last_t = now
+
+            if getattr(self, "_virtual_audio_mode", False):
+                with self._lock:
+                    self._current_frame += int(dt * self.sample_rate)
+                    tot = self.total_frames
+                    if tot > 0 and self._current_frame >= tot:
+                        self._is_playing = False
+                        self._notify_track_finished()
+
             self._notify_tick()
             time.sleep(0.045)
 

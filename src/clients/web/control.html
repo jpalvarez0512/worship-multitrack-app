@@ -1724,12 +1724,14 @@
     }
 
     async function switchSong(songId) {
-      toast('Cargando canción...', 'info', 1500);
+      toast('Cargando canción y pistas multitrack...', 'info', 2000);
       try {
-        await api(`/api/songs/${encodeURIComponent(songId)}/load`, { method: 'POST' });
-        toast('Canción cargada', 'success');
+        const res = await api(`/api/songs/${encodeURIComponent(songId)}/load`, { method: 'POST' });
+        toast('Canción cargada correctamente', 'success', 2000);
         await refreshAll();
-      } catch (e) { toast(e.message, 'error'); }
+      } catch (e) {
+        toast(`Error cargando canción: ${e.message}`, 'error', 4000);
+      }
     }
 
     async function deleteSong(songId, title) {
@@ -1743,7 +1745,14 @@
 
     // ------------------------------------------------ Transporte
     async function controlTransport(act) {
-      try { await api(`/api/transport/${act}`, { method: 'POST' }); } catch (e) {}
+      try {
+        const res = await api(`/api/transport/${act}`, { method: 'POST' });
+        if (act === 'play' && res && res.virtual_mode) {
+          toast('Modo Reloj Virtual Activo (Sin tarjeta de sonido física)', 'info', 3000);
+        }
+      } catch (e) {
+        toast(`Error en transporte (${act}): ${e.message}`, 'error', 4000);
+      }
     }
     const timeline = document.getElementById('timeline');
     timeline.addEventListener('input', () => {

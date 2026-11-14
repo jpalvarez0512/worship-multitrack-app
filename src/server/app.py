@@ -737,7 +737,11 @@ def transport_play():
         engine.play()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    return {"status": "playing", "pos": engine.current_position_seconds}
+    return {
+        "status": "playing",
+        "pos": engine.current_position_seconds,
+        "virtual_mode": getattr(engine, "_virtual_audio_mode", False),
+    }
 
 
 @app.post("/api/transport/pause")
